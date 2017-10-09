@@ -1,32 +1,23 @@
-window.fetchPackages = function(page, search, orderBy) {
+window.fetchPackages = function(page, search, orderBy, order, itemPerPage) {
 
 	page   			= page || 1;
 	search 			= search || $("body").find("input#melis_market_place_search_input").val();
 	orderBy  		= orderBy || 'mp_title';
 
-	var itemPerPage = 8;
-	var order       = 'asc';
-	var url			= $("div#id_melis_market_place_tool_display").data().melispackagistserver;
+	var order       = order || 'asc';
+    var itemPerPage = itemPerPage || 8;
 
-	var getPackagesUrl = url + "/get-packages/page/"+
-		page+"/search/"+search+"/item_per_page/"+itemPerPage+"/order/"+order+"/order_by/"+orderBy;
+	$.ajax(
+	{
+		type: 'POST',
+		url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page="+page+"&search="+search+"&orderBy="+orderBy,
+		data: {page: page, search : search, orderBy : orderBy, order : order, itemPerPage : itemPerPage},
+		dataType: "html",
+		success: function(data) {
+			$("body").find("div#melis-market-place-package-list").html(data);
+		},
+	});
 
-
-    $.get(getPackagesUrl, function(data) {
-        // do another call to get the display
-		var response = data;
-
-        $.ajax(
-		{
-			type: 'POST',
-			url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list",
-			data: response,
-			dataType: "html",
-			success: function(data) {
-                $("body").find("div#melis-market-place-package-list").html(data);
-			},
-		});
-    });
 
 }
 

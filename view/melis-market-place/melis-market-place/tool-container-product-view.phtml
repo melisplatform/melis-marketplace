@@ -129,24 +129,31 @@ if (!empty($this->zoneconfig['conf']['id']))
                         <hr class="hr">
 
                         <h5<?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
-                        <div id="market-place-most-downloaded-package-list"></div>
-                        <script type="text/javascript">
-                            $.get("<?= $this->melisPackagistServer; ?>/get-most-downloaded-packages", function(data) {
-                                // do another call to get the display
-                                var response = data;
-
-                                $.ajax(
-                                    {
-                                        type: 'POST',
-                                        url: "/melis/MelisMarketPlace/MelisMarketPlace/get-most-package-downloads",
-                                        data: response,
-                                        dataType: "html",
-                                        success: function(data) {
-                                            $("body").find("div#market-place-most-downloaded-package-list").html(data);
-                                        },
-                                    });
-                            });
-                        </script>
+                        <div id="market-place-most-downloaded-package-list">
+                            <ul class="simple-post-list">
+                                <?php
+                                if(isset($this->packages['packages']) && $this->packages['packages']) {
+                                    foreach($this->packages['packages'] as $package) { ?>
+                                        <li>
+                                            <div class="post-image">
+                                                <div class="img-thumbnail">
+                                                    <a href="#">
+                                                        <img alt="" width="60" height="60" class="img-responsive" src="/MelisMarketPlace/images/related-ecommerce.jpg">
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="post-info">
+                                                <a href="#"><?= $package['packageTitle']; ?></a>
+                                                <p><?= $this->translate('tr_market_place_total_downloads').': '.number_format($package['packageTotalDownloads']); ?></p>
+                                                <div class="post-meta"></div>
+                                            </div>
+                                        </li>
+                                        <?php
+                                    }
+                                }
+                                ?>
+                            </ul>
+                        </div>
 
                     </aside>
                 </div>
