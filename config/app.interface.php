@@ -49,7 +49,7 @@ return array(
                 )
             ),
             'datas' => array(
-                'melis_packagist_server' => 'http://www.market-place-server.dev/melis-packagist'
+                'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist'
             ),
             'interface' => array(
                 'melis_market_place_tool_display' => array(
