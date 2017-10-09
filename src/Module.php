@@ -61,7 +61,7 @@ class Module
         if (!empty($locale)){
 
             $interfaceTransPath = 'module/MelisModuleConfig/language/MelisMarketPlace/' . $locale . '.interface.php';
-            $default = __DIR__ . '/language/en_EN.interface.php';
+            $default = __DIR__ . '/../language/en_EN.interface.php';
             $transPath = (file_exists($interfaceTransPath))? $interfaceTransPath : $default;
             $translator->addTranslationFile('phparray', $transPath);
         }
