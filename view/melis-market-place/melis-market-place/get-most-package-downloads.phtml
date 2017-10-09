@@ -1,0 +1,23 @@
+<ul class="simple-post-list">
+    <?php
+    if($this->packages) {
+        foreach($this->packages as $package) { ?>
+            <li>
+                <div class="post-image">
+                    <div class="img-thumbnail">
+                        <a href="#">
+                            <img alt="" width="60" height="60" class="img-responsive" src="/MelisMarketPlace/images/related-ecommerce.jpg">
+                        </a>
+                    </div>
+                </div>
+                <div class="post-info">
+                    <a href="#"><?= $package['packageTitle']; ?></a>
+                    <p><?= $this->translate('tr_market_place_total_downloads').': '.number_format($package['packageTotalDownloads']); ?></p>
+                    <div class="post-meta"></div>
+                </div>
+            </li>
+            <?php
+        }
+    }
+    ?>
+</ul>

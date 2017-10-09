@@ -1,0 +1,92 @@
+<?php
+$packages = $this->packages;
+$pagination = $this->pagination;
+?>
+    <?php if($packages) {
+    echo '<ul class="products product-thumb-info-list clearfix">';
+        foreach($packages as $package) { ?>
+        <li class="col-sm-6 col-md-6 col-lg-3">
+            <div class="product">
+                <a href="#">
+                    <span class="onsale hidden"></span>
+                </a>
+                <div class="product-thumb">
+                    <img alt="" class="img-responsive" src="/MelisMarketPlace/images/module-design.jpg">
+                    <div class="product-action">
+                        <a id="melis-market-place-view-details" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><span>
+                            <i class="icon icon-visual-eye-fill"></i></span></a>
+                    </div>
+                </div>
+                <div class="product-thumb-info">
+                    <div class="product-thumb-info-content">
+                        <a href="#">
+                            <h4 class="product-name"><a href="#"><?= $package['packageTitle']; ?></a></h4>
+                            <span class="price hidden">
+                                                <span class="amount old"></span>
+                                                <span class="amount current"></span>
+                                            </span>
+                        </a>
+                        <a href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
+                           target="_blank"><i
+                                    class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        <?php
+        }
+    echo '</ul>';
+    }
+    else {
+        echo '<h3>'. $this->translate('tr_market_place_search_ko') . '</h3>';
+    }
+    ?>
+<div class="row">
+    <div class="col-md-12 text-center">
+        <?php if($pagination): ?>
+            <ul class="pagination">
+
+                <!-- Previous page link -->
+                <?php if($pagination['previous']['enabled'] == 'true'): ?>
+                    <li><a href="#" class="melis-market-place-pagination" data-goto-page="<?= $pagination['previous']['page']; ?>"><i class="icon icon-chevron-left"></i></a>
+                    </li>
+                <?php else: ?>
+                    <li class="disabled">
+                        <a href="#">
+                            <i class="icon icon-chevron-left"></i>
+                        </a>
+                    </li>
+                <?php endif; ?>
+
+
+                <?php
+                foreach($pagination['pages'] as $page) {
+                    $active = '';
+                    $link   = '<a href="#" class="melis-market-place-pagination" data-goto-page="'.$page['page'].'">'.$page['page'].'</a>';
+
+                    if($page['current'] == 'true' || $page['current'] == 1) {
+                        $active = ' class="active"';
+                        $link   = '<a>'.$page['page'].'</a>';
+                    }
+                    echo '<li'.$active.'>'.$link.'</li>'.PHP_EOL;
+                }
+                ?>
+
+                <!-- Next page link -->
+                <?php if($pagination['next']['enabled'] == 'true'): ?>
+                    <li><a href="#" class="melis-market-place-pagination" data-goto-page="<?= $pagination['next']['page']; ?>"><i class="icon icon-chevron-right"></i></a>
+                    </li>
+                <?php else: ?>
+                    <li class="disabled">
+                        <a href="#">
+                            <i class="icon icon-chevron-right"></i>
+                        </a>
+                    </li>
+                <?php endif; ?>
+
+            </ul>
+        <?php endif; ?>
+    </div>
+</div>

@@ -1,0 +1,159 @@
+<?php
+$id = '';
+if (!empty($this->zoneconfig['conf']['id']))
+    $id = $this->zoneconfig['conf']['id'];
+
+
+?>
+<div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId .'_' . $id; ?>" class="tab-pane container-level-a">
+    <div class="innerAll spacing-x2">
+        <div class="melis-store">
+            <div class="row">
+                <div class="col-md-9">
+					<div class="row">
+                        <div class="col-md-12">
+                            <div class="product-summary entry-summary">
+                                <h2 class="module-title"><?= $this->package['packageTitle']; ?></h2>
+                                <hr>
+                            </div>
+                        </div>
+						<div class="col-md-12">
+							<div class="slider slider-single">
+								<div>
+									<img class="img-responsive" src="/MelisMarketPlace/images/module-design-big.jpg" alt="">
+								</div>
+								<div>
+									<img class="img-responsive" src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
+								</div>
+								<div>
+									<img class="img-responsive" src="/MelisMarketPlace/images/module-calendar-big.jpg" alt="">
+								</div>
+								<div>
+									<img class="img-responsive" src="/MelisMarketPlace/images/module-design-portfolio-big.jpg" alt="">
+								</div>
+								<div>
+									<img class="img-responsive" src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
+								</div>
+							</div>
+							<div class="slider slider-nav">
+								<div>
+									<img src="/MelisMarketPlace/images/module-design-big.jpg" alt="">
+								</div>
+								<div>
+									<img src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
+								</div>
+								<div>
+									<img src="/MelisMarketPlace/images/module-calendar-big.jpg" alt="">
+								</div>
+								<div>
+									<img src="/MelisMarketPlace/images/module-design-portfolio-big.jpg" alt="">
+								</div>
+								<div>
+									<img src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Tabs -->
+	        <div class="widget widget-tabs">
+	            <div class="widget-head">
+	                <ul>
+	                    <li class="active"><a href="#description" data-toggle="tab">Description</a>
+	                    </li>
+	                    <li><a href="#additionalInfo" data-toggle="tab">Additional Information</a>
+	                    </li>
+	                </ul>
+	            </div>
+
+	            <div class="innerAll">
+	                <div class="tab-content">
+	                    <div class="tab-pane" id="description">
+								<p><?= $this->package['packageDescription']; ?></p>
+	                    </div>
+	                    <div class="tab-pane" id="additionalInfo">
+							<table class="table table-striped push-top">
+							    <tbody>
+							        <tr>
+							            <th>
+							                <i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:
+							            </th>
+							            <td>
+                                            <a href="<?= $this->package['packageRepository']; ?>" target="_blank"><?= $this->package['packageRepository']; ?></a>
+							            </td>
+							        </tr>
+							        <tr>
+							            <th>
+                                            <?= $this->translate('tr_market_place_packagist'); ?>:
+							            </th>
+							            <td>
+                                            <a href="<?= $this->package['packageUrl']; ?>" target="_blank"><?= $this->package['packageUrl']; ?></a>
+							            </td>
+							        </tr>
+							        <tr>
+							            <th>
+                                            <?= $this->translate('tr_market_place_package_name'); ?>:
+							            </th>
+							            <td>
+                                            <?= $this->package['packageName']; ?>
+							            </td>
+							        </tr>
+                                    <tr>
+                                        <th>
+                                            <?= $this->translate('tr_market_place_total_downloads'); ?>:
+                                        </th>
+                                        <td>
+                                            <?= number_format($this->package['packageTotalDownloads']); ?>
+                                        </td>
+                                    </tr>
+							    </tbody>
+							</table>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+
+			<hr>
+
+                </div>
+                <div class="col-md-3">
+                    <aside class="market-sidebar">
+
+                        <h5><?= $this->translate('tr_market_place_tags'); ?></h5>
+
+                        <a href="#"><span class="label label-dark">SEO</span></a>
+                        <a href="#"><span class="label label-dark">eCommerce</span></a>
+                        <a href="#"><span class="label label-dark">CRM</span></a>
+                        <a href="#"><span class="label label-dark">CMS</span></a>
+
+                        <hr class="hr">
+
+                        <h5<?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
+                        <div id="market-place-most-downloaded-package-list"></div>
+                        <script type="text/javascript">
+                            $.get("<?= $this->melisPackagistServer; ?>/get-most-downloaded-packages", function(data) {
+                                // do another call to get the display
+                                var response = data;
+
+                                $.ajax(
+                                    {
+                                        type: 'POST',
+                                        url: "/melis/MelisMarketPlace/MelisMarketPlace/get-most-package-downloads",
+                                        data: response,
+                                        dataType: "html",
+                                        success: function(data) {
+                                            $("body").find("div#market-place-most-downloaded-package-list").html(data);
+                                        },
+                                    });
+                            });
+                        </script>
+
+                    </aside>
+                </div>
+            </div>    
+        </div>
+    </div>
+
+
+    
+</div>
