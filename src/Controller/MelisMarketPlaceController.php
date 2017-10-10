@@ -175,7 +175,7 @@ class MelisMarketPlaceController extends AbstractActionController
     {
         $env    = getenv('MELIS_PLATFORM') ?: 'default';
         $config = $this->getServiceLocator()->get('MelisCoreConfig');
-        $server = $config->getItem('melis_market_place_tool_config/datas/'.$env.'/')['melis_packagist_server'];
+        $server = $config->getItem('melis_market_place_tool_config/datas/')['melis_packagist_server'];
 
         if($server)
             return $server;
