@@ -108,16 +108,17 @@ if (!empty($this->zoneconfig['conf']['id']))
                 <div class="col-md-3">
                     <aside class="market-sidebar">
 
-                        <h5><?= $this->translate('tr_market_place_tags'); ?></h5>
+                        <div class="melis-marketplace-tags hidden">
+                            <h5><?= $this->translate('tr_market_place_tags'); ?></h5>
+                            <a href="#"><span class="label label-dark">SEO</span></a>
+                            <a href="#"><span class="label label-dark">eCommerce</span></a>
+                            <a href="#"><span class="label label-dark">CRM</span></a>
+                            <a href="#"><span class="label label-dark">CMS</span></a>
+                            <hr class="hr">
+                        </div>
 
-                        <a href="#"><span class="label label-dark">SEO</span></a>
-                        <a href="#"><span class="label label-dark">eCommerce</span></a>
-                        <a href="#"><span class="label label-dark">CRM</span></a>
-                        <a href="#"><span class="label label-dark">CMS</span></a>
 
-                        <hr class="hr">
-
-                        <h5<?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
+                        <h5><?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
                         <div id="market-place-most-downloaded-package-list">
                             <ul class="simple-post-list">
                                 <?php

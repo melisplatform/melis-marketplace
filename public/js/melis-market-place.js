@@ -51,7 +51,7 @@ $(function() {
 		var packageId    = $(this).data().packageid;
 		var packageTitle = $(this).data().packagetitle;
 
-        melisHelper.tabOpen(packageTitle + " | " + translations.tr_market_place, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId});
+        melisHelper.tabOpen(packageTitle + " | " + translations.tr_market_place, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display");
 
 
 	});
@@ -144,14 +144,14 @@ function initSlick() {
 	 });
 	 */
 
-	 $('.slider-single').slick({
+	 $("#"+activeTabId + ' .slider-single').slick({
 	  slidesToShow: 1,
 	  slidesToScroll: 1,
 	  arrows: true,
 	  fade: true,
 	  asNavFor: '.slider-nav'
 	});
-	$('.slider-nav').slick({
+	$("#"+activeTabId + ' .slider-nav').slick({
 	  slidesToShow: 4,
 	  slidesToScroll: 1,
 	  asNavFor: '.slider-single',
