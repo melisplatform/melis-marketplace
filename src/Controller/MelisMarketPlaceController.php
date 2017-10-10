@@ -27,28 +27,18 @@ class MelisMarketPlaceController extends AbstractActionController
         $factory->setFormElementManager($formElements);
         $searchForm   = $factory->createForm($searchForm);
 
+        set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
         $view = new ViewModel();
 
         $view->melisKey             = $melisKey;
-        $view->melisPackagistServer = $this->getMelisPackagistServer();
+        $view->melisPackagistServer = $url;
         $view->packages             = $packages;
         $view->setVariable('searchForm', $searchForm);
 
         return $view;
-    }
-
-    public function testerAction()
-    {
-        echo 'test';
-        $data = file_get_contents('http://marketplace.melisplatform.com/melis-packagist/get-packages/page/1/search//item_per_page/8/order/asc/order_by/mp_title');
-        $data = (array) json_decode($data);
-        print '<pre>';
-        print_r($data);
-        print '</pre>';
-        die;
     }
 
     /**
@@ -61,10 +51,11 @@ class MelisMarketPlaceController extends AbstractActionController
         $melisKey  = $this->getMelisKey();
         $packageId = (int) $this->params()->fromQuery('packageId', null);
 
-
+        set_time_limit(0);
         $response = file_get_contents($url.'/get-package/'.$packageId);
-        $package  = (array) json_decode($response);
+        $package  = Json::decode($response, Json::TYPE_ARRAY);
 
+        set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
@@ -96,15 +87,43 @@ class MelisMarketPlaceController extends AbstractActionController
             $post = get_object_vars($this->getRequest()->getPost());
 
             $page        = isset($post['page'])        ? (int) $post['page']        : 1;
-            $search      = isset($post['search'])      ? $post['search']            :  '';
+            $search      = isset($post['search'])      ? $post['search']            : '';
             $orderBy     = isset($post['orderBy'])     ? $post['orderBy']           : 'mp_title';
             $order       = isset($post['order'])       ? $post['order']             : 'asc';
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
 
+            set_time_limit(0);
             $serverPackages = file_get_contents($this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
-                .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy);
+                .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1');
 
-            $serverPackages    = Json::decode($serverPackages, Json::TYPE_ARRAY);
+            $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
+            $tmpPackages    = empty($serverPackages['packages']) ?: $serverPackages['packages'];
+
+            if($tmpPackages) {
+                // check if the module is installed
+                $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
+                $installedModules = array_map(function($a) {
+                    return trim(strtolower($a));
+                }, $installedModules);
+
+
+                // rewrite array, add installed status
+                foreach($serverPackages['packages'] as $idx => $package) {
+
+                    // to make sure it will match
+                    $packageName = trim(strtolower($package['packageModuleName']));
+
+                    if(in_array($packageName, $installedModules)) {
+                        $tmpPackages[$idx]['installed'] = true;
+                    }
+                    else {
+                        $tmpPackages[$idx]['installed'] = false;
+                    }
+                }
+                $serverPackages['packages'] = $tmpPackages;
+            }
+
+
             $packages          = isset($serverPackages['packages'])          ? $serverPackages['packages']          : null;
             $itemCountPerPage  = isset($serverPackages['itemCountPerPage'])  ? $serverPackages['itemCountPerPage']  : null;
             $pageCount         = isset($serverPackages['pageCount'])         ? $serverPackages['pageCount']         : null;
@@ -123,21 +142,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
     }
 
-    public function getMostPackageDownloadsAction()
-    {
-        $packages = array();
 
-        if($this->getRequest()->isPost()) {
-
-            $post     = get_object_vars($this->getRequest()->getPost());
-            $packages = isset($post['packages']) ? $post['packages'] : null;
-
-        }
-
-        return new ViewModel(array(
-            'packages' => $packages,
-        ));
-    }
 
     /**
      * MelisMarketPlace/src/MelisMarketPlace/Controller/MelisMarketPlaceController.php
@@ -168,8 +173,9 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     private function getMelisPackagistServer()
     {
+        $env    = getenv('MELIS_PLATFORM') ?: 'default';
         $config = $this->getServiceLocator()->get('MelisCoreConfig');
-        $server = $config->getItem('melis_market_place_tool_config/datas/')['melis_packagist_server'];
+        $server = $config->getItem('melis_market_place_tool_config/datas/'.$env.'/')['melis_packagist_server'];
 
         if($server)
             return $server;

@@ -61,7 +61,10 @@ $form = $this->searchForm;
                                             <div class="post-image">
                                                 <div class="img-thumbnail">
                                                     <a href="#">
-                                                        <img alt="" width="60" height="60" class="img-responsive" src="/MelisMarketPlace/images/related-ecommerce.jpg">
+                                                        <?php
+                                                        $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                                                        ?>
+                                                        <img alt="" width="60" height="60" class="img-responsive" src="<?= $packageImage; ?>">
                                                     </a>
                                                 </div>
                                             </div>

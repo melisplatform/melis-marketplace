@@ -19,6 +19,7 @@ return array(
     'tr_market_place_github' => 'Github',
     'tr_market_place_packagist' => 'Packagist',
     'tr_market_place_package_name' => ' Package name',
+    'tr_market_place_package_installed' => ' Installed',
 
 
 

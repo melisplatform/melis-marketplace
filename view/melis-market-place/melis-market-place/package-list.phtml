@@ -11,7 +11,10 @@ $pagination = $this->pagination;
                     <span class="onsale hidden"></span>
                 </a>
                 <div class="product-thumb">
-                    <img alt="" class="img-responsive" src="/MelisMarketPlace/images/module-design.jpg">
+                    <?php
+                    $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                    ?>
+                    <img alt="" class="img-responsive" src="<?= $packageImage; ?>" height="200" width="310">
                     <div class="product-action">
                         <a id="melis-market-place-view-details" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><span>
                             <i class="icon icon-visual-eye-fill"></i></span></a>
@@ -27,9 +30,15 @@ $pagination = $this->pagination;
                                             </span>
                         </a>
                         <a href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
-                           target="_blank"><i
-                                    class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
+                           target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                         </a>
+                        <span class="text-center">
+                            <?php
+                            if((bool) $package['installed']) {
+                                echo '<p class="text-success"><i class="fa fa-check-circle"></i> '.$this->translate('tr_market_place_package_installed').'</p>';
+                            }
+                            ?>
+                        </span>
                     </div>
                 </div>
             </div>

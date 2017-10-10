@@ -19,38 +19,27 @@ if (!empty($this->zoneconfig['conf']['id']))
                         </div>
 						<div class="col-md-12">
 							<div class="slider slider-single">
-								<div>
-									<img class="img-responsive" src="/MelisMarketPlace/images/module-design-big.jpg" alt="">
-								</div>
-								<div>
-									<img class="img-responsive" src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
-								</div>
-								<div>
-									<img class="img-responsive" src="/MelisMarketPlace/images/module-calendar-big.jpg" alt="">
-								</div>
-								<div>
-									<img class="img-responsive" src="/MelisMarketPlace/images/module-design-portfolio-big.jpg" alt="">
-								</div>
-								<div>
-									<img class="img-responsive" src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
-								</div>
+                                <?php foreach($this->package['packageImages'] as $images) {
+                                    $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                                ?>
+                                    <div>
+                                        <img class="img-responsive" src="<?= $image; ?>"
+                                             alt="">
+                                    </div>
+                                <?php
+                                }
+                                ?>
 							</div>
 							<div class="slider slider-nav">
+                                <?php foreach($this->package['packageImages'] as $images) {
+                                $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                                ?>
 								<div>
-									<img src="/MelisMarketPlace/images/module-design-big.jpg" alt="">
+									<img src="<?= $image; ?>" alt="">
 								</div>
-								<div>
-									<img src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
-								</div>
-								<div>
-									<img src="/MelisMarketPlace/images/module-calendar-big.jpg" alt="">
-								</div>
-								<div>
-									<img src="/MelisMarketPlace/images/module-design-portfolio-big.jpg" alt="">
-								</div>
-								<div>
-									<img src="/MelisMarketPlace/images/module-commerce-big.jpg" alt="">
-								</div>
+                                <?php
+                                }
+                                ?>
 							</div>
 						</div>
 					</div>
@@ -138,7 +127,10 @@ if (!empty($this->zoneconfig['conf']['id']))
                                             <div class="post-image">
                                                 <div class="img-thumbnail">
                                                     <a href="#">
-                                                        <img alt="" width="60" height="60" class="img-responsive" src="/MelisMarketPlace/images/related-ecommerce.jpg">
+                                                        <?php
+                                                        $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                                                        ?>
+                                                        <img alt="" width="60" height="60" class="img-responsive" src="<?= $packageImage; ?>">
                                                     </a>
                                                 </div>
                                             </div>
