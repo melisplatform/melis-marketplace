@@ -41,6 +41,7 @@
 .slick-slider .slick-track,
 .slick-slider .slick-list
 {
+    height: 600px;
     -webkit-transform: translate3d(0, 0, 0);
        -moz-transform: translate3d(0, 0, 0);
         -ms-transform: translate3d(0, 0, 0);
@@ -87,6 +88,9 @@
 .slick-slide img
 {
     display: block;
+    margin: 0 auto;
+    width: auto;
+    height: 100%;
 }
 .slick-slide.slick-loading img
 {
@@ -119,6 +123,9 @@
 
 .slider-single {
 	margin-bottom: 10px;
+    height: 600px;
+    background: rgba(144, 49, 46, 0.6);
+    overflow: hidden;
 }
 
 .slider-single:hover .slick-arrow {
@@ -127,15 +134,18 @@
 
 .slider-nav {
 	margin-bottom: 30px;
+    height: 105px;
 }
 
 .slider-nav .slick-track .slick-slide {
 	position: relative;
 	cursor: pointer;
+    height: 105px;
 	color: #fff;
 	text-align: center;
     background: #932e2a;
     opacity: 0.4;
+    overflow: hidden;
     -webkit-transition: all 0.3s ease-in;
     -moz-transition: all 0.3s ease-in;
     -ms-transition: all 0.3s ease-in;
@@ -493,6 +503,10 @@
 	box-shadow: 0 0 8px #da4842;
 }
 
+.melis-store .product:hover .product-name a {
+    color: #932e2a;
+}
+
 .melis-store .product img {
     -webkit-transition: all 0.3s ease-in;
     -moz-transition: all 0.3s ease-in;
@@ -508,7 +522,7 @@
 }
 
 .melis-store .product-thumb-info-list {
-    margin: 25px -15px;
+    margin: 0 -15px 25px;
 }
 
 .melis-store .product-thumb-info-list li {
@@ -519,6 +533,16 @@
 
 .melis-store .product-thumb-info-content {
 	text-align: center;
+}
+.melis-store .product-thumb-info-content .installed {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.melis-store .product-thumb-info-content .installed .fa {
+    margin-right: 1px;
 }
 
 .melis-store .product-thumb-info-list .onsale {
@@ -575,11 +599,23 @@
     margin-right: 15px;
 }
 
+.melis-store .post-info a {
+    color: #90312e;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
 .melis-store .post-image .img-thumbnail {
+    display: block;
 	padding: 0;
-	width: 60px;
-	height: 60px;
-	background: #eee;
+    width: 60px;
+    height: 60px;
+    background: #eee;
+    overflow: hidden;
+}
+.melis-store .post-image .img-thumbnail img {
+    width: auto;
+    height: 100%;
 }
 
 .melis-store .post-meta {
@@ -590,6 +626,7 @@
 .melis-store .product-thumb {
 	position: relative;
 	z-index: 1;
+    height: 175px;
     overflow: hidden;
 }
 
@@ -651,7 +688,8 @@
     font-family: 'Roboto', sans-serif;
     color: #444;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 16px;
+    letter-spacing: 0.2px;
 }
 
 .melis-store .product-thumb-info .product-name a:hover {
@@ -792,4 +830,109 @@
 
 .melis-store #melis-market-place-view-details{
     cursor: pointer;
+}
+
+.melis-store-items {
+    margin-right: 18.5px;
+    padding-right: 25px;
+    border-right: 1px solid #e2e2e2;
+}
+
+#content .melis-store-items .content-heading {
+    padding-bottom: 0;
+    text-transform: none;
+    color: #3a3a3a;
+}
+.store-heading {
+    margin-bottom: 30px;
+}
+
+.add-info-lists {
+    margin-bottom: 50px;
+    list-style: none;
+}
+
+.add-info-lists .info-title {
+    font-weight: bold;
+}
+
+.add-info-lists .info-title .fa {
+    width: 20px;
+    color: #909090;
+}
+
+.add-info-lists li span {
+    display: inline-block;
+    padding: 10px 10px 10px 0;
+    min-width: 140px;
+}
+
+.melis-store .sm-info-title {
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: 0.4px;
+    color: #3a3a3a;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+.melis-store-items .slider .img-title {
+    display: block;
+    position: absolute;
+    padding: 20px 30px;
+    width: 100%;
+    bottom: 0;
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 0.4px;
+    background: rgba(44, 44, 44, 0.7);
+    z-index: 1;
+}
+/* Sidebar */
+.market-sidebar .widget-title {
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+    /* text-transform: uppercase; */
+    letter-spacing: 0.4px;
+    color: #3a3a3a;
+}
+
+@media only screen and (max-width: 767px) {
+    .melis-store-items {
+        margin-right: 0;
+        padding-right: 0;
+        border: none;
+    }
+    .melis-store-items .product-thumb img {
+        margin: 0 auto;
+        width: 100%;
+    }
+    .melis-store .slider-single {
+        height: 300px;
+    }
+    .melis-store .slick-slider {
+        display: table;
+        table-layout: fixed;
+        width: 100%;
+    }
+    .melis-store .slick-slider .slick-track,
+    .melis-store .slick-slider .slick-list {
+        height: 300px;
+    }
+
+    .melis-store .slick-slider.slider.slider-nav .slick-track,
+    .melis-store .slick-slider.slider.slider-nav .slick-list {
+        height: 105px;
+    }
+
+}
+@media only screen and (max-width: 992px) {
+    .melis-store .slick-slider {
+        display: table;
+        table-layout: fixed;
+        width: 100%;
+    }
 }

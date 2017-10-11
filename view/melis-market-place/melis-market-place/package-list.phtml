@@ -6,7 +6,7 @@ $pagination = $this->pagination;
     echo '<ul class="products product-thumb-info-list clearfix">';
         foreach($packages as $package) { ?>
         <li class="col-sm-6 col-md-6 col-lg-3">
-            <div class="product">
+            <div class="product" id="melis-market-place-view-details" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
                 <a href="#">
                     <span class="onsale hidden"></span>
                 </a>
@@ -16,7 +16,7 @@ $pagination = $this->pagination;
                     ?>
                     <img alt="" class="img-responsive" src="<?= $packageImage; ?>" height="200" width="310">
                     <div class="product-action">
-                        <a id="melis-market-place-view-details" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><span>
+                        <a><span>
                             <i class="icon icon-visual-eye-fill"></i></span></a>
                     </div>
                 </div>
@@ -29,10 +29,10 @@ $pagination = $this->pagination;
                                                 <span class="amount current"></span>
                                             </span>
                         </a>
-                        <a href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
+                        <a class="hidden" href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
                            target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                         </a>
-                        <span class="text-center">
+                        <span class="installed text-center">
                             <?php
                             if((bool) $package['installed']) {
                                 echo '<p class="text-success"><i class="fa fa-check-circle"></i> '.$this->translate('tr_market_place_package_installed').'</p>';
@@ -41,6 +41,7 @@ $pagination = $this->pagination;
                         </span>
                     </div>
                 </div>
+
             </div>
         </li>
 

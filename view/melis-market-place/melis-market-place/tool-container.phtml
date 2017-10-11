@@ -10,24 +10,28 @@ $form = $this->searchForm;
         <div class="melis-store">
             <div class="row">
                 <div class="col-md-9">
-
-                    <div class="row">
-                        <div class="col-md-9">
-                            <h2 class="content-heading"><strong><?= $this->translate('tr_market_place'); ?></strong></h2>
+                    <div class="melis-store-items">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="store-heading">
+                                    <h2 class="content-heading"><strong><?= $this->translate('tr_market_place'); ?></strong></h2>
+                                    <p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-control hidden" name="orderby">
+                                    <option value="">Default sorting</option>
+                                    <option value="popularity">Sort by popularity</option>
+                                    <option value="rating">Sort by average rating</option>
+                                    <option value="date">Sort by newness</option>
+                                    <option value="price">Sort by price: low to high</option>
+                                    <option value="price-desc">Sort by price: high to low</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <select class="form-control hidden" name="orderby">
-                                <option value="">Default sorting</option>
-                                <option value="popularity">Sort by popularity</option>
-                                <option value="rating">Sort by average rating</option>
-                                <option value="date">Sort by newness</option>
-                                <option value="price">Sort by price: low to high</option>
-                                <option value="price-desc">Sort by price: high to low</option>
-                            </select>
-                        </div>
+                        <div id="melis-market-place-package-list"></div>
                     </div>
 
-                    <div id="melis-market-place-package-list"></div>
                 </div>
                 <div class="col-md-3">
                     <aside class="market-sidebar">
@@ -54,7 +58,7 @@ $form = $this->searchForm;
 
 
 
-                        <h5><?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
+                        <h5 class="widget-title"><?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
                         <div id="market-place-most-downloaded-package-list">
                             <ul class="simple-post-list">
                                 <?php
@@ -67,7 +71,7 @@ $form = $this->searchForm;
                                                         <?php
                                                         $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
                                                         ?>
-                                                        <img alt="" width="60" height="60" class="img-responsive" src="<?= $packageImage; ?>">
+                                                        <img alt="" width="60" class="" src="<?= $packageImage; ?>">
                                                     </a>
                                                 </div>
                                             </div>

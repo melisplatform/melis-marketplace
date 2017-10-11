@@ -58,7 +58,7 @@ class MelisMarketPlaceController extends AbstractActionController
         set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
-        
+
         $view            = new ViewModel();
         $view->melisKey  = $melisKey;
         $view->packageId = $packageId;
