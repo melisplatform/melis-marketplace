@@ -2,9 +2,9 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage) {
 
 	page   			= page || 1;
 	search 			= search || $("body").find("input#melis_market_place_search_input").val();
-	orderBy  		= orderBy || 'mp_title';
+	orderBy  		= orderBy || 'mp_total_downloads';
 
-	var order       = order || 'asc';
+	var order       = order || 'desc';
     var itemPerPage = itemPerPage || 8;
 
 	$.ajax(

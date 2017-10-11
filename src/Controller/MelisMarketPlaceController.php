@@ -87,13 +87,15 @@ class MelisMarketPlaceController extends AbstractActionController
 
             $page        = isset($post['page'])        ? (int) $post['page']        : 1;
             $search      = isset($post['search'])      ? $post['search']            : '';
-            $orderBy     = isset($post['orderBy'])     ? $post['orderBy']           : 'mp_title';
-            $order       = isset($post['order'])       ? $post['order']             : 'asc';
+            $orderBy     = isset($post['orderBy'])     ? $post['orderBy']           : 'mp_total_downloads';
+            $order       = isset($post['order'])       ? $post['order']             : 'desc';
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
 
             set_time_limit(0);
-            $serverPackages = file_get_contents($this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
-                .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1');
+            $requestJsonUrl = $this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
+                .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1';
+            
+            $serverPackages = file_get_contents($requestJsonUrl);
 
             $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
             $tmpPackages    = empty($serverPackages['packages']) ?: $serverPackages['packages'];
