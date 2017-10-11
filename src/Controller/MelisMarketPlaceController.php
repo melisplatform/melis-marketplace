@@ -58,8 +58,7 @@ class MelisMarketPlaceController extends AbstractActionController
         set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
-
-
+        
         $view            = new ViewModel();
         $view->melisKey  = $melisKey;
         $view->packageId = $packageId;
@@ -132,13 +131,17 @@ class MelisMarketPlaceController extends AbstractActionController
 
         }
 
-        return new ViewModel(array(
-            'packages'          => $packages,
-            'itemCountPerPage'  => $itemCountPerPage,
-            'pageCount'         => $pageCount,
-            'currentPageNumber' => $currentPageNumber,
-            'pagination'        => $pagination
-        ));
+        $view = new ViewModel();
+
+        $view->setTerminal(true);
+
+        $view->packages          = $packages;
+        $view->itemCountPerPage  = $itemCountPerPage;
+        $view->pageCount         = $pageCount;
+        $view->currentPageNumber = $currentPageNumber;
+        $view->pagination        = $pagination;
+
+        return $view;
 
     }
 
