@@ -1,13 +1,12 @@
 <?php
 $packages = $this->packages;
 $pagination = $this->pagination;
-
 ?>
-    <?php if($packages) {
+    <?php if($packages && is_array($packages)) {
     echo '<ul class="products product-thumb-info-list clearfix">';
         foreach($packages as $package) { ?>
         <li class="col-sm-6 col-md-6 col-lg-3">
-            <div class="product" id="melis-market-place-view-details" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
+            <div class="product melis-market-place-view-details" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
                 <a href="#">
                     <span class="onsale hidden"></span>
                 </a>

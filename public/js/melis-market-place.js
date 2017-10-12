@@ -47,7 +47,7 @@ $(function() {
 		e.preventDefault();
 	});
 
-	$("body").on("click", "#melis-market-place-view-details", function() {
+	$("body").on("click", ".melis-market-place-view-details", function() {
 		var packageId    = $(this).data().packageid;
 		var packageTitle = $(this).data().packagetitle;
 

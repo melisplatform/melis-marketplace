@@ -92,15 +92,16 @@ class MelisMarketPlaceController extends AbstractActionController
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
 
             set_time_limit(0);
+            $search         = urlencode($search);
             $requestJsonUrl = $this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
                 .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1';
-            
+
             $serverPackages = file_get_contents($requestJsonUrl);
 
             $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
             $tmpPackages    = empty($serverPackages['packages']) ?: $serverPackages['packages'];
 
-            if($tmpPackages) {
+            if(isset($serverPackages['packages']) && $serverPackages['packages']) {
                 // check if the module is installed
                 $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
                 $installedModules = array_map(function($a) {
