@@ -80,7 +80,7 @@ return array(
                         'module' => 'MelisMarketPlace',
                         'controller' => 'MelisMarketPlace',
                         'action' => 'tool-container-product-view',
-                        'jscallback' => 'initSlick();',
+                        'jscallback' => '',
                         'jsdatas' => array()
                     ),
                 )
