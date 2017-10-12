@@ -22,13 +22,13 @@ $pagination = $this->pagination;
                 </div>
                 <div class="product-thumb-info">
                     <div class="product-thumb-info-content">
-                        <a href="#">
-                            <h4 class="product-name"><a href="#"><?= $package['packageTitle']; ?></a></h4>
-                            <span class="price hidden">
-                                                <span class="amount old"></span>
-                                                <span class="amount current"></span>
-                                            </span>
-                        </a>
+
+                        <h4 class="product-name"><a href="#"><?= $package['packageTitle']; ?></a></h4>
+                        <span class="price hidden">
+                                            <span class="amount old"></span>
+                                            <span class="amount current"></span>
+                                        </span>
+
                         <a class="hidden" href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
                            target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                         </a>
