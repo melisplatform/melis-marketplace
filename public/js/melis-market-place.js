@@ -54,7 +54,7 @@ $(function() {
 		var packageId    = $(this).data().packageid;
 		var packageTitle = $(this).data().packagetitle;
 
-        melisHelper.tabOpen(packageTitle + " | " + translations.tr_market_place, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display");
+        melisHelper.tabOpen(packageTitle + " | " + translations.tr_market_place, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display", initSlick);
 
 
 	});
@@ -88,43 +88,46 @@ $(function() {
 });
 
 
-function initSlick() {
-	 $("#"+activeTabId + ' .slider-single').slick({
-		slidesToShow: 1,
-		slidesToScroll: 1,
-		arrows: true,
-		fade: true,
-		asNavFor: '.slider-nav',
-		 adaptiveHeight: true,
-	});
-	$("#"+activeTabId + ' .slider-nav').slick({
-        slidesToShow: 6,
-		slidesToScroll: 1,
-		asNavFor: '.slider-single',
-		dots: false,
-		centerMode: false,
-		focusOnSelect: true,
-		arrows: true,
-		infinite: false,
+window.initSlick = function() {
+    setTimeout(function() {
+        $("#"+activeTabId + ' .slider-single').slick({
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: true,
+            fade: true,
+            asNavFor: '.slider-nav',
+            adaptiveHeight: true,
+        });
+        $("#"+activeTabId + ' .slider-nav').slick({
+            slidesToShow: 6,
+            slidesToScroll: 1,
+            asNavFor: '.slider-single',
+            dots: false,
+            centerMode: false,
+            focusOnSelect: true,
+            arrows: true,
+            infinite: false,
 
-        responsive: [{
-            breakpoint: 1400,
-            settings: {
-                slidesToShow: 6,
-                slidesToScroll: 6,
-            }
-        }, {
-            breakpoint: 992,
-            settings: {
-                slidesToShow: 4,
-                slidesToScroll: 4,
-            }
-        }, {
-            breakpoint: 767,
-            settings: {
-                slidesToShow: 2,
-                slidesToScroll: 2,
-            }
-        }]
-	});
+            responsive: [{
+                breakpoint: 1400,
+                settings: {
+                    slidesToShow: 6,
+                    slidesToScroll: 6,
+                }
+            }, {
+                breakpoint: 992,
+                settings: {
+                    slidesToShow: 4,
+                    slidesToScroll: 4,
+                }
+            }, {
+                breakpoint: 767,
+                settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 2,
+                }
+            }]
+        });
+    }, 200);
+
 }
