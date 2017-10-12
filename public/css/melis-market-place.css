@@ -860,6 +860,10 @@
     width: 20px;
     color: #909090;
 }
+.add-info-lists .info-title img {
+    width: 15px;
+    margin-right: 5px;
+}
 
 .add-info-lists li span {
     display: inline-block;
