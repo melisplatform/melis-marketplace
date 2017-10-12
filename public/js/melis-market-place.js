@@ -39,7 +39,8 @@ $(function() {
 	});
 
 	$("body").on("click", "button#btnMarketPlaceSearch", function() {
-
+        var divOverlay = '<div class="melis-overlay"></div>';
+        $("#melis-market-place-package-list").append(divOverlay);
         var search = $("body").find("input#melis_market_place_search_input").val();
         fetchPackages(null, search);
 
