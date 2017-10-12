@@ -13,7 +13,7 @@ $pagination = $this->pagination;
                 </a>
                 <div class="product-thumb">
                     <?php
-                    $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                    $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                     ?>
                     <img alt="" class="img-responsive" src="<?= $packageImage; ?>" height="200" width="310">
                     <div class="product-action">
@@ -33,6 +33,7 @@ $pagination = $this->pagination;
                         <a class="hidden" href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
                            target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                         </a>
+                        <span><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
                         <span class="installed text-center">
                             <?php
                             if((bool) $package['installed']) {

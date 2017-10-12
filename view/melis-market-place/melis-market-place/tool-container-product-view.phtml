@@ -103,7 +103,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                             </div>
                                             <div class="post-info">
                                                 <a href="#"><?= $package['packageTitle']; ?></a>
-                                                <p><?= $this->translate('tr_market_place_total_downloads').': '.number_format($package['packageTotalDownloads']); ?></p>
+                                                <p><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></p>
                                                 <div class="post-meta"></div>
                                             </div>
                                         </li>
