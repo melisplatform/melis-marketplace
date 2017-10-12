@@ -71,12 +71,12 @@ $form = $this->searchForm;
                                                         <?php
                                                         $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
                                                         ?>
-                                                        <img alt="" width="60" class="" src="<?= $packageImage; ?>">
+                                                        <img alt="" width="60" height="60" src="<?= $packageImage; ?>">
                                                     </a>
                                                 </div>
                                             </div>
                                             <div class="post-info">
-                                                <a href="#"><?= $package['packageTitle']; ?></a>
+                                                <a href="#" class="melis-market-place-view-details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><?= $package['packageTitle']; ?></a>
                                                 <p class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></p>
                                                 <div class="post-meta"></div>
                                             </div>

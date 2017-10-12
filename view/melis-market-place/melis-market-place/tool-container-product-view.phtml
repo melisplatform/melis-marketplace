@@ -33,7 +33,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                             <span><?= $this->package['packageName']; ?></span>
                                         </li>
                                         <li>
-                                            <span class="info-title"><i class="fa fa-cloud-download"></i><?= $this->translate('tr_market_place_total_downloads'); ?>:</span>
+                                            <span class="info-title"><i class="fa fa-download"></i> <?= $this->translate('tr_market_place_total_downloads'); ?>:</span>
                                             <span><?= number_format($this->package['packageTotalDownloads']); ?></span>
                                         </li>
                                     </ul>
@@ -102,7 +102,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                                 </div>
                                             </div>
                                             <div class="post-info">
-                                                <a href="#"><?= $package['packageTitle']; ?></a>
+                                                <a href="#" class="melis-market-place-view-details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><?= $package['packageTitle']; ?></a>
                                                 <p class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></p>
                                                 <div class="post-meta"></div>
                                             </div>

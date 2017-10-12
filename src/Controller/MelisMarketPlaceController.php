@@ -83,7 +83,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if($this->getRequest()->isPost()) {
 
-            $post = get_object_vars($this->getRequest()->getPost());
+            $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), array(), true);
 
             $page        = isset($post['page'])        ? (int) $post['page']        : 1;
             $search      = isset($post['search'])      ? $post['search']            : '';
@@ -92,15 +92,18 @@ class MelisMarketPlaceController extends AbstractActionController
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
 
             set_time_limit(0);
+            $search         = urlencode($search);
             $requestJsonUrl = $this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
                 .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1';
-            
-            $serverPackages = file_get_contents($requestJsonUrl);
+
+            try {
+                $serverPackages = file_get_contents($requestJsonUrl);
+            }catch(\Exception $e) {}
 
             $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
             $tmpPackages    = empty($serverPackages['packages']) ?: $serverPackages['packages'];
 
-            if($tmpPackages) {
+            if(isset($serverPackages['packages']) && $serverPackages['packages']) {
                 // check if the module is installed
                 $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
                 $installedModules = array_map(function($a) {
