@@ -33,7 +33,7 @@ $pagination = $this->pagination;
                         <a class="hidden" href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
                            target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                         </a>
-                        <span><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
+                        <span class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
                         <span class="installed text-center">
                             <?php
                             if((bool) $package['installed']) {

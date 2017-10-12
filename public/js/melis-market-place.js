@@ -26,6 +26,8 @@ $(function() {
 
 
 	$("body").on("click", ".melis-market-place-pagination", function() {
+		var divOverlay = '<div class="melis-overlay"></div>';
+		$("#melis-market-place-package-list").append(divOverlay);
 		var page = $(this).data("goto-page");
         fetchPackages(page);
 	});
