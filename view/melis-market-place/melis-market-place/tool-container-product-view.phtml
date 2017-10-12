@@ -39,9 +39,12 @@ if (!empty($this->zoneconfig['conf']['id']))
                                     </ul>
                             </div>
                             <div class="col-md-12">
+                                <?php
+                                if(isset($this->package['packageImages']) && $this->package['packageImages']) {
+                                ?>
                                 <div class="slider slider-single">
                                     <?php foreach($this->package['packageImages'] as $images) {
-                                        $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                                        $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                     ?>
                                         <div>
                                             <img class="" src="<?= $image; ?>"
@@ -55,7 +58,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                 <!-- Insert Subtitle-->
                                 <div class="slider slider-nav">
                                     <?php foreach($this->package['packageImages'] as $images) {
-                                    $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                                    $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                     ?>
                                     <div>
                                         <img src="<?= $image; ?>" alt="">
@@ -64,9 +67,18 @@ if (!empty($this->zoneconfig['conf']['id']))
                                     }
                                     ?>
                                 </div>
+                                <?php
+                                }
+                                ?>
                             </div>
                         </div>
+                        <?php
+                        if(isset($this->package['packageImages']) && $this->package['packageImages']) {
+                        ?>
                         <hr>
+                        <?php
+                        }
+                        ?>
                         <h5 class="sm-info-title">Description</h5>
                         <p><?= $this->package['packageDescription']; ?></p>
                     </div>
@@ -83,7 +95,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                             <hr class="hr">
                         </div>
 
-
+                        <p><?= $this->translate('tr_market_place_composer_instruction'); ?></p>
                         <h5 class="widget-title"><?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
                         <div id="market-place-most-downloaded-package-list">
                             <ul class="simple-post-list">
@@ -95,7 +107,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                                 <div class="img-thumbnail">
                                                     <a href="#">
                                                         <?php
-                                                        $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/melis-platform.jpg';
+                                                        $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                                         ?>
                                                         <img alt="" width="60" height="60" src="<?= $packageImage; ?>">
                                                     </a>
