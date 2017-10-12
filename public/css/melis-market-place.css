@@ -137,6 +137,11 @@
     height: 105px;
 }
 
+.slider-nav .slick-track,
+.slider-nav .slick-list.draggable {
+    height: 105px;
+}
+
 .slider-nav .slick-track .slick-slide {
 	position: relative;
 	cursor: pointer;
