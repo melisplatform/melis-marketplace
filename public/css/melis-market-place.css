@@ -461,7 +461,7 @@
 }
 
 .melis-store .product {
-    /*border-radius: 2px;*/
+    cursor: pointer;
     border: 1px solid #ddd;
     -webkit-transition: all 0.3s ease-in;
     -moz-transition: all 0.3s ease-in;

@@ -54,7 +54,7 @@ $(function() {
 		var packageId    = $(this).data().packageid;
 		var packageTitle = $(this).data().packagetitle;
 		melisHelper.disableAllTabs();
-        melisHelper.tabOpen(packageTitle + " | " + translations.tr_market_place, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display", function() {
+        melisHelper.tabOpen(packageTitle, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display", function() {
         	$(document).ready(function() {
                 $("#"+activeTabId + ' .slider-single').slick({
                     slidesToShow: 1,
