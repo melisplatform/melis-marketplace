@@ -18,7 +18,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                 </div>
                             </div>
                             <div class="col-xs-12">
-                                    <h5 class="sm-info-title">Additional Information:</h5>
+                                    <h5 class="sm-info-title"> <?= $this->translate('tr_market_place_package_additional_info'); ?></h5>
                                     <ul class="add-info-lists">
                                         <li>
                                             <span class="info-title"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:</span>
@@ -79,7 +79,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                         <?php
                         }
                         ?>
-                        <h5 class="sm-info-title">Description</h5>
+                        <h5 class="sm-info-title"><?= $this->translate('tr_market_place_description'); ?></h5>
                         <p><?= $this->package['packageDescription']; ?></p>
                     </div>
                 </div>
