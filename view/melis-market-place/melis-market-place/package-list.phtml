@@ -32,6 +32,7 @@ $pagination = $this->pagination;
                         <a class="hidden" href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
                            target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                         </a>
+                        <span class="melis-module-version"> <?= $package['packageVersion']; ?></span>
                         <span class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
                         <span class="installed text-center">
                             <?php
@@ -40,6 +41,7 @@ $pagination = $this->pagination;
                             }
                             ?>
                         </span>
+                        <span class="melis-module-version"> <?= $this->translate($package['version_status']); ?></span>
                     </div>
                 </div>
 

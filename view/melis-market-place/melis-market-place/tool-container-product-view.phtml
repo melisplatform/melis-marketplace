@@ -15,11 +15,16 @@ if (!empty($this->zoneconfig['conf']['id']))
                                 <div class="store-heading">
                                     <h2 class="module-title"><?= $this->package['packageTitle']; ?></h2>
                                     <p><?= $this->package['packageSubtitle']; ?></p>
+                                    <p><label><?= $this->translate($this->package['version_status']); ?></label></p>
                                 </div>
                             </div>
                             <div class="col-xs-12">
                                     <h5 class="sm-info-title"> <?= $this->translate('tr_market_place_package_additional_info'); ?></h5>
                                     <ul class="add-info-lists">
+                                        <li>
+                                            <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_version'); ?>:</span>
+                                            <span><?= $this->package['packageVersion']; ?></span>
+                                        </li>
                                         <li>
                                             <span class="info-title"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:</span>
                                             <span><a href="<?= $this->package['packageRepository']; ?>" target="_blank"><?= $this->package['packageRepository']; ?></a></span>

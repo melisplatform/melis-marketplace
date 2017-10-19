@@ -16,12 +16,16 @@ return array(
     'tr_market_place_most_downloaded_package' => 'Most downloaded packages',
     'tr_market_place_tags' => 'Tags',
 
+    'tr_market_place_version' => 'Version',
     'tr_market_place_github' => 'Github',
     'tr_market_place_packagist' => 'Packagist',
     'tr_market_place_package_name' => ' Package name',
     'tr_market_place_package_installed' => ' Installed',
     'tr_market_place_package_additional_info' => 'Additional Information',
     'tr_market_place_description' => 'Description',
+    'tr_market_place_version_up_to_date' => 'Up to date',
+    'tr_market_place_version_update' => 'Update',
+    'tr_market_place_version_in_advance' => 'In advance',
 
     'tr_market_place_subtitle' => 'Search new modules for Melis Platform and stop reinventing the wheel!',
     'tr_market_place_composer_instruction' => '<h5 class="widget-title">Want your module listed on this page?</h5>Add this line to your composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>and it will automatically be included in the results grabbed from Packagist! Images and texts must me sent to: <a href="#">contact@melistechnology.com</a>',

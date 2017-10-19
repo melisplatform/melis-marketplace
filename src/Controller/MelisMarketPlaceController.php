@@ -55,6 +55,19 @@ class MelisMarketPlaceController extends AbstractActionController
         $response = file_get_contents($url.'/get-package/'.$packageId);
         $package  = Json::decode($response, Json::TYPE_ARRAY);
 
+        //get and compare the local version from repo
+        if(!empty($package)){
+            //compare the package local version to the repository
+            if(isset($package['packageModuleName'])) {
+                $d = $this->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
+                if(!empty($d)){
+                    $package['version_status'] = $d['version_status'];
+                }else{
+                    $package['version_status'] = "";
+                }
+            }
+        }
+
         set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
@@ -110,7 +123,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     return trim(strtolower($a));
                 }, $installedModules);
 
-
                 // rewrite array, add installed status
                 foreach($serverPackages['packages'] as $idx => $package) {
 
@@ -123,7 +135,18 @@ class MelisMarketPlaceController extends AbstractActionController
                     else {
                         $tmpPackages[$idx]['installed'] = false;
                     }
+
+                    //compare the package local version to the repository
+                    if(isset($tmpPackages[$idx]['packageModuleName'])) {
+                        $d = $this->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
+                        if(!empty($d)){
+                            $tmpPackages[$idx]['version_status'] = $d['version_status'];
+                        }else{
+                            $tmpPackages[$idx]['version_status'] = "";
+                        }
+                    }
                 }
+
                 $serverPackages['packages'] = $tmpPackages;
             }
 
@@ -150,7 +173,38 @@ class MelisMarketPlaceController extends AbstractActionController
 
     }
 
-
+    /**
+     * Function to ge the local version of a module
+     * and compare it form the repository to determine
+     * whether the module is up to date or not
+     *
+     * @param $moduleName
+     * @param $moduleVersion
+     * @return array
+     */
+    private function compareLocalVersionFromRepo($moduleName, $moduleVersion){
+        $data = array();
+        $moduleSvc   = $this->getServiceLocator()->get('ModulesService');
+        $temp_mod_name = ($moduleName == "MelisMarketplace") ? "MelisMarketPlace" : $moduleName ;
+        $modulesInfo = $moduleSvc->getModulesAndVersions($temp_mod_name);
+        $local_version = $modulesInfo['version'];
+        //check if local version is advance or not
+        if(substr(strtolower($local_version), 0, 4) === "dev-"){
+            $data['version_status'] = "tr_market_place_version_in_advance";
+        }else{
+            //remove the v from the version and convert to float
+            //to compare the version number
+            $local_v = (float) str_replace('v', "", strtolower($local_version));
+            $latest_v = (float) str_replace('v', "", strtolower($moduleVersion));
+            //check if local version is updated than the version in repo
+            if($latest_v <= $local_v){
+                $data['version_status'] = "tr_market_place_version_up_to_date";
+            }else{
+                $data['version_status'] = "tr_market_place_version_update";
+            }
+        }
+        return $data;
+    }
 
     /**
      * MelisMarketPlace/src/MelisMarketPlace/Controller/MelisMarketPlaceController.php
