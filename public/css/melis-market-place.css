@@ -948,6 +948,149 @@
     color: #909090;
 }
 
+/*CORE*/
+.melis-store .product.meliscore:before {
+    border-top: 1px solid #ef6623;
+    border-bottom: 1px solid #ef6623;
+}
+
+.melis-store .product.meliscore:after {
+    border-right: 1px solid #ef6623;
+    border-left: 1px solid #ef6623;
+}
+
+.melis-store .product.meliscore:hover .product-name a {
+    color: #ef6623;
+}
+
+.melis-store .product.meliscore:hover {
+    box-shadow: 0 0 8px #f7962c;
+}
+
+.meliscore .melis-svg svg .bg-color {
+    fill: #ef6623;
+}
+
+.meliscore .melis-svg svg .light-color {
+    fill: #f7962c;
+}
+
+/*CMS*/
+.melis-store .product.meliscms:before {
+    border-top: 1px solid #fbb017;
+    border-bottom: 1px solid #fbb017;
+}
+
+.melis-store .product.meliscms:after {
+    border-right: 1px solid #fbb017;
+    border-left: 1px solid #fbb017;
+}
+
+.melis-store .product.meliscms:hover .product-name a {
+    color: #fbb017;
+}
+
+.melis-store .product.meliscms:hover {
+    box-shadow: 0 0 8px #f7da15;
+}
+
+.meliscms .melis-svg svg .bg-color {
+    fill: #fbb017;
+}
+
+.meliscms .melis-svg svg .light-color {
+    fill: #f7da15;
+}
+
+/*MARKETING*/
+.melis-store .product.melismarketing:before {
+    border-top: 1px solid #159cd4;
+    border-bottom: 1px solid #159cd4;
+}
+
+.melis-store .product.melismarketing:after {
+    border-right: 1px solid #159cd4;
+    border-left: 1px solid #159cd4;
+}
+
+.melis-store .product.melismarketing:hover .product-name a {
+    color: #159cd4;
+}
+
+.melis-store .product.melismarketing:hover {
+    box-shadow: 0 0 8px #1ebeea;
+}
+
+.melismarketing .melis-svg svg .bg-color {
+    fill: #159cd4;
+}
+
+.melismarketing .melis-svg svg .light-color {
+    fill: #1ebeea;
+}
+
+/*COMMERCE*/
+.melis-store .product.meliscommerce:before {
+    border-top: 1px solid #94c83d;
+    border-bottom: 1px solid #94c83d;
+}
+
+.melis-store .product.meliscommerce:after {
+    border-right: 1px solid #94c83d;
+    border-left: 1px solid #94c83d;
+}
+
+.melis-store .product.meliscommerce:hover .product-name a {
+    color: #94c83d;
+}
+
+.melis-store .product.meliscommerce:hover {
+    box-shadow: 0 0 8px #b4d44a;
+}
+
+.meliscommerce .melis-svg svg .bg-color {
+    fill: #94c83d;
+}
+
+.meliscommerce .melis-svg svg .light-color {
+    fill: #b4d44a;
+}
+
+/*PLATFORM*/
+.melis-store .product.melisplatform:before {
+    border-top: 1px solid #c72127;
+    border-bottom: 1px solid #c72127;
+}
+
+.melis-store .product.melisplatform:after {
+    border-right: 1px solid #c72127;
+    border-left: 1px solid #c72127;
+}
+
+.melis-store .product.melisplatform:hover .product-name a {
+    color: #c72127;
+}
+
+.melis-store .product.melisplatform:hover {
+    box-shadow: 0 0 8px #e91e27;
+}
+
+.melisplatform .melis-svg svg .bg-color {
+    fill: #c72127;
+}
+
+.melisplatform .melis-svg svg .light-color {
+    fill: #e91e27;
+}
+
+.melis-svg {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+}
+
 @media only screen and (max-width: 767px) {
     .melis-store-items {
         margin-right: 0;
