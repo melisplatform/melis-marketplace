@@ -537,7 +537,7 @@
 }
 
 .melis-store .product-thumb-info-content {
-	text-align: center;
+	text-align: left;
 }
 
 .melis-store .product-thumb-info-content .product-name {
@@ -577,7 +577,7 @@
 .melis-store .product-thumb-info {
 	position: relative;
     display: block;
-    padding: 20px 15px;
+    padding: 12px 45px 12px 15px;
     height: auto;
 	z-index: 1;
 }
@@ -638,6 +638,10 @@
 	z-index: 1;
     height: 175px;
     overflow: hidden;
+}
+.melis-store .product-thumb img {
+    width: 100%;
+    height: 100%;
 }
 
 .melis-store .product-thumb:hover .product-action {
@@ -701,7 +705,6 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin: 0 auto;
     font-family: 'Roboto', sans-serif;
     color: #444;
     font-weight: bold;
@@ -709,6 +712,7 @@
     letter-spacing: 0.2px;
     max-width: 400px;
     height: 2.2em;
+    height: auto;
 }
 
 .melis-store .product-thumb-info .product-name a:hover {
@@ -936,16 +940,48 @@
     z-index: 100;
 }
 
-.melis-module-downloads, .melis-module-version {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #909090;
+.melis-module-downloads,
+.melis-module-version {
+    display: inline-block;
+    margin: 0 5px;
+    font-weight: normal;
+    font-size: 12px;
+    letter-spacing: 1px;
 }
 
-.melis-module-downloads .fa, .melis-module-version .fa {
+.melis-module-downloads .fa,
+.melis-module-version .fa {
     margin-right: 5px;
     color: #909090;
+}
+.product-status {
+    padding: 5px 5px;
+    background: #f3f3f3;
+}
+.product-status .installed {
+    float: left;
+}
+.product-status .installed span {
+    display: inline-block;
+    margin: 0 5px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.product-status .melis-module-version-status {
+    float: right;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #ccc;
+    display: inline-block;
+    margin: 0 5px;
+    -webkit-transition: all 0.4s ease-in-out;
+    -moz-transition: all 0.4s ease-in-out;
+    -ms-transition: all 0.4s ease-in-out;
+    transition: all 0.4s ease-in-out;
 }
 
 /*CORE*/
@@ -960,6 +996,9 @@
 }
 
 .melis-store .product.meliscore:hover .product-name a {
+    color: #ef6623;
+}
+.melis-store .product.meliscore:hover .melis-module-version-status {
     color: #ef6623;
 }
 
@@ -990,6 +1029,10 @@
     color: #fbb017;
 }
 
+.melis-store .product.meliscms:hover .melis-module-version-status {
+    color: #fbb017;
+}
+
 .melis-store .product.meliscms:hover {
     box-shadow: 0 0 8px #f7da15;
 }
@@ -1014,6 +1057,10 @@
 }
 
 .melis-store .product.melismarketing:hover .product-name a {
+    color: #159cd4;
+}
+
+.melis-store .product.melismarketing:hover .melis-module-version-status {
     color: #159cd4;
 }
 
@@ -1044,6 +1091,11 @@
     color: #94c83d;
 }
 
+.melis-store .product.meliscommerce:hover .melis-module-version-status {
+    color: #94c83d;
+}
+
+
 .melis-store .product.meliscommerce:hover {
     box-shadow: 0 0 8px #b4d44a;
 }
@@ -1071,6 +1123,10 @@
     color: #c72127;
 }
 
+.melis-store .product.melisplatform:hover .melis-module-version-status {
+    color: #c72127;
+}
+
 .melis-store .product.melisplatform:hover {
     box-shadow: 0 0 8px #e91e27;
 }
@@ -1085,7 +1141,7 @@
 
 .melis-svg {
     position: absolute;
-    bottom: 10px;
+    top: 15px;
     right: 10px;
     width: 30px;
     height: 30px;
