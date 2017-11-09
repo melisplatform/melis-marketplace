@@ -54,7 +54,7 @@ return array(
             'translator' => 'MvcTranslator',
         ),
         'factories' => array(
-
+            'MelisMarketPlaceService' => 'MelisMarketPlace\Service\Factory\MelisMarketPlaceServiceFactory',
         ),
     ),
 
