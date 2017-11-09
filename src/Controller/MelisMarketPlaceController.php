@@ -188,4 +188,12 @@ class MelisMarketPlaceController extends AbstractActionController
         if($server)
             return $server;
     }
+    private function removeMelisPackagistServer()
+    {
+        $env    = getenv('MELIS_PLATFORM') ?: 'default';
+
+
+        if($env)
+            return $env;
+    }
 }
