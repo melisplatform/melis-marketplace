@@ -59,14 +59,31 @@ class MelisMarketPlaceController extends AbstractActionController
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
+        $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
+
         $view            = new ViewModel();
         $view->melisKey  = $melisKey;
         $view->packageId = $packageId;
         $view->package   = $package;
         $view->packages  = $packages;
+        $view->isModuleInstalled    = $isModuleInstalled;
         $view->melisPackagistServer = $url;
 
         return $view;
+    }
+
+    public function isModuleInstalled($module)
+    {
+        $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
+        $installedModules = array_map(function($a) {
+            return trim(strtolower($a));
+        }, $installedModules);
+
+        if(in_array(strtolower($module), $installedModules)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -188,4 +205,23 @@ class MelisMarketPlaceController extends AbstractActionController
         if($server)
             return $server;
     }
+
+    public function testAction()
+    {
+        $test = <<< EOH
+<style>
+body{
+background:#000;
+color:#e5e5e5;
+}
+</style>
+EOH;
+        print $test.'<pre>';
+
+        var_dump($this->isModuleInstalled('MelisCore'));
+
+        print '</pre>';
+        exit;
+    }
+
 }

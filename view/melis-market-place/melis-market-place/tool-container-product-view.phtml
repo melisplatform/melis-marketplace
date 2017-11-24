@@ -2,7 +2,9 @@
 $id = '';
 if (!empty($this->zoneconfig['conf']['id']))
     $id = $this->zoneconfig['conf']['id'];
-
+//print '<pre>';
+//print_r($this->package);
+//print '</pre>';
 ?>
 <div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId .'_' . $id; ?>" class="tab-pane container-level-a">
     <div class="innerAll spacing-x2">
@@ -15,6 +17,14 @@ if (!empty($this->zoneconfig['conf']['id']))
                                 <div class="store-heading">
                                     <h2 class="module-title"><?= $this->package['packageTitle']; ?></h2>
                                     <p><?= $this->package['packageSubtitle']; ?></p>
+                                    <div class="melis-marketplace-product-buttons">
+                                        <?php if(!$this->isModuleInstalled) { ?>
+                                        <button class="btn btn-success marketplace-product-download" data-package="<?= $this->package['packageModuleName'] ?>"><i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_install') ?></button>
+                                        <?php } else { ?>
+                                            <button class="btn btn-info marketplace-product-update" data-package="<?= $this->package['packageModuleName'] ?>"><i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?></button>
+                                            <button class="btn btn-danger marketplace-product-remove" data-package="<?= $this->package['packageModuleName'] ?>"><i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?></button>
+                                        <?php } ?>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-xs-12">
