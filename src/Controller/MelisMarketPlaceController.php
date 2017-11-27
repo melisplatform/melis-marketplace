@@ -55,6 +55,23 @@ class MelisMarketPlaceController extends AbstractActionController
         $response = file_get_contents($url.'/get-package/'.$packageId);
         $package  = Json::decode($response, Json::TYPE_ARRAY);
 
+        //get and compare the local version from repo
+        if(!empty($package)){
+
+            //get marketplace service
+            $marketPlaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
+
+            //compare the package local version to the repository
+            if(isset($package['packageModuleName'])) {
+                $d = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
+                if(!empty($d)){
+                    $package['version_status'] = $d['version_status'];
+                }else{
+                    $package['version_status'] = "";
+                }
+            }
+        }
+
         set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
@@ -127,6 +144,8 @@ class MelisMarketPlaceController extends AbstractActionController
                     return trim(strtolower($a));
                 }, $installedModules);
 
+                //get marketplace services
+                $marketPlaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
 
                 // rewrite array, add installed status
                 foreach($serverPackages['packages'] as $idx => $package) {
@@ -140,7 +159,18 @@ class MelisMarketPlaceController extends AbstractActionController
                     else {
                         $tmpPackages[$idx]['installed'] = false;
                     }
+
+                    //compare the package local version to the repository
+                    if(isset($tmpPackages[$idx]['packageModuleName'])) {
+                        $d = $marketPlaceService->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
+                        if(!empty($d)){
+                            $tmpPackages[$idx]['version_status'] = $d['version_status'];
+                        }else{
+                            $tmpPackages[$idx]['version_status'] = "";
+                        }
+                    }
                 }
+
                 $serverPackages['packages'] = $tmpPackages;
             }
 
@@ -166,8 +196,6 @@ class MelisMarketPlaceController extends AbstractActionController
         return $view;
 
     }
-
-
 
     /**
      * MelisMarketPlace/src/MelisMarketPlace/Controller/MelisMarketPlaceController.php

@@ -55,6 +55,7 @@ return array(
         ),
         'factories' => array(
             'MelisMarketPlaceComposerService' => 'MelisMarketPlace\Service\Factory\MelisMarketPlaceComposerServiceFactory',
+            'MelisMarketPlaceService' => 'MelisMarketPlace\Service\Factory\MelisMarketPlaceServiceFactory',
         ),
     ),
 

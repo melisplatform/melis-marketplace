@@ -5,8 +5,8 @@ $pagination = $this->pagination;
     <?php if($packages && is_array($packages)) {
     echo '<ul class="products product-thumb-info-list clearfix">';
         foreach($packages as $package) { ?>
-        <li class="col-sm-6 col-md-6 col-lg-3">
-            <div class="product melis-market-place-view-details" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
+        <li class="col-sm-6 col-md-6 col-lg-4">
+            <div class="product melis-market-place-view-details <?= strtolower(trim($package['packageGroupName'])) ?>" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
                 <a href="#">
                     <span class="onsale hidden"></span>
                 </a>
@@ -25,24 +25,42 @@ $pagination = $this->pagination;
 
                         <h4 class="product-name"><a href="#"><?= $package['packageTitle']; ?></a></h4>
                         <span class="price hidden">
-                                            <span class="amount old"></span>
-                                            <span class="amount current"></span>
-                                        </span>
+                            <span class="amount old"></span>
+                            <span class="amount current"></span>
+                        </span>
 
                         <a class="hidden" href="<?= $package['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
                            target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                         </a>
-                        <span class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
-                        <span class="installed text-center">
-                            <?php
-                            if((bool) $package['installed']) {
-                                echo '<p class="text-success"><i class="fa fa-check-circle"></i> '.$this->translate('tr_market_place_package_installed').'</p>';
-                            }
-                            ?>
-                        </span>
+                        <div class="clearfix product-mini-sub">
+                            <span class="melis-module-version"> <?= $package['packageVersion']; ?></span>
+                            <span class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
+                        </div>
+
+                        <div class="melis-svg">
+                            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                                 viewBox="0 0 30 30" enable-background="new 0 0 30 30" xml:space="preserve">
+                                <g>
+                                    <rect class="bg-color" y="0.1" fill="#C52127" width="29.9" height="29.9"/>
+                                    <rect  class="light-color" x="14.6" y="2.7" fill="#E71E26" width="12.7" height="24.6"/>
+                                    <g>
+                                        <path fill="#FFFFFF" d="M7.4,21.1V9.5H22v11.7h-2.9v-8.8h-2.9v8.8h-2.9v-8.8h-2.9v8.8H7.4z"/>
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
                     </div>
                 </div>
-
+                <div class="clearfix product-status">
+                    <span class="installed">
+                        <?php
+                        if((bool) $package['installed']) {
+                            echo '<span class="text-success"><i class="fa fa-check-circle"></i> '.$this->translate('tr_market_place_package_installed').'</span>';
+                        }
+                        ?>
+                    </span>
+                    <span class="melis-module-version-status"> <?= $this->translate($package['version_status']); ?></span>
+                </div>
             </div>
         </li>
 

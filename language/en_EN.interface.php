@@ -16,10 +16,16 @@ return array(
     'tr_market_place_most_downloaded_package' => 'Most downloaded packages',
     'tr_market_place_tags' => 'Tags',
 
+    'tr_market_place_version' => 'Version',
     'tr_market_place_github' => 'Github',
     'tr_market_place_packagist' => 'Packagist',
     'tr_market_place_package_name' => ' Package name',
     'tr_market_place_package_installed' => ' Installed',
+    'tr_market_place_package_additional_info' => 'Additional Information',
+    'tr_market_place_description' => 'Description',
+    'tr_market_place_version_up_to_date' => 'Up to date',
+    'tr_market_place_version_update' => 'Update',
+    'tr_market_place_version_in_advance' => 'In advance',
 
     'tr_market_place_unknown_command' => ' Unknown command %s',
     'tr_market_place_install' => 'Install',
