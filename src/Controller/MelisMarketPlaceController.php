@@ -3,6 +3,7 @@ namespace MelisMarketPlace\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
+use Zend\View\Model\JsonModel;
 use Zend\Json\Json;
 /**
  * Class MelisMarketPlaceController
@@ -52,8 +53,9 @@ class MelisMarketPlaceController extends AbstractActionController
         $packageId = (int) $this->params()->fromQuery('packageId', null);
 
         set_time_limit(0);
-        $response = file_get_contents($url.'/get-package/'.$packageId);
-        $package  = Json::decode($response, Json::TYPE_ARRAY);
+        $response   = file_get_contents($url.'/get-package/'.$packageId);
+        $package    = Json::decode($response, Json::TYPE_ARRAY);
+        $isExempted = false;
 
         //get and compare the local version from repo
         if(!empty($package)){
@@ -69,6 +71,10 @@ class MelisMarketPlaceController extends AbstractActionController
                 }else{
                     $package['version_status'] = "";
                 }
+
+                if(in_array($package['packageModuleName'],  $this->getModuleExceptions())) {
+                    $isExempted = true;
+                }
             }
         }
 
@@ -78,30 +84,19 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
 
-        $view            = new ViewModel();
-        $view->melisKey  = $melisKey;
-        $view->packageId = $packageId;
-        $view->package   = $package;
-        $view->packages  = $packages;
+        $view             = new ViewModel();
+        $view->melisKey   = $melisKey;
+        $view->packageId  = $packageId;
+        $view->package    = $package;
+        $view->packages   = $packages;
         $view->isModuleInstalled    = $isModuleInstalled;
         $view->melisPackagistServer = $url;
+        $view->isExempted = $isExempted;
 
         return $view;
     }
 
-    public function isModuleInstalled($module)
-    {
-        $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
-        $installedModules = array_map(function($a) {
-            return trim(strtolower($a));
-        }, $installedModules);
 
-        if(in_array(strtolower($module), $installedModules)) {
-            return true;
-        }
-
-        return false;
-    }
 
     /**
      * Translates the retrieved data coming from the Melis Packagist URL
@@ -197,6 +192,102 @@ class MelisMarketPlaceController extends AbstractActionController
 
     }
 
+    public function toolProductModalContainerAction()
+    {
+        $id = $this->getTool()->sanitize($this->params()->fromRoute('id', $this->params()->fromQuery('id', '')));
+        $melisKey = $this->params()->fromRoute('melisKey', $this->params()->fromQuery('melisKey', ''));
+
+        $view = new ViewModel();
+        $view->setTerminal(true);
+        $view->id = $id;
+        $view->melisKey = $melisKey;
+
+        return $view;
+
+
+        return $view;
+    }
+
+    public function toolProductModalContentAction()
+    {
+        $package  = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
+        $action   = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
+
+        $melisKey = $this->params()->fromRoute('melisKey', '');
+        $title    = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $package;
+        $data     = array();
+
+        $view = new ViewModel();
+
+        $view->melisKey = $melisKey;
+        $view->title    = $title;
+
+
+        return $view;
+    }
+
+    public function melisMarketPlaceProductDoAction()
+    {
+        $success = 0;
+        $message = 'melis_market_place_tool_package_do_event_message_ko';
+        $errors  = array();
+        $request = $this->getRequest();
+        $title   = 'tr_market_place';
+        $post    = array();
+        
+        if($request->isPost()) {
+
+            $post    = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
+
+            $this->getEventManager()->trigger('melis_marketplace_product_do_start', $this, $post);
+
+            $action  = isset($post['action'])  ? $post['action']  : '';
+            $package = isset($post['package']) ? $post['package'] : '';
+            $module  = isset($post['module'])  ? $post['module']  : '';
+
+            if($action && $package && $module) {
+
+                $title       = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
+                $composerSvc = $this->getServiceLocator()->get('MelisMarketPlaceComposerService');
+
+                switch($action) {
+                    case $composerSvc::DOWNLOAD:
+                        if(!in_array($module, $this->getModuleExceptions())) {
+                            $composerSvc->download($package, null, true);
+                        }
+                    break;
+                    case $composerSvc::UPDATE:
+                        $composerSvc->update($package, null, true);
+                    break;
+                    case $composerSvc::REMOVE:
+                        if(!in_array($module, $this->getModuleExceptions())) {
+                            $composerSvc->remove($package);
+                        }
+                    break;
+                }
+            }
+        }
+
+        $response = array(
+            'success' => $success,
+            'title'   => $this->getTool()->getTranslation($title),
+            'message' => $this->getTool()->getTranslation($message),
+            'errors'  => $errors,
+            'post'    => $post
+        );
+
+        // add to flash messenger
+        $this->getEventManager()->trigger('melis_marketplace_product_do_finish', $this, $response);
+
+        $view = new ViewModel();
+        $view->setTerminal(true);
+
+        return $view;
+
+    }
+
+
+
     /**
      * MelisMarketPlace/src/MelisMarketPlace/Controller/MelisMarketPlaceController.php
      * Returns the melisKey of the view that is being set in app.interface
@@ -234,21 +325,43 @@ class MelisMarketPlaceController extends AbstractActionController
             return $server;
     }
 
+    /**
+     * Returns the list of modules that is inside the exceptions array
+     * @return mixed
+     */
+    private function getModuleExceptions()
+    {
+        $env     = getenv('MELIS_PLATFORM') ?: 'default';
+        $config  = $this->getServiceLocator()->get('MelisCoreConfig');
+        $modules = $config->getItem('melis_market_place_tool_config/datas/')['exceptions'];
+
+        if($modules)
+            return $modules;
+    }
+
+    /**
+     * Checks if the module is installed or not
+     * @param $module
+     * @return bool
+     */
+    private function isModuleInstalled($module)
+    {
+        $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
+        $installedModules = array_map(function($a) {
+            return trim(strtolower($a));
+        }, $installedModules);
+
+        if(in_array(strtolower($module), $installedModules)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function testAction()
     {
-        $test = <<< EOH
-<style>
-body{
-background:#000;
-color:#e5e5e5;
-}
-</style>
-EOH;
-        print $test.'<pre>';
-
-        var_dump($this->isModuleInstalled('MelisCore'));
-
-        print '</pre>';
+        $svc = $this->getServiceLocator()->get('MelisMarketPlaceComposerService');
+        $svc->update('melisplatform/melis-cms');
         exit;
     }
 

@@ -29,9 +29,15 @@ return array(
 
     'tr_market_place_unknown_command' => ' Unknown command %s',
     'tr_market_place_install' => 'Install',
+    'tr_market_place_download' => 'Download',
     'tr_market_place_update' => 'Update',
     'tr_market_place_remove' => 'Remove',
     'tr_market_place_subtitle' => 'Cherchez de nouveau modules pour Melis platform et arretez de réinventer la roue !',
 
     'tr_market_place_composer_instruction' => '<h5 class="widget-title">Vous voulez votre module listé sur cette page?</h5>Ajoutez cette ligne dans votre composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>et il sera automatiquement inclu dans les résultats de Packagist ! Les images et textes de présentation doivent être envoyés à : <a href="#">contact@melistechnology.com</a>',
+
+    'tr_melis_market_place_tool_package_modal_container' => 'Melis marketplace modal container',
+    'melis_market_place_tool_package_modal_content' => 'Melis marketplace modal content',
+    'melis_market_place_tool_package_do_event_message_ko' => 'Nothing to do.',
+
 );

@@ -24,38 +24,67 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage) {
 
 $(function() {
 
-    function streamResult()
-    {
-        var last_response_len = false;
-        $.ajax('/melis/MelisMarketPlace/MelisMarketPlace/test', {
-            xhrFields: {
-                onprogress: function(e)
+    $("body").on("click", "button.melis-marketplace-product-action", function() {
+        var action  = $(this).data().action;
+        var package = $(this).data().package;
+        var module  = $(this).data().module;
+
+        var zoneId   = "id_melis_market_place_tool_package_modal_content";
+        var melisKey = "melis_market_place_tool_package_modal_content";
+        var modalUrl = "/melis/MelisMarketPlace/MelisMarketPlace/toolProductModalContainer";
+
+        var data     = {action : action, package : package, module : module};
+
+        melisCoreTool.pending("button");
+        melisHelper.createModal(zoneId, melisKey, false, data,  modalUrl, function() {
+
+            melisCoreTool.done("button");
+            setTimeout(function() {
+                var vConsole = $("body").find("#melis-marketplace-event-do-response");
+                vConsole.html("");
+
+                var vConsoleText    = vConsole.html();
+                var lastResponseLen = false;
+
+                $.ajax(
                 {
-                    var this_response, response = e.currentTarget.response;
-                    if(last_response_len === false)
-                    {
-                        this_response = response;
-                        last_response_len = response.length;
+                    type: 'POST',
+                    url: '/melis/MelisMarketPlace/MelisMarketPlace/melisMarketPlaceProductDo',
+                    data: data,
+                    dataType: "html",
+                    xhrFields: {
+                        onprogress: function(e) {
+
+                            var curResponse, response = e.currentTarget.response;
+                            if(lastResponseLen === false) {
+                                curResponse = response;
+                                lastResponseLen = response.length;
+                            }
+                            else {
+                                curResponse = response.substring(lastResponseLen);
+                                lastResponseLen = response.length;
+                            }
+                            vConsoleText += curResponse + "\n<br/>";
+                            vConsole.html(vConsoleText);
+
+                            // always scroll to bottom
+                            vConsole.animate({
+                                scrollTop: vConsole[0].scrollHeight
+                            }, 1115);
+                        }
                     }
-                    else
-                    {
-                        this_response = response.substring(last_response_len);
-                        last_response_len = response.length;
-                    }
-                    console.log(this_response);
-                }
-            }
-        })
-            .done(function(data)
-            {
-                console.log('Complete response = ' + data);
-            })
-            .fail(function(data)
-            {
-                console.log('Error: ', data);
-            });
-        console.log('Request Sent');
-    }
+                });
+
+            }, 800);
+
+        });
+        /**
+         * @todo add a confirm dialog when updating/removing
+         */
+
+
+    });
+
 
 
 	$("body").on("click", ".melis-market-place-pagination", function() {

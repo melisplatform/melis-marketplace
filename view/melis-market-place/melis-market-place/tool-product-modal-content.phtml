@@ -1,7 +1,30 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: melis-admin
- * Date: 11/27/2017
- * Time: 4:11 PM
- */
+$name = '';
+$id = '';
+if (!empty($this->zoneconfig['conf']['name']))
+    $name = $this->zoneconfig['conf']['name'];
+if (!empty($this->zoneconfig['conf']['id']))
+    $id = $this->zoneconfig['conf']['id'];
+
+
+?>
+<div class="modal-content" id="<?= $id; ?>" data-melisKey="<?= $this->melisKey; ?>">
+    <div class="modal-body padding-none">
+        <div class="wizard">
+            <div class="widget widget-tabs widget-tabs-double widget-tabs-responsive margin-none border-none">
+                <div class="widget-head">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#<?php echo $this->zoneconfig['conf']['id'] ?>" class="glyphicons package" data-toggle="tab" aria-expanded="true"><i></i> <?php echo $this->title ?></a></li>
+                    </ul>
+                </div>
+                <div class="widget-body innerAll inner-2x">
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="<?php echo $id ?>">
+                            <pre id="melis-marketplace-event-do-response">Initializing...</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

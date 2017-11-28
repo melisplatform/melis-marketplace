@@ -49,7 +49,8 @@ return array(
                 )
             ),
             'datas' => array(
-                'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist'
+                'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist',
+                'exceptions' => array('MelisCore', 'MelisEngine', 'MelisFront', 'MelisAssetManager')
             ),
             'interface' => array(
                 'melis_market_place_tool_display' => array(
@@ -83,6 +84,36 @@ return array(
                         'jscallback' => '',
                         'jsdatas' => array()
                     ),
+                ),
+                'melis_market_place_tool_package_modal_container' => array(
+                    'conf' => array(
+                        'id'   => 'id_melis_market_place_tool_package_modal_container',
+                        'name' => 'tr_melis_market_place_tool_package_modal_container',
+                        'melisKey' => 'melis_market_place_tool_package_modal_container',
+                    ),
+                    'forward' => array(
+                        'module' => 'MelisMarketPlace',
+                        'controller' => 'MelisMarketPlace',
+                        'action' => 'tool-product-modal-container',
+                        'jscallback' => '',
+                        'jsdatas' => array()
+                    ),
+                    'interface' => array(
+                        'melis_market_place_tool_package_modal_content' => array(
+                            'conf' => array(
+                                'id' => 'id_melis_market_place_tool_package_modal_content',
+                                'melisKey' => 'melis_market_place_tool_package_modal_content',
+                                'name' => 'tr_melis_market_place_tool_package_modal_content'
+                            ),
+                            'forward' => array(
+                                'module' => 'MelisMarketPlace',
+                                'controller' => 'MelisMarketPlace',
+                                'action' => 'tool-product-modal-content',
+                                'jscallback' => '',
+                                'jsdatas' => array()
+                            ),
+                        )
+                    )
                 )
             ),
 

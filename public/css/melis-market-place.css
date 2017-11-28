@@ -1183,3 +1183,23 @@
         width: 100%;
     }
 }
+
+#melis-marketplace-event-do-response{
+    overflow:auto;
+    height: 500px;
+    background: #222;
+    color: #d0d0d0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    resize:none;
+    font-family: "Lucida Console Regular", Monospace;
+    font-size: 12px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+}

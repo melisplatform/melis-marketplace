@@ -13,26 +13,30 @@ use MelisCore\Service\MelisCoreGeneralService;
 use Composer\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\StreamOutput;
+use MelisMarketPlace\Service\ComposerOutputFormatterStyle;
 /**
  * This service handles the requests and commands that will be made into composer
  */
 class MelisMarketPlaceComposerService extends MelisCoreGeneralService
 {
-    const COMPOSER        = __DIR__ . '/../../bin/extracted-composer/composer';
-    const INSTALL         = 'install';
-    const UPDATE          = 'update';
-    const REMOVE          = 'remove';
-    const REQUIRE_PACKAGE = 'require';
-    const DUMP_AUTOLOAD   = 'dump-autoload';
+    const COMPOSER      = __DIR__ . '/../../bin/extracted-composer/composer';
+    const INSTALL       = 'install';
+    const UPDATE        = 'update';
+    const REMOVE        = 'remove';
+    const DOWNLOAD      = 'require';
+    const DUMP_AUTOLOAD = 'dump-autoload';
 
-    const DEFAULT_ARGS    = '--prefer-dist -vvv -d';
-    const REMOVE_ARGS     = '--no-update --no-scripts -d';
+    const DEFAULT_ARGS  = '--prefer-dist -vvv -d';
+    const REMOVE_ARGS   = '--no-update --no-scripts -d';
+    const DRY_RUN_ARGS  = '--dry-run';
 
     /**
      * The path of the platform
      * @var string
      */
     protected $documentRoot;
+
+    protected $isDryRun;
 
     /**
      * Sets the path of the platform, if nothing is set, then it will use the default path of this platform
@@ -55,17 +59,39 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
         if(!$this->documentRoot)
             $this->documentRoot = $this->getDefaultDocRoot();
 
-        return $this->documentRoot ;
+        return $this->documentRoot;
+    }
+
+    /**
+     * Sets whether to enable the dry-run arg
+     * @param $status
+     */
+    public function setDryRun($status)
+    {
+        $this->isDryRun = (bool) $status;
+    }
+
+    /**
+     * Returns if dry-run arg is enabled or not
+     * @return mixed
+     */
+    public function getDryRun()
+    {
+        return $this->isDryRun;
     }
 
     /**
      * Executes a $ composer update command
      * @param string|null $package
      * @param string|null $version
+     * @param boolean $dryRun
      * @return string|StreamOutput
      */
-    public function update($package = null, $version = null)
+    public function update($package = null, $version = null, $dryRun = false)
     {
+        if($dryRun)
+            $this->setDryRun(true);
+
         $package = !empty($version) ? $package.':'.$version : $package;
 
         return $this->runCommand(self::UPDATE, $package, self::DEFAULT_ARGS);
@@ -75,13 +101,17 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
      * Executes $ composer require command
      * @param string $package
      * @param string|null $version
+     * @param boolean $dryRun
      * @return string|StreamOutput
      */
-    public function requirePackage($package, $version = null)
+    public function download($package, $version = null, $dryRun = false)
     {
+        if($dryRun)
+            $this->setDryRun(true);
+
         $package = !empty($version) ? $package.':'.$version : $package;
 
-        return $this->runCommand(self::REQUIRE_PACKAGE, $package,self::DEFAULT_ARGS);
+        return $this->runCommand(self::DOWNLOAD, $package,self::DEFAULT_ARGS);
     }
 
     /**
@@ -98,7 +128,7 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
      * @param $package
      * @return bool
      */
-    public function removePackage($package)
+    public function remove($package)
     {
         $output = $this->runCommand(self::REMOVE, $package, self::REMOVE_ARGS);
 
@@ -125,11 +155,27 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
 
         if(in_array($cmd, $this->availableCommands())) {
 
+            $dryRunArgs    = null;
+
+            if($this->getDryRun()) {
+                $dryRunArgs = self::DRY_RUN_ARGS;
+            }
+
             $docPath       = $this->getDocumentRoot();
-            $commandString = "$cmd $args $docPath $package";
+            $commandString = "$cmd $dryRunArgs $args $docPath $package";
+
             $input         = new StringInput($commandString);
-            $output        = new StreamOutput(fopen('php://output','w', false));
+            $output        = new StreamOutput(fopen('php://output','w'));
             $composer      = new Application();
+            $formatter     = $output->getFormatter();
+
+            $formatter->setDecorated(true);
+            $formatter->setStyle('error', new ComposerOutputFormatterStyle(ComposerOutputFormatterStyle::ERROR));
+            $formatter->setStyle('info', new ComposerOutputFormatterStyle(ComposerOutputFormatterStyle::INFO));
+            $formatter->setStyle('comment', new ComposerOutputFormatterStyle(ComposerOutputFormatterStyle::COMMENT));
+            $output->setFormatter($formatter);
+
+            echo 'Executing: ' . $commandString .'<BR/>';
 
             $composer->run($input, $output);
 
@@ -149,7 +195,7 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
             self::INSTALL,
             self::UPDATE,
             self::DUMP_AUTOLOAD,
-            self::REQUIRE_PACKAGE,
+            self::DOWNLOAD,
             self::REMOVE
         );
     }
