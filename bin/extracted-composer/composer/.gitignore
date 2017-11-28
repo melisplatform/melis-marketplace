@@ -1,2 +1,5 @@
 /cache
+
 cache
+bin/extracted-composer/composer/cache
+bin/extracted-composer/composer/cache/*
