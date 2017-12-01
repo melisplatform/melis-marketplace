@@ -18,8 +18,8 @@ if (!empty($this->zoneconfig['conf']['id']))
 
                                     <div class="melis-marketplace-product-buttons">
                                         <?php if(!$this->isModuleInstalled && !$this->isExempted) { ?>
-                                        <button class="btn btn-success melis-marketplace-product-action" data-action="download" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                            <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_download') ?>
+                                        <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                            <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
                                         </button>
                                         <?php } else { ?>
                                             <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">

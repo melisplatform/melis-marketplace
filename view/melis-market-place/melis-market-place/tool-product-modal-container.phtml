@@ -10,8 +10,8 @@ if (!empty($this->melisKey))
 ?>
 
 <div>
-    <div class="modal fade" id="<?php echo $this->id?>_container">
-        <div class="modal-dialog" role="modal">
+    <div class="modal fade" id="<?php echo $this->id?>_container" data-backdrop="static" data-keyboard="false" tabindex="-1">
+        <div class="modal-dialog" role="modal" aria-hidden="true" data-backdrop="static" data-keyboard="false" tabindex="-1">
             <div <?php echo $id.' '.$data_melisKey; ?> class="modal-content"></div>
         </div>
     </div>

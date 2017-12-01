@@ -15,6 +15,7 @@ class ComposerOutputFormatterStyle implements OutputFormatterStyleInterface
     const INFO    = '#02de02';
     const ERROR   = '#ff190d';
     const COMMENT = '#fbff0f';
+    const NORMAL  = '#000';
 
     protected $foreground;
     protected $background;

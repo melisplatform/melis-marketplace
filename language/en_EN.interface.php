@@ -29,7 +29,7 @@ return array(
 
     'tr_market_place_unknown_command' => ' Unknown command %s',
     'tr_market_place_install' => 'Install',
-    'tr_market_place_download' => 'Download',
+    'tr_market_place_require' => 'Download',
     'tr_market_place_update' => 'Update',
     'tr_market_place_remove' => 'Remove',
 
@@ -39,5 +39,8 @@ return array(
     'tr_melis_market_place_tool_package_modal_container' => 'Melis marketplace modal container',
     'melis_market_place_tool_package_modal_content' => 'Melis marketplace modal content',
     'melis_market_place_tool_package_do_event_message_ko' => 'Nothing to do.',
+
+    'melis_market_place_tool_package_remove_confirm_on_dependencies' => 'By removing %s, this will deactivate the following modules: ',
+    'melis_market_place_tool_package_remove_confirm' => 'Are you sure you want to remove %s?',
 
 );

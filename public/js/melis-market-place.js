@@ -24,6 +24,8 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage) {
 
 $(function() {
 
+    var preventModalClose = true;
+
     $("body").on("click", "button.melis-marketplace-product-action", function() {
         var action  = $(this).data().action;
         var package = $(this).data().package;
@@ -33,20 +35,88 @@ $(function() {
         var melisKey = "melis_market_place_tool_package_modal_content";
         var modalUrl = "/melis/MelisMarketPlace/MelisMarketPlace/toolProductModalContainer";
 
-        var data     = {action : action, package : package, module : module};
+        var objData  = {action : action, package : package, module : module};
 
         melisCoreTool.pending("button");
-        melisHelper.createModal(zoneId, melisKey, false, data,  modalUrl, function() {
+        if(action === "remove") {
 
-            melisCoreTool.done("button");
-            setTimeout(function() {
-                var vConsole = $("body").find("#melis-marketplace-event-do-response");
-                vConsole.html("");
+            $.ajax({
+                type        : 'POST',
+                url         : '/melis/MelisCore/Modules/getDependents',
+                data		: {module : module},
+                dataType    : 'json',
+                encode		: true,
+            }).success(function(data){
+                var modules    = "<br/><br/><div class='container'><div class='row'><div class='col-lg-12'><ul>%s</ul></div></div></div>";
+                var moduleList = '';
 
-                var vConsoleText    = vConsole.html();
-                var lastResponseLen = false;
+                $.each(data.modules, function(i, v) {
+                    moduleList += "<li>"+v+"</li>";
 
-                $.ajax(
+                });
+
+                modules = modules.replace("%s", moduleList);
+
+                if(data.success) {
+                    melisCoreTool.confirm(
+                        translations.tr_meliscore_common_yes,
+                        translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
+                        translations.tr_meliscore_general_proceed,
+                        translations.melis_market_place_tool_package_remove_confirm_on_dependencies.replace("%s", module)+modules,
+                        function() {
+                            melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
+
+                                melisCoreTool.done("button");
+                                doEvent(objData);
+
+                            });
+                        }
+                    );
+                }
+
+                if(moduleList === "") {
+                    melisCoreTool.confirm(
+                        translations.tr_meliscore_common_yes,
+                        translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
+                        translations.tr_meliscore_general_confirm,
+                        translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
+                        function() {
+                            melisHelper.createModal(zoneId, melisKey, true, objData,  modalUrl, function() {
+
+                                melisCoreTool.done("button");
+                                doEvent(objData);
+
+                            });
+                        }
+                    );
+                }
+
+                melisCoreTool.done("button");
+                $('div[data-module-name]').bootstrapSwitch('setActive', true);
+                $("h4#meliscore-tool-module-content-title").html(translations.tr_meliscore_module_management_modules);
+            });
+        }
+        else {
+            melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
+
+                melisCoreTool.done("button");
+                doEvent(objData);
+
+            });
+        }
+
+    });
+
+    function doEvent(data)
+    {
+        setTimeout(function() {
+            var vConsole = $("body").find("#melis-marketplace-event-do-response");
+            vConsole.html("");
+
+            var vConsoleText    = vConsole.html();
+            var lastResponseLen = false;
+
+            $.ajax(
                 {
                     type: 'POST',
                     url: '/melis/MelisMarketPlace/MelisMarketPlace/melisMarketPlaceProductDo',
@@ -72,18 +142,25 @@ $(function() {
                                 scrollTop: vConsole[0].scrollHeight
                             }, 1115);
                         }
+                    },
+                    beforeSend: function () {
+                        vConsole.html('<i class="fa fa-spinner fa-spin"></i> Initializing...');
+                    },
+                    success: function(data) {
+                        vConsoleText = vConsole.html();
+                        vConsole.html(vConsoleText + "<br/>" + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> Done!</div>');
+                        vConsole.animate({
+                            scrollTop: vConsole[0].scrollHeight
+                        }, 1115);
+                        $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
+                        $("#melis-marketplace-product-modal-hide").removeClass("disabled");
+                        // melisCoreTool.processing();
+                        // location.reload(true);
                     }
                 });
 
-            }, 800);
-
-        });
-        /**
-         * @todo add a confirm dialog when updating/removing
-         */
-
-
-    });
+        }, 800);
+    }
 
 
 
@@ -157,9 +234,8 @@ $(function() {
                     }]
                 });
 			});
-            melisHelper.enableAllTabs();
 		});
-
+        melisHelper.enableAllTabs();
 
 	});
 
@@ -187,6 +263,20 @@ $(function() {
 
     $("body").on("click", "#btnMinus", minus);
     $("body").on("click", "#btnPlus", plus);
+
+
+    $("body").on("hide.bs.modal", "#id_melis_market_place_tool_package_modal_content_container", function(e) {
+        if(preventModalClose === true) {
+            e.preventDefault();
+        }
+    });
+
+
+    $("body").on("click", "#melis-marketplace-product-modal-hide", function() {
+        preventModalClose = false;
+        $("#id_melis_market_place_tool_package_modal_content_container").modal("hide");
+        preventModalClose = true;
+    });
 
 
 });

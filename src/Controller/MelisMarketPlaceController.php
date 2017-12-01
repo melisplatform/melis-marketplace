@@ -65,9 +65,12 @@ class MelisMarketPlaceController extends AbstractActionController
 
             //compare the package local version to the repository
             if(isset($package['packageModuleName'])) {
-                $d = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
+
+                $version = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
+echo $version.PHP_EOL;
+echo $this->getVersionStatusText($version);
                 if(!empty($d)){
-                    $package['version_status'] = $d['version_status'];
+                    $package['version_status'] = $this->getVersionStatusText($version);
                 }else{
                     $package['version_status'] = "";
                 }
@@ -139,8 +142,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     return trim(strtolower($a));
                 }, $installedModules);
 
-                //get marketplace services
-                $marketPlaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
 
                 // rewrite array, add installed status
                 foreach($serverPackages['packages'] as $idx => $package) {
@@ -157,7 +158,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
                     //compare the package local version to the repository
                     if(isset($tmpPackages[$idx]['packageModuleName'])) {
-                        $d = $marketPlaceService->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
+                        $d = $this->getMarketPlaceService()->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
                         if(!empty($d)){
                             $tmpPackages[$idx]['version_status'] = $d['version_status'];
                         }else{
@@ -228,6 +229,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function melisMarketPlaceProductDoAction()
     {
+
         $success = 0;
         $message = 'melis_market_place_tool_package_do_event_message_ko';
         $errors  = array();
@@ -237,7 +239,8 @@ class MelisMarketPlaceController extends AbstractActionController
         
         if($request->isPost()) {
 
-            $post    = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
+            $moduleSvc = $this->getServiceLocator()->get('ModulesService');
+            $post      = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
 
             $this->getEventManager()->trigger('melis_marketplace_product_do_start', $this, $post);
 
@@ -252,17 +255,37 @@ class MelisMarketPlaceController extends AbstractActionController
 
                 switch($action) {
                     case $composerSvc::DOWNLOAD:
-                        if(!in_array($module, $this->getModuleExceptions())) {
-                            $composerSvc->download($package, null, true);
-                        }
+                        if(!in_array($module, $this->getModuleExceptions()))
+                            $composerSvc->download($package);
                     break;
                     case $composerSvc::UPDATE:
-                        $composerSvc->update($package, null, true);
+                        $composerSvc->update($package);
                     break;
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {
-                            $composerSvc->remove($package);
+
+                            $defaultModules = array('MelisAssetManager','MelisCore', 'MelisEngine', 'MelisFront');
+                            $removeModules  = array_merge($moduleSvc->getChildDependencies($module), array($module, 'MelisModuleConfig'));
+                            $activeModules  = $moduleSvc->getActiveModules($defaultModules);
+
+                            // create new module.load file
+                            $retainModules = array();
+
+                            foreach($activeModules as $module) {
+                                if(!in_array($module, $removeModules)) {
+                                    $retainModules[] = $module;
+                                }
+                            }
+
+                            $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
+
+                            // remove module
+//                            $composerSvc->remove($package);
+
                         }
+                    break;
+                    default:
+                        echo $this->getTool()->getTranslation($message);
                     break;
                 }
             }
@@ -281,7 +304,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $view = new ViewModel();
         $view->setTerminal(true);
-
+die;
         return $view;
 
     }
@@ -356,6 +379,28 @@ class MelisMarketPlaceController extends AbstractActionController
         }
 
         return false;
+    }
+
+    private function getMarketPlaceService()
+    {
+        return $this->getServiceLocator()->get('MelisMarketPlaceService');
+    }
+
+    private function getVersionStatusText($status)
+    {
+        $service = $this->getMarketPlaceService();
+
+        switch($status) {
+            case $service::NEED_UPDATE:
+                return $this->getTool()->getTranslation('tr_market_place_version_update');
+            break;
+            case $service::UP_TO_DATE:
+                return $this->getTool()->getTranslation('tr_market_place_version_up_to_date');
+            break;
+            case $service::IN_ADVANCE:
+                return $this->getTool()->getTranslation('tr_market_place_version_in_advance');
+            break;
+        }
     }
 
     public function testAction()
