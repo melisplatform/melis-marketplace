@@ -57,6 +57,9 @@ $pagination = $this->pagination;
                         if((bool) $package['installed']) {
                             echo '<span class="text-success"><i class="fa fa-check-circle"></i> '.$this->translate('tr_market_place_package_installed').'</span>';
                         }
+                        else {
+                            echo '<span class="text-warning"><i class="fa fa-download"></i> '.$this->translate('tr_market_place_require').'</span>';
+                        }
                         ?>
                     </span>
                     <span class="melis-module-version-status"> <?= $this->translate($package['version_status']); ?></span>

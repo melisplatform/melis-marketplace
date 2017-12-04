@@ -5,12 +5,22 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
 use Zend\Json\Json;
+use PDO;
+use Zend\Db\Sql\Sql;
+use Zend\Db\Adapter\Adapter as DbAdapter;
+use Zend\Db\Sql\Ddl;
+
 /**
  * Class MelisMarketPlaceController
  * @package MelisMarketPlace\Controller
  */
 class MelisMarketPlaceController extends AbstractActionController
 {
+
+    /**
+     * @var DbAdapter
+     */
+    protected $adapter;
 
     /**
      * Handles the display of the tool
@@ -67,8 +77,7 @@ class MelisMarketPlaceController extends AbstractActionController
             if(isset($package['packageModuleName'])) {
 
                 $version = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
-//echo $version.PHP_EOL;
-//echo $this->getVersionStatusText($version);
+
                 if(!empty($d)){
                     $package['version_status'] = $this->getVersionStatusText($version);
                 }else{
@@ -87,14 +96,16 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
 
-        $view             = new ViewModel();
-        $view->melisKey   = $melisKey;
-        $view->packageId  = $packageId;
-        $view->package    = $package;
-        $view->packages   = $packages;
+        $view                       = new ViewModel();
+        $view->melisKey             = $melisKey;
+        $view->packageId            = $packageId;
+        $view->package              = $package;
+        $view->packages             = $packages;
         $view->isModuleInstalled    = $isModuleInstalled;
         $view->melisPackagistServer = $url;
-        $view->isExempted = $isExempted;
+        $view->isExempted           = $isExempted;
+        $view->versionStatus        = $version;
+        $view->versionText          = $this->getVersionStatusText($version);
 
         return $view;
     }
@@ -269,7 +280,7 @@ class MelisMarketPlaceController extends AbstractActionController
                             $activeModules  = $moduleSvc->getActiveModules($defaultModules);
 
                             // create new module.load file
-                            $retainModules = array();
+                            $retainModules  = array();
 
                             foreach($activeModules as $module) {
                                 if(!in_array($module, $removeModules)) {
@@ -279,8 +290,17 @@ class MelisMarketPlaceController extends AbstractActionController
 
                             $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
 
+                            // export the data from the table of this module
+                            $class =  __CLASS__;
+                            $pos   = strrpos($class, 'Controller');
+                            $end   = strlen($class) - $pos;
+                            $class = substr($class, 0, strlen($class)-$end);
+
+
+                            // remove tables
+
                             // remove module
-//                            $composerSvc->remove($package);
+                            $composerSvc->remove($package);
 
                         }
                     break;
@@ -304,7 +324,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $view = new ViewModel();
         $view->setTerminal(true);
-die;
+
         return $view;
 
     }
@@ -403,11 +423,165 @@ die;
         }
     }
 
+
+    public function exportTablesAction()
+    {
+        $module = $this->getTool()->sanitize($this->params()->fromRoute('module'));
+
+        if($module) {
+            $svc            = $this->getServiceLocator()->get('ModulesService');
+            $path           = $svc->getModulePath($module);
+            $setupStructure = 'setup_structure.sql';
+            $setupFile      = $path.'/install/sql/'.$setupStructure;
+            $sql            = '';
+            $insert         = "INSERT INTO `%s`(%s) VALUES(%s);".PHP_EOL;
+            $dumpInfo       = "\n--\n-- Dumping data for table `%s`\n--\n";
+            $copyright      = "-- Melis Platform SQL Dump\n-- https://www.melistechnology.com\n";
+            $commit         = "\nCOMMIT;";
+            $columns        = "";
+            $values         = "";
+            $export         = "";
+
+            if(file_exists($setupFile)) {
+                // read SQL file
+                $setupFile = file_get_contents($setupFile);
+                if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
+                    $tables = isset($matches[0]) ? $matches[0] : null;
+                    if($tables) {
+
+                        // cleanse the matched texts
+                        $tables = array_map(function($a) {
+                            $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
+                            $n = trim($n);
+                            return  $n;
+                        }, $tables);
+
+                        // check again if the tables are not empty
+                        if(is_array($tables)) {
+
+                            $adapter  = $this->getAdapter();
+
+                            if($this->getAdapter()) {
+
+                                foreach($tables as $table) {
+                                    $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+
+                                    if($resultSet) {
+                                        // CREATE AN INSERT SQL FILE
+                                        $sql       .= sprintf($dumpInfo, $table);
+                                        foreach($resultSet as $data) {
+
+                                            // clear columns and values every loop
+                                            $columns   = '';
+                                            $values    = '';
+
+                                            foreach($data as $column => $value) {
+                                                $columns .= "`$column`, ";
+
+                                                if(is_numeric($value) || $value == '0')
+                                                    $values  .= "$value, ";
+                                                else if(is_null($value))
+                                                    $values  .= "NULL, ";
+                                                else
+                                                    $values  .= "'$value', ";
+                                            }
+
+                                            $columns = substr($columns, 0, strlen($columns)-2);
+                                            $values  = substr($values,  0, strlen($values) -2);
+                                            $sql    .= sprintf($insert, $table, $columns, $values);
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $export = $copyright.$sql.$commit;
+
+            $response = $this->getResponse();
+
+            $response->getHeaders()
+                ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
+                ->addHeaderLine('Content-Disposition', 'attachment; filename="'.strtolower($module).'_export_data.sql"')
+                ->addHeaderLine('Content-Length'     , strlen($export))
+                ->addHeaderLine('Pragma'             , 'no-cache')
+                ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8');
+
+            $response->setContent($export);
+            $response->setStatusCode(200);
+
+            $view = new ViewModel();
+            $view->setTerminal(true);
+
+            $view->content = $response->getContent();
+
+            return $view;
+        }
+    }
+
     public function testAction()
     {
-        $svc = $this->getServiceLocator()->get('MelisMarketPlaceComposerService');
-        $svc->update('melisplatform/melis-cms');
-        exit;
+        $class =  __CLASS__;
+        $pos   = strrpos($class, 'Controller');
+        $end   = strlen($class) - $pos;
+        $class = substr($class, 0, strlen($class)-$end);
+
+        $test = $this->forward()->dispatch($class,
+            array_merge(array('action' => 'exportTables', 'module' => 'MelisCmsProspects')))->getVariables()->getArrayCopy();
+
+
+        if(isset($test['content'])) {
+            $hhehe = $test['content'];
+            echo $hhehe;
+            return $test['content'];
+        }
+
+
+        die;
+    }
+
+    /**
+     * Sets the Database adapter that will be used when querying
+     * the database, this will use the configuration set
+     * on the database config file
+     */
+    public function setDbAdapter()
+    {
+        // access the database configuration
+        $config = $this->getServiceLocator()->get('config');
+        $db     = $config['db'];
+
+        if($db) {
+
+            $driver = $db['driver'];
+            $dsn = $db['dsn'];
+            $username = $db['username'];
+            $password = $db['password'];
+
+            $this->adapter = new DbAdapter(array(
+                'driver' => $driver,
+                'dsn' => $dsn,
+                'username' => $username,
+                'password' => $password,
+                'driver_options' => array(
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'"
+                )
+            ));
+        }
+    }
+
+    /**
+     * Returns the instance of DbAdapter
+     * @return DbAdapter
+     */
+    public function getAdapter()
+    {
+        $this->setDbAdapter();
+
+        return $this->adapter;
     }
 
 }
