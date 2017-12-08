@@ -290,17 +290,8 @@ class MelisMarketPlaceController extends AbstractActionController
 
                             $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
 
-                            // export the data from the table of this module
-                            $class =  __CLASS__;
-                            $pos   = strrpos($class, 'Controller');
-                            $end   = strlen($class) - $pos;
-                            $class = substr($class, 0, strlen($class)-$end);
-
-
-                            // remove tables
-
                             // remove module
-                            $composerSvc->remove($package);
+//                            $composerSvc->remove($package);
 
                         }
                     break;
@@ -423,14 +414,72 @@ class MelisMarketPlaceController extends AbstractActionController
         }
     }
 
+    public function isModuleExistsAction()
+    {
+        $isExist = 0;
+        $module  = '';
+        $request = $this->getRequest();
+
+        if($request->isPost()) {
+
+            $module = $this->getTool()->sanitize($request->getPost('module'));
+            if($module) {
+                $isExist = (bool) $this->isModuleInstalled($module);
+            }
+        }
+
+        $response = array(
+            'module'  => $module,
+            'isExist' => $isExist
+        );
+
+        return new JsonModel($response);
+
+    }
+
+    public function getModuleTablesAction()
+    {
+        $module         = $this->getTool()->sanitize($this->getRequest()->getPost('module', 'MelisCore'));
+        $svc            = $this->getServiceLocator()->get('ModulesService');
+        $path           = $svc->getModulePath($module, true);
+        $setupStructure = 'setup_structure.sql';
+        $setupFile      = $path.'/install/sql/'.$setupStructure;
+        $message        = 'No table(s) found';
+        $tables         = array();
+        if(file_exists($setupFile)) {
+            set_time_limit(-1);
+            ini_set ('memory_limit', -1);
+
+            $setupFile = file_get_contents($setupFile);
+            if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
+                $tables = isset($matches[0]) ? $matches[0] : null;
+                $tables = array_map(function($a) {
+                    $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
+                    $n = trim($n);
+                    return  $n;
+                }, $tables);
+                if(is_array($tables)) {
+                    $tables = (array) $tables;
+                }
+            }
+        }
+
+        return new JsonModel(array(
+            'module' => $module,
+            'tables' => $tables
+        ));
+    }
 
     public function exportTablesAction()
     {
-        $module = $this->getTool()->sanitize($this->params()->fromRoute('module'));
+
+        $module  = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
+        $success = 0;
 
         if($module) {
+
             $svc            = $this->getServiceLocator()->get('ModulesService');
-            $path           = $svc->getModulePath($module);
+            $path           = $svc->getModulePath($module, true);
             $setupStructure = 'setup_structure.sql';
             $setupFile      = $path.'/install/sql/'.$setupStructure;
             $sql            = '';
@@ -441,14 +490,20 @@ class MelisMarketPlaceController extends AbstractActionController
             $columns        = "";
             $values         = "";
             $export         = "";
+            $message        = 'No table(s) found';
 
+            echo $setupFile;
             if(file_exists($setupFile)) {
+                set_time_limit(-1);
+                ini_set ('memory_limit', -1);
+
                 // read SQL file
                 $setupFile = file_get_contents($setupFile);
                 if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
                     $tables = isset($matches[0]) ? $matches[0] : null;
-                    if($tables) {
 
+                    if($tables) {
+                        $success = 1;
                         // cleanse the matched texts
                         $tables = array_map(function($a) {
                             $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
@@ -495,30 +550,42 @@ class MelisMarketPlaceController extends AbstractActionController
                                 }
                             }
                         }
+
+                        $export   = $copyright.$sql.$commit;
+                        $fileName = strtolower($module).'_export_data.sql';
+                        $response = $this->getResponse();
+
+                        $response->getHeaders()
+                            ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
+                            ->addHeaderLine('Content-Disposition', 'attachment; filename="'.$fileName)
+                            ->addHeaderLine('Content-Length'     , strlen($export))
+                            ->addHeaderLine('Pragma'             , 'no-cache')
+                            ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8')
+                            ->addHeaderLine('fileName'           , $fileName);
+
+                        $response->setContent($export);
+                        $response->setStatusCode(200);
+
+                        $view = new ViewModel();
+                        $view->setTerminal(true);
+
+                        $view->content = $response->getContent();
+
+                        return $view;
                     }
                 }
             }
+            else {
+                $message = 'setup_structure.sql not found';
+            }
+        }
 
-            $export = $copyright.$sql.$commit;
+        if(!$success) {
 
-            $response = $this->getResponse();
-
-            $response->getHeaders()
-                ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
-                ->addHeaderLine('Content-Disposition', 'attachment; filename="'.strtolower($module).'_export_data.sql"')
-                ->addHeaderLine('Content-Length'     , strlen($export))
-                ->addHeaderLine('Pragma'             , 'no-cache')
-                ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8');
-
-            $response->setContent($export);
-            $response->setStatusCode(200);
-
-            $view = new ViewModel();
-            $view->setTerminal(true);
-
-            $view->content = $response->getContent();
-
-            return $view;
+            return new JsonModel(array(
+                'success' => $success,
+                'message' => $message
+            ));
         }
     }
 

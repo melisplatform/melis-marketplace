@@ -41,11 +41,12 @@ return array(
             ),
             'ressources' => array(
                 'css' => array(
-                    'MelisMarketPlace/css/melis-market-place.css',
+                    '/MelisMarketPlace/css/melis-market-place.css',
                 ),
                 'js' => array(
-                    'MelisMarketPlace/js/slick.min.js',
-                    'MelisMarketPlace/js/melis-market-place.js',
+                    '/MelisMarketPlace/js/slick.min.js',
+                    '/MelisMarketPlace/js/FileSaver/FileSaver.min.js',
+                    '/MelisMarketPlace/js/melis-market-place.js',
                 )
             ),
             'datas' => array(

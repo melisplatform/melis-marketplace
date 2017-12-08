@@ -32,15 +32,19 @@ return array(
     'tr_market_place_require' => 'Download',
     'tr_market_place_update' => 'Update',
     'tr_market_place_remove' => 'Remove',
-    'tr_market_place_subtitle' => 'Cherchez de nouveau modules pour Melis platform et arretez de réinventer la roue !',
+    'tr_market_place_reload' => 'Reload',
 
+    'tr_market_place_subtitle' => 'Cherchez de nouveau modules pour Melis platform et arretez de réinventer la roue !',
     'tr_market_place_composer_instruction' => '<h5 class="widget-title">Vous voulez votre module listé sur cette page?</h5>Ajoutez cette ligne dans votre composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>et il sera automatiquement inclu dans les résultats de Packagist ! Les images et textes de présentation doivent être envoyés à : <a href="#">contact@melistechnology.com</a>',
 
     'tr_melis_market_place_tool_package_modal_container' => 'Melis marketplace modal container',
     'melis_market_place_tool_package_modal_content' => 'Melis marketplace modal content',
     'melis_market_place_tool_package_do_event_message_ko' => 'Nothing to do.',
 
-    'melis_market_place_tool_package_remove_confirm' => 'By removing %s, this will deactivate the following modules: ',
+    'melis_market_place_tool_package_remove_confirm_on_dependencies' => 'By removing %s, this will deactivate the following modules: ',
     'melis_market_place_tool_package_remove_confirm' => 'Are you sure you want to remove this module?',
+    'melis_market_place_tool_package_remove_ok' => '%s has been removed successfully',
+    'melis_market_place_tool_package_remove_ko' => 'Unable to remove module %s, please try again.',
+    'melis_market_place_tool_package_remove_table_dump' => 'Dumping table data for %s',
 
 );

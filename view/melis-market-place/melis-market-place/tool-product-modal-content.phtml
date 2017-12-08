@@ -25,6 +25,11 @@ if (!empty($this->zoneconfig['conf']['id']))
                             <a href="#id_melis_market_place_tool_package_modal_content_container" id="melis-marketplace-product-modal-hide" data-dismiss="modal" class="btn btn-danger disabled " title="
                             <?= $this->translate('tr_meliscore_notification_modal_Close') ?>" disabled><i class="fa fa-close"></i>
                             <?= $this->translate('tr_meliscore_notification_modal_Close') ?></a>
+
+                            <button type="submit" class="btn btn-info pull-right melis-marketplace-modal-reload hidden">
+                                <i class="fa fa-refresh"></i> <?= $this->translate('tr_market_place_reload'); ?>
+                            </button>
+                            <div class="clearfix"></div>
                         </div>
                     </div>
                 </div>

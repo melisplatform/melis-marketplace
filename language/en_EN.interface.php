@@ -32,6 +32,7 @@ return array(
     'tr_market_place_require' => 'Download',
     'tr_market_place_update' => 'Update',
     'tr_market_place_remove' => 'Remove',
+    'tr_market_place_reload' => 'Reload',
 
     'tr_market_place_subtitle' => 'Search new modules for Melis Platform and stop reinventing the wheel!',
     'tr_market_place_composer_instruction' => '<h5 class="widget-title">Want your module listed on this page?</h5>Add this line to your composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>and it will automatically be included in the results grabbed from Packagist! Images and texts must me sent to: <a href="#">contact@melistechnology.com</a>',
@@ -42,5 +43,8 @@ return array(
 
     'melis_market_place_tool_package_remove_confirm_on_dependencies' => 'By removing %s, this will deactivate the following modules: ',
     'melis_market_place_tool_package_remove_confirm' => 'Are you sure you want to remove %s?',
+    'melis_market_place_tool_package_remove_ok' => '%s has been removed successfully',
+    'melis_market_place_tool_package_remove_ko' => 'Unable to remove module %s, please try again.',
+    'melis_market_place_tool_package_remove_table_dump' => 'Dumping table data for %s',
 
 );

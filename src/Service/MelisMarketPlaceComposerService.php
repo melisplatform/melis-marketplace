@@ -26,8 +26,8 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
     const DOWNLOAD      = 'require';
     const DUMP_AUTOLOAD = 'dump-autoload';
 
-    const DEFAULT_ARGS  = '-vv --working-dir=';
-    const REMOVE_ARGS   = '-vv --no-scripts --working-dir=';
+    const DEFAULT_ARGS  = '--working-dir=';
+    const REMOVE_ARGS   = '--no-scripts --working-dir=';
     const DRY_RUN_ARGS  = '--dry-run';
     const ROOT_REQS     = '--root-reqs ';
 
@@ -188,6 +188,8 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
 
             $composer->run($input, $output);
 
+            file_put_contents('CHARME.txt', base64_encode($output), FILE_APPEND);
+
             return $output;
         }
 
@@ -216,6 +218,14 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
     private function getDefaultDocRoot()
     {
         return $_SERVER['DOCUMENT_ROOT'].'/../';
+    }
+
+    private function hexentities($str) {
+        $return = '';
+        for($i = 0; $i < strlen($str); $i++) {
+            $return .= '&#x'.bin2hex(substr($str, $i, 1)).';';
+        }
+        return $return;
     }
 
 
