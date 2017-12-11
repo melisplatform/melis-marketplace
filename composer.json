@@ -25,7 +25,8 @@
     "module"
   ],
   "extra": {
-    "module-name": "MelisMarketPlace"
+    "module-name": "MelisMarketPlace",
+    "dbdeploy": true
   },
   "require": {
     "php": "^5.5 || ^7.0",
