@@ -9,7 +9,6 @@ use PDO;
 use Zend\Db\Sql\Sql;
 use Zend\Db\Adapter\Adapter as DbAdapter;
 use Zend\Db\Sql\Ddl;
-
 /**
  * Class MelisMarketPlaceController
  * @package MelisMarketPlace\Controller
@@ -215,24 +214,22 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->melisKey = $melisKey;
 
         return $view;
-
-
-        return $view;
     }
 
     public function toolProductModalContentAction()
     {
-        $package  = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
+        $module   = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
         $action   = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
 
         $melisKey = $this->params()->fromRoute('melisKey', '');
-        $title    = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $package;
+        $title    = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
         $data     = array();
 
         $view = new ViewModel();
 
         $view->melisKey = $melisKey;
         $view->title    = $title;
+        $view->module   = $module;
 
 
         return $view;
@@ -266,11 +263,12 @@ class MelisMarketPlaceController extends AbstractActionController
 
                 switch($action) {
                     case $composerSvc::DOWNLOAD:
-                        if(!in_array($module, $this->getModuleExceptions()))
+                        if(!in_array($module, $this->getModuleExceptions())) {
                             $composerSvc->download($package);
+                        }
                     break;
                     case $composerSvc::UPDATE:
-                        $composerSvc->update($package);
+//                        $composerSvc->update($package);
                     break;
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {
@@ -291,7 +289,7 @@ class MelisMarketPlaceController extends AbstractActionController
                             $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
 
                             // remove module
-//                            $composerSvc->remove($package);
+                            $composerSvc->remove($package);
 
                         }
                     break;
@@ -318,6 +316,51 @@ class MelisMarketPlaceController extends AbstractActionController
 
         return $view;
 
+    }
+
+    public function activateModuleAction()
+    {
+        $success = 0;
+        $request = $this->getRequest();
+
+        if($request->isPost()) {
+            $module        = $this->getTool()->sanitize($request->getPost('module'));
+            $moduleSvc     = $this->getServiceLocator()->get('ModulesService');
+            $activeModules = $moduleSvc->getActiveModules();
+
+            if(!in_array($module, $activeModules)) {
+                // add to module loader
+                $defaultModules = array('MelisAssetManager','MelisCore', 'MelisEngine', 'MelisFront');
+
+                // remove MelisModuleConfig, to avoid duplication
+                $idx = array_search('MelisModuleConfig', $activeModules);
+                if (false !== $idx) {
+                    unset($activeModules[$idx]);
+                }
+
+                // create the module.load file
+                $moduleSvc->createModuleLoader('config/', array_merge($activeModules, array($module)), $defaultModules);
+            }
+
+            // since we are still running the function, we cannot get the accurate modules that are being loaded
+            // instead, we can read the module.load
+            $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
+            if(file_exists($moduleLoadFile)) {
+                $modules = include $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
+
+                // recheck if the module requested to be added is in module.load
+                if(in_array($module, $modules)) {
+                    $success = 1;
+                }
+            }
+
+        }
+
+        $response = array(
+            'success' => $success
+        );
+
+        return new JsonModel($response);
     }
 
 
@@ -470,18 +513,16 @@ class MelisMarketPlaceController extends AbstractActionController
         ));
     }
 
+
     public function exportTablesAction()
     {
 
         $module  = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
+        $tables  = $this->getTool()->sanitize($this->getRequest()->getPost('tables'));
         $success = 0;
-
+        $message = 'No table(s) found';
         if($module) {
 
-            $svc            = $this->getServiceLocator()->get('ModulesService');
-            $path           = $svc->getModulePath($module, true);
-            $setupStructure = 'setup_structure.sql';
-            $setupFile      = $path.'/install/sql/'.$setupStructure;
             $sql            = '';
             $insert         = "INSERT INTO `%s`(%s) VALUES(%s);".PHP_EOL;
             $dumpInfo       = "\n--\n-- Dumping data for table `%s`\n--\n";
@@ -490,98 +531,80 @@ class MelisMarketPlaceController extends AbstractActionController
             $columns        = "";
             $values         = "";
             $export         = "";
-            $message        = 'No table(s) found';
 
-            echo $setupFile;
-            if(file_exists($setupFile)) {
-                set_time_limit(-1);
-                ini_set ('memory_limit', -1);
+            set_time_limit(-1);
+            ini_set ('memory_limit', -1);
 
-                // read SQL file
-                $setupFile = file_get_contents($setupFile);
-                if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
-                    $tables = isset($matches[0]) ? $matches[0] : null;
+            // check again if the tables are not empty
+            if(is_array($tables)) {
 
-                    if($tables) {
-                        $success = 1;
-                        // cleanse the matched texts
-                        $tables = array_map(function($a) {
-                            $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
-                            $n = trim($n);
-                            return  $n;
-                        }, $tables);
+                // trim the matched texts
+                $tables = array_map(function($a) {
+                    $n = trim($a);
+                    return  $n;
+                }, $tables);
 
-                        // check again if the tables are not empty
-                        if(is_array($tables)) {
+                $adapter = $this->getAdapter();
 
-                            $adapter  = $this->getAdapter();
+                if($this->getAdapter()) {
 
-                            if($this->getAdapter()) {
+                    foreach($tables as $table) {
+                        $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
 
-                                foreach($tables as $table) {
-                                    $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+                        if($resultSet) {
+                            // CREATE AN INSERT SQL FILE
+                            $sql .= sprintf($dumpInfo, $table);
+                            foreach($resultSet as $data) {
 
-                                    if($resultSet) {
-                                        // CREATE AN INSERT SQL FILE
-                                        $sql       .= sprintf($dumpInfo, $table);
-                                        foreach($resultSet as $data) {
+                                // clear columns and values every loop
+                                $columns   = '';
+                                $values    = '';
 
-                                            // clear columns and values every loop
-                                            $columns   = '';
-                                            $values    = '';
+                                foreach($data as $column => $value) {
+                                    $columns .= "`$column`, ";
 
-                                            foreach($data as $column => $value) {
-                                                $columns .= "`$column`, ";
-
-                                                if(is_numeric($value) || $value == '0')
-                                                    $values  .= "$value, ";
-                                                else if(is_null($value))
-                                                    $values  .= "NULL, ";
-                                                else
-                                                    $values  .= "'$value', ";
-                                            }
-
-                                            $columns = substr($columns, 0, strlen($columns)-2);
-                                            $values  = substr($values,  0, strlen($values) -2);
-                                            $sql    .= sprintf($insert, $table, $columns, $values);
-                                        }
-
-                                    }
+                                    if(is_numeric($value) || $value == '0')
+                                        $values  .= "$value, ";
+                                    else if(is_null($value))
+                                        $values  .= "NULL, ";
+                                    else
+                                        $values  .= "'$value', ";
                                 }
+
+                                $columns = substr($columns, 0, strlen($columns)-2);
+                                $values  = substr($values,  0, strlen($values) -2);
+                                $sql    .= sprintf($insert, $table, $columns, $values);
                             }
                         }
-
-                        $export   = $copyright.$sql.$commit;
-                        $fileName = strtolower($module).'_export_data.sql';
-                        $response = $this->getResponse();
-
-                        $response->getHeaders()
-                            ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
-                            ->addHeaderLine('Content-Disposition', 'attachment; filename="'.$fileName)
-                            ->addHeaderLine('Content-Length'     , strlen($export))
-                            ->addHeaderLine('Pragma'             , 'no-cache')
-                            ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8')
-                            ->addHeaderLine('fileName'           , $fileName);
-
-                        $response->setContent($export);
-                        $response->setStatusCode(200);
-
-                        $view = new ViewModel();
-                        $view->setTerminal(true);
-
-                        $view->content = $response->getContent();
-
-                        return $view;
                     }
                 }
             }
-            else {
-                $message = 'setup_structure.sql not found';
-            }
+
+            $export   = $copyright.$sql.$commit;
+            $fileName = strtolower($module).'_export_data.sql';
+            $response = $this->getResponse();
+
+            $response->getHeaders()
+                ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
+                ->addHeaderLine('Content-Disposition', 'attachment; filename="'.$fileName)
+                ->addHeaderLine('Content-Length'     , strlen($export))
+                ->addHeaderLine('Pragma'             , 'no-cache')
+                ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8')
+                ->addHeaderLine('fileName'           , $fileName);
+
+            $response->setContent($export);
+            $response->setStatusCode(200);
+
+            $view = new ViewModel();
+            $view->setTerminal(true);
+
+            $view->content = $response->getContent();
+
+            return $view;
+
         }
 
         if(!$success) {
-
             return new JsonModel(array(
                 'success' => $success,
                 'message' => $message
@@ -589,6 +612,19 @@ class MelisMarketPlaceController extends AbstractActionController
         }
     }
 
+    public function execDbDeployAction()
+    {
+        $moduleSvc = $this->getServiceLocator()->get('ModulesService');
+        $composer  = $moduleSvc->getComposer();
+
+
+        $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
+        $test = $deployDiscoveryService->copyDeltas2($composer, 'MelisCmsProspects');
+        print_r($test);
+
+//        print_r($composer);
+        die;
+    }
     public function testAction()
     {
         $class =  __CLASS__;
@@ -615,7 +651,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * the database, this will use the configuration set
      * on the database config file
      */
-    public function setDbAdapter()
+    private function setDbAdapter()
     {
         // access the database configuration
         $config = $this->getServiceLocator()->get('config');
@@ -644,7 +680,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * Returns the instance of DbAdapter
      * @return DbAdapter
      */
-    public function getAdapter()
+    private function getAdapter()
     {
         $this->setDbAdapter();
 

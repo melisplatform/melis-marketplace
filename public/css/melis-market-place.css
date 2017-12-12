@@ -1203,3 +1203,7 @@
     white-space: -o-pre-wrap;
     word-wrap: break-word;
 }
+
+.melis-marketplace-modal-reload{
+    margin-left: 10px;
+}

@@ -26,8 +26,8 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
     const DOWNLOAD      = 'require';
     const DUMP_AUTOLOAD = 'dump-autoload';
 
-    const DEFAULT_ARGS  = '--working-dir=';
-    const REMOVE_ARGS   = '--no-scripts --working-dir=';
+    const DEFAULT_ARGS  = '-vv --working-dir=';
+    const REMOVE_ARGS   = '-vv --no-scripts --working-dir=';
     const DRY_RUN_ARGS  = '--dry-run';
     const ROOT_REQS     = '--root-reqs ';
 

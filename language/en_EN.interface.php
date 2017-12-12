@@ -33,6 +33,7 @@ return array(
     'tr_market_place_update' => 'Update',
     'tr_market_place_remove' => 'Remove',
     'tr_market_place_reload' => 'Reload',
+    'tr_market_place_activate_module' => 'Activate %s',
 
     'tr_market_place_subtitle' => 'Search new modules for Melis Platform and stop reinventing the wheel!',
     'tr_market_place_composer_instruction' => '<h5 class="widget-title">Want your module listed on this page?</h5>Add this line to your composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>and it will automatically be included in the results grabbed from Packagist! Images and texts must me sent to: <a href="#">contact@melistechnology.com</a>',
