@@ -43,7 +43,7 @@ $(function() {
 
             var tables = [];
             var files  = [];
-            doAjax("POST", "http://www.melis-platform.dev/melis/MelisMarketPlace/MelisMarketPlace/getModuleTables", {module: module}, function(data) {
+            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/getModuleTables", {module: module}, function(data) {
                 tables = data.tables;
                 files  = data.files;
             });
