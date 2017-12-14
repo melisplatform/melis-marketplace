@@ -19,17 +19,18 @@ use MelisMarketPlace\Service\ComposerOutputFormatterStyle;
  */
 class MelisMarketPlaceComposerService extends MelisCoreGeneralService
 {
-    const COMPOSER      = __DIR__ . '/../../bin/extracted-composer/composer';
-    const INSTALL       = 'install';
-    const UPDATE        = 'update';
-    const REMOVE        = 'remove';
-    const DOWNLOAD      = 'require';
-    const DUMP_AUTOLOAD = 'dump-autoload';
+    const COMPOSER          = __DIR__ . '/../../bin/extracted-composer/composer';
+    const INSTALL           = 'install';
+    const UPDATE            = 'update';
+    const REMOVE            = 'remove';
+    const DOWNLOAD          = 'require';
+    const DUMP_AUTOLOAD     = 'dump-autoload';
 
-    const DEFAULT_ARGS  = '-vv --working-dir=';
-    const REMOVE_ARGS   = '-vv --no-scripts --working-dir=';
-    const DRY_RUN_ARGS  = '--dry-run';
-    const ROOT_REQS     = '--root-reqs ';
+    const DEFAULT_ARGS      = '-vv ';
+    const REMOVE_ARGS       = '-vv --no-scripts ';
+    const DRY_RUN_ARGS      = '--dry-run';
+    const ROOT_REQS         = '--root-reqs ';
+    const WITH_DEPENDENCIES ='--with-dependencies';
 
     /**
      * The path of the platform
@@ -171,7 +172,7 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
             }
 
 
-            $commandString = "$cmd $dryRunArgs $args\"$docPath\" $package";
+            $commandString = "$cmd $package $dryRunArgs $args --working-dir=\"$docPath\"";
             $input         = new StringInput($commandString);
             $output        = new StreamOutput(fopen('php://output','w'));
             $composer      = new Application();
@@ -185,7 +186,7 @@ class MelisMarketPlaceComposerService extends MelisCoreGeneralService
             $output->setFormatter($formatter);
 
             chdir($docPath);
-
+            print 'Command: ' . $commandString . '<br/>'.PHP_EOL;
             $composer->run($input, $output);
 
             file_put_contents('CHARME.txt', base64_encode($output), FILE_APPEND);

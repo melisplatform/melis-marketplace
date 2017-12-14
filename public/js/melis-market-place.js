@@ -47,7 +47,6 @@ $(function() {
             });
 
             doAjax("POST", "/melis/MelisCore/Modules/getDependents", {module: module, tables : tables}, function(data) {
-                console.log(tables);
                 var modules    = "<br/><br/><div class='container'><div class='row'><div class='col-lg-12'><ul>%s</ul></div></div></div>";
                 var moduleList = '';
 
@@ -108,8 +107,13 @@ $(function() {
                     doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
                         if(module.isExist || module.isExist === true) {
                             // show reload and activate module buttons
-                            $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
-                            $("button.melis-marketplace-modal-reload").removeClass("hidden");
+                            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module : module.module}, function(data) {
+                                if(data.success === 1) {
+                                    $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+                                    $("button.melis-marketplace-modal-reload").removeClass("hidden");
+                                }
+                            });
+
                         }
                     });
                 });
@@ -139,42 +143,59 @@ $(function() {
 
         // check if the module still exists
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
-            console.log(module);
+
             if(!module.isExist || module.isExist === false) {
                 vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.melis_market_place_tool_package_remove_ok.replace("%s", module.module) + '</span>');
+
                 // export tables
-                vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">' + translations.melis_market_place_tool_package_remove_table_dump.replace("%s", module.module) + '</span>');
-                vConsole.animate({
-                    scrollTop: vConsole.prop("scrollHeight")
-                }, 1115);
+                if(tables.length) {
+                    vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">' + translations.melis_market_place_tool_package_remove_table_dump.replace("%s", module.module) + '</span>');
+                    vConsole.animate({
+                        scrollTop: vConsole.prop("scrollHeight")
+                    }, 1115);
 
-                $.ajax({
-                    type: 'POST',
-                    url:'/melis/MelisMarketPlace/MelisMarketPlace/exportTables',
-                    data: {module: module.module, tables: tables},
-                    success: function(data, textStatus, request){
-                        // if data is not empty
-                        if(data) {
-                            var fileName = request.getResponseHeader("fileName");
-                            var blob     = new Blob([data], {type: "application/sql;charset=utf-8"});
-                            saveAs(blob, fileName);
-                            vConsole.html(vConsoleText + '<br/><span style="color:#02de02">Done</span>');
-                            vConsole.animate({
-                                scrollTop: vConsole.prop("scrollHeight")
-                            }, 1115);
-                            $("button.melis-marketplace-modal-reload").removeClass("hidden");
+                    $.ajax({
+                        type: 'POST',
+                        url:'/melis/MelisMarketPlace/MelisMarketPlace/exportTables',
+                        data: {module: module.module, tables: tables},
+                        success: function(data, textStatus, request){
+                            var vConsoleText = vConsole.html();
+                            // if data is not empty
+                            if(data) {
+                                var isError = request.getResponseHeader("error");
+                                if(isError === "0") {
+                                    var fileName = request.getResponseHeader("fileName");
+                                    var blob     = new Blob([data], {type: "application/sql;charset=utf-8"});
+                                    saveAs(blob, fileName);
+                                    vConsole.animate({
+                                        scrollTop: vConsole.prop("scrollHeight")
+                                    }, 1115);
+                                    $("button.melis-marketplace-modal-reload").removeClass("hidden");
+                                    vConsole.html(vConsoleText + '<br/><span style="color:#02de02">Done</span>');
+                                }
+                                else {
+                                    vConsoleText = vConsole.html();
+                                    vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">'+data.message+'</span>');
+                                    vConsoleText = vConsole.html();
+                                    vConsole.html(vConsoleText + '<br/><span style="color:#02de02">Done</span>');
+                                    vConsole.animate({
+                                        scrollTop: vConsole.prop("scrollHeight")
+                                    }, 1115);
+                                }
+                            }
+
                         }
-                    }
-                });
+                    });
+                }
 
-                vConsoleText = vConsole.html();
-
-                $("button.melis-marketplace-modal-reload").show();
-
+                $("button.melis-marketplace-modal-reload").removeClass("hidden");
 
             }
             else {
                 vConsole.html(vConsoleText + '<br/><span style="color:#ff190d">' + translations.melis_market_place_tool_package_remove_ko.replace("%s", module.module) + '</span>');
+                vConsole.animate({
+                    scrollTop: vConsole.prop("scrollHeight")
+                }, 1115);
             }
         });
 
@@ -221,8 +242,10 @@ $(function() {
                     xhrFields: {
                         onprogress: function(e) {
 
-                            var vConsole = $("body").find("#melis-marketplace-event-do-response");
+                            var vConsole      = $("body").find("#melis-marketplace-event-do-response");
                             vConsole.html("");
+                            var vConsoleText  = vConsole.html();
+
 
 
                             var curResponse, response = e.currentTarget.response;
@@ -234,20 +257,24 @@ $(function() {
                                 curResponse = response.substring(lastResponseLen);
                                 lastResponseLen = response.length;
                             }
-                            vConsoleText += curResponse.toString() + "\n<br/>";
-                            vConsole.html(vConsoleText);
+                            vConsoleText += curResponse + "\n<br/>";
+                            if(typeof vConsoleText !== "undefined") {
 
-                            // always scroll to bottom
-                            vConsole.animate({
-                                scrollTop: vConsole.prop("scrollHeight")
-                            }, 1115);
+                                vConsole.html(vConsoleText);
+
+                                // always scroll to bottom
+                                vConsole.animate({
+                                    scrollTop: vConsole.prop("scrollHeight")
+                                }, 1115);
+                            }
+
                         }
                     },
                     beforeSend: function () {
                         // do additional task here
                     },
                     success: function(data) {
-                        vConsoleText = vConsole.html();
+                        vConsoleText = "" + vConsole.html();
                         vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> Done!</div>');
                         vConsole.animate({
                             scrollTop: vConsole.prop("scrollHeight")

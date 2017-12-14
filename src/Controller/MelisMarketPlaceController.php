@@ -264,7 +264,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 switch($action) {
                     case $composerSvc::DOWNLOAD:
                         if(!in_array($module, $this->getModuleExceptions())) {
-                            $composerSvc->download($package);
+                            $composerSvc->download($package, 'dev-develop');
                         }
                     break;
                     case $composerSvc::UPDATE:
@@ -330,7 +330,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             if(!in_array($module, $activeModules)) {
                 // add to module loader
-                $defaultModules = array('MelisAssetManager','MelisCore', 'MelisEngine', 'MelisFront');
+                $defaultModules = array('MelisAssetManager','MelisCore', 'MelisEngine', 'MelisFront', 'MelisDbDeploy');
 
                 // remove MelisModuleConfig, to avoid duplication
                 $idx = array_search('MelisModuleConfig', $activeModules);
@@ -517,10 +517,11 @@ class MelisMarketPlaceController extends AbstractActionController
     public function exportTablesAction()
     {
 
-        $module  = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
-        $tables  = $this->getTool()->sanitize($this->getRequest()->getPost('tables'));
-        $success = 0;
-        $message = 'No table(s) found';
+        $module   = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
+        $tables   = $this->getTool()->sanitize($this->getRequest()->getPost('tables'));
+        $success  = 0;
+        $message  = 'No table(s) found';
+        $response = $this->getResponse();
         if($module) {
 
             $sql            = '';
@@ -538,6 +539,7 @@ class MelisMarketPlaceController extends AbstractActionController
             // check again if the tables are not empty
             if(is_array($tables)) {
 
+
                 // trim the matched texts
                 $tables = array_map(function($a) {
                     $n = trim($a);
@@ -548,63 +550,85 @@ class MelisMarketPlaceController extends AbstractActionController
 
                 if($this->getAdapter()) {
 
+                    $dropQueryTable = "";
                     foreach($tables as $table) {
-                        $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+                        try {
+                            $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+                            if($resultSet) {
+                                // CREATE AN INSERT SQL FILE
+                                $sql .= sprintf($dumpInfo, $table);
+                                foreach($resultSet as $data) {
 
-                        if($resultSet) {
-                            // CREATE AN INSERT SQL FILE
-                            $sql .= sprintf($dumpInfo, $table);
-                            foreach($resultSet as $data) {
+                                    // clear columns and values every loop
+                                    $columns   = '';
+                                    $values    = '';
 
-                                // clear columns and values every loop
-                                $columns   = '';
-                                $values    = '';
+                                    foreach($data as $column => $value) {
+                                        $columns .= "`$column`, ";
 
-                                foreach($data as $column => $value) {
-                                    $columns .= "`$column`, ";
+                                        if(is_numeric($value) || $value == '0')
+                                            $values  .= "$value, ";
+                                        else if(is_null($value))
+                                            $values  .= "NULL, ";
+                                        else
+                                            $values  .= "'$value', ";
+                                    }
 
-                                    if(is_numeric($value) || $value == '0')
-                                        $values  .= "$value, ";
-                                    else if(is_null($value))
-                                        $values  .= "NULL, ";
-                                    else
-                                        $values  .= "'$value', ";
+                                    $columns = substr($columns, 0, strlen($columns)-2);
+                                    $values  = substr($values,  0, strlen($values) -2);
+                                    $sql    .= sprintf($insert, $table, $columns, $values);
                                 }
-
-                                $columns = substr($columns, 0, strlen($columns)-2);
-                                $values  = substr($values,  0, strlen($values) -2);
-                                $sql    .= sprintf($insert, $table, $columns, $values);
                             }
+
+                            $dropQueryTable .= "DROP TABLE IF EXISTS `{$table}`;" . PHP_EOL;
+                        }catch(\PDOException $e) {
+                            $message .= ' '. PHP_EOL . $e->getMessage() . PHP_EOL;
                         }
                     }
+
+                    if($dropQueryTable) {
+                        $adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
+                    }
+
+                    if($sql) {
+                        $success = 1;
+                    }
+
+
                 }
             }
 
-            $export   = $copyright.$sql.$commit;
-            $fileName = strtolower($module).'_export_data.sql';
-            $response = $this->getResponse();
+            if($success) {
 
-            $response->getHeaders()
-                ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
-                ->addHeaderLine('Content-Disposition', 'attachment; filename="'.$fileName)
-                ->addHeaderLine('Content-Length'     , strlen($export))
-                ->addHeaderLine('Pragma'             , 'no-cache')
-                ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8')
-                ->addHeaderLine('fileName'           , $fileName);
+                $export   = $copyright.$sql.$commit;
+                $fileName = strtolower($module).'_export_data.sql';
 
-            $response->setContent($export);
-            $response->setStatusCode(200);
 
-            $view = new ViewModel();
-            $view->setTerminal(true);
+                $response->getHeaders()
+                    ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
+                    ->addHeaderLine('Content-Disposition', 'attachment; filename="'.$fileName)
+                    ->addHeaderLine('Content-Length'     , strlen($export))
+                    ->addHeaderLine('Pragma'             , 'no-cache')
+                    ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8')
+                    ->addHeaderLine('fileName'           , $fileName);
 
-            $view->content = $response->getContent();
+                $response->setContent($export);
+                $response->setStatusCode(200);
 
-            return $view;
+                $view = new ViewModel();
+                $view->setTerminal(true);
+
+                $view->content = $response->getContent();
+
+                return $view;
+            }
+
 
         }
 
         if(!$success) {
+            $response->getHeaders()->addHeaderLine("error", 1);
+            //$response->setStatusCode(500);
             return new JsonModel(array(
                 'success' => $success,
                 'message' => $message
@@ -614,16 +638,27 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function execDbDeployAction()
     {
-        $moduleSvc = $this->getServiceLocator()->get('ModulesService');
-        $composer  = $moduleSvc->getComposer();
 
+        $success = 0;
+        $request = $this->getRequest();
 
-        $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
-        $test = $deployDiscoveryService->copyDeltas2($composer, 'MelisCmsProspects');
-        print_r($test);
+        if($request->isPost()) {
 
-//        print_r($composer);
-        die;
+            $module = $this->getTool()->sanitize($request->getPost('module'));
+
+            if($module) {
+                $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
+                $deployDiscoveryService->processing($module);
+                $success = 1;
+            }
+        }
+
+        $response = array(
+            'success' => $success
+        );
+
+        return new JsonModel($response);
+
     }
     public function testAction()
     {
