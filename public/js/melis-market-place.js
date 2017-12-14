@@ -42,11 +42,13 @@ $(function() {
         if(action === "remove") {
 
             var tables = [];
+            var files  = [];
             doAjax("POST", "http://www.melis-platform.dev/melis/MelisMarketPlace/MelisMarketPlace/getModuleTables", {module: module}, function(data) {
                 tables = data.tables;
+                files  = data.files;
             });
 
-            doAjax("POST", "/melis/MelisCore/Modules/getDependents", {module: module, tables : tables}, function(data) {
+            doAjax("POST", "/melis/MelisCore/Modules/getDependents", {module: module, tables : tables, files: files}, function(data) {
                 var modules    = "<br/><br/><div class='container'><div class='row'><div class='col-lg-12'><ul>%s</ul></div></div></div>";
                 var moduleList = '';
 
@@ -68,7 +70,7 @@ $(function() {
 
                                 melisCoreTool.done("button");
                                 doEvent(objData, function () {
-                                    postDeleteEvent(module, tables);
+                                    postDeleteEvent(module, tables, files);
                                 });
                             });
                         }
@@ -86,7 +88,7 @@ $(function() {
 
                                 melisCoreTool.done("button");
                                 doEvent(objData, function() {
-                                    postDeleteEvent(module, tables);
+                                    postDeleteEvent(module, tables, files);
                                 });
                             });
                         }
@@ -136,7 +138,7 @@ $(function() {
         location.reload(true);
     });
 
-    function postDeleteEvent(module, tables)
+    function postDeleteEvent(module, tables, files)
     {
         var vConsole     = $("body").find("#melis-marketplace-event-do-response");
         var vConsoleText = vConsole.html();
@@ -157,7 +159,7 @@ $(function() {
                     $.ajax({
                         type: 'POST',
                         url:'/melis/MelisMarketPlace/MelisMarketPlace/exportTables',
-                        data: {module: module.module, tables: tables},
+                        data: {module: module.module, tables: tables, files : files},
                         success: function(data, textStatus, request){
                             var vConsoleText = vConsole.html();
                             // if data is not empty

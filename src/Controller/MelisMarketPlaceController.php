@@ -218,18 +218,35 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function toolProductModalContentAction()
     {
-        $module   = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
-        $action   = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
+        $module     = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
+        $action      = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
 
-        $melisKey = $this->params()->fromRoute('melisKey', '');
-        $title    = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
-        $data     = array();
+        $melisKey    = $this->params()->fromRoute('melisKey', '');
+        $title       = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
+        $data        = array();
+        $status      = '';
+        $composerSvc = $this->getServiceLocator()->get('MelisMarketPlaceComposerService');
+
+        switch($action) {
+            case $composerSvc::DOWNLOAD:
+                $status = 'Downloading...';
+            break;
+            case $composerSvc::UPDATE:
+                $status = 'Updating...';
+            break;
+            case $composerSvc::REMOVE:
+                $status = 'Removing...';
+            break;
+        }
+
 
         $view = new ViewModel();
 
         $view->melisKey = $melisKey;
         $view->title    = $title;
         $view->module   = $module;
+        $view->status   = $status;
+
 
 
         return $view;
@@ -483,33 +500,56 @@ class MelisMarketPlaceController extends AbstractActionController
     public function getModuleTablesAction()
     {
         $module         = $this->getTool()->sanitize($this->getRequest()->getPost('module', 'MelisCore'));
-        $svc            = $this->getServiceLocator()->get('ModulesService');
-        $path           = $svc->getModulePath($module, true);
-        $setupStructure = 'setup_structure.sql';
-        $setupFile      = $path.'/install/sql/'.$setupStructure;
-        $message        = 'No table(s) found';
         $tables         = array();
-        if(file_exists($setupFile)) {
-            set_time_limit(-1);
-            ini_set ('memory_limit', -1);
+        $files          = array();
 
-            $setupFile = file_get_contents($setupFile);
-            if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
-                $tables = isset($matches[0]) ? $matches[0] : null;
-                $tables = array_map(function($a) {
-                    $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
-                    $n = trim($n);
-                    return  $n;
-                }, $tables);
-                if(is_array($tables)) {
-                    $tables = (array) $tables;
+        if($this->getRequest()->isPost()) {
+            $svc            = $this->getServiceLocator()->get('ModulesService');
+            $path           = $svc->getModulePath($module, true);
+            $dbDeployPath   = $path.'/install/sql/dbdeploy/';
+            $setupStructure = 'setup_structure.sql';
+            $setupFile      = null;
+
+            // look for setup_structure SQL file
+            $dbDeployFiles  = array_diff(scandir($dbDeployPath), array('.', '..', '.gitignore'));
+
+            if($dbDeployFiles) {
+                foreach($dbDeployFiles as $file) {
+                    $files[] = $file;
+                    if(strrpos($file, $setupStructure) !== false) {
+                        $setupFile = $file;
+                    }
+                }
+            }
+
+
+            if(file_exists($dbDeployPath.$setupFile)) {
+                $setupFile = $dbDeployPath.$setupFile;
+
+                set_time_limit(-1);
+                ini_set ('memory_limit', -1);
+
+                $setupFile = file_get_contents($setupFile);
+                if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
+                    $tables = isset($matches[0]) ? $matches[0] : null;
+                    $tables = array_map(function($a) {
+                        $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
+                        $n = trim($n);
+                        return  $n;
+                    }, $tables);
+                    if(is_array($tables)) {
+                        $tables = (array) $tables;
+                    }
                 }
             }
         }
 
+
+
         return new JsonModel(array(
             'module' => $module,
-            'tables' => $tables
+            'tables' => $tables,
+            'files'  => $files
         ));
     }
 
@@ -519,6 +559,8 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $module   = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
         $tables   = $this->getTool()->sanitize($this->getRequest()->getPost('tables'));
+        $files    = $this->getTool()->sanitize($this->getRequest()->getPost('files'));
+
         $success  = 0;
         $message  = 'No table(s) found';
         $response = $this->getResponse();
@@ -549,6 +591,23 @@ class MelisMarketPlaceController extends AbstractActionController
                 $adapter = $this->getAdapter();
 
                 if($this->getAdapter()) {
+
+                    // remove data on dbDeploy
+                    if($files) {
+                        $dbDeployQuery = "";
+                        foreach($files as $file) {
+                            $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
+                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'].'/../cache/dbdeploy/'.$file;
+                            if(file_exists($dbDeployFileCache)) {
+                                unlink($dbDeployFileCache);
+                            }
+                        }
+
+                        if($dbDeployQuery) {
+                            $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
+                        }
+
+                    }
 
                     $dropQueryTable = "";
                     foreach($tables as $table) {
@@ -610,6 +669,7 @@ class MelisMarketPlaceController extends AbstractActionController
                     ->addHeaderLine('Content-Length'     , strlen($export))
                     ->addHeaderLine('Pragma'             , 'no-cache')
                     ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8')
+                    ->addHeaderLine('error'              , '0')
                     ->addHeaderLine('fileName'           , $fileName);
 
                 $response->setContent($export);
