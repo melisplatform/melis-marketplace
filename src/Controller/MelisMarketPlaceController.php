@@ -226,7 +226,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $title       = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
         $data        = array();
         $status      = '';
-        $composerSvc = $this->getServiceLocator()->get('MelisMarketPlaceComposerService');
+        $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
 
         switch($action) {
             case $composerSvc::DOWNLOAD:
@@ -277,7 +277,7 @@ class MelisMarketPlaceController extends AbstractActionController
             if($action && $package && $module) {
 
                 $title       = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
-                $composerSvc = $this->getServiceLocator()->get('MelisMarketPlaceComposerService');
+                $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
 
                 switch($action) {
                     case $composerSvc::DOWNLOAD:
@@ -723,20 +723,9 @@ class MelisMarketPlaceController extends AbstractActionController
     }
     public function testAction()
     {
-        $class =  __CLASS__;
-        $pos   = strrpos($class, 'Controller');
-        $end   = strlen($class) - $pos;
-        $class = substr($class, 0, strlen($class)-$end);
+        $test = $this->getServiceLocator()->get('MelisComposerService');
 
-        $test = $this->forward()->dispatch($class,
-            array_merge(array('action' => 'exportTables', 'module' => 'MelisCmsProspects')))->getVariables()->getArrayCopy();
-
-
-        if(isset($test['content'])) {
-            $hhehe = $test['content'];
-            echo $hhehe;
-            return $test['content'];
-        }
+        $test->remove('melisplatform/melis-cms-prospects');
 
 
         die;

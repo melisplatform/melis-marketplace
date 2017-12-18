@@ -24,6 +24,7 @@
     "ext-pdo_mysql": "*",
     "ext-mcrypt": "*",
     "melisplatform/melis-core": "~2.2.7",
+    "melisplatform/melis-composerdeploy": "dev-master",
     "justinrainbow/json-schema": "5.2.1"
   },
   "require-dev": {
