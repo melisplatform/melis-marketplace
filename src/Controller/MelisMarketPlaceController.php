@@ -27,7 +27,7 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function toolContainerAction()
     {
-        $url       = $this->getMelisPackagistServer();
+        $url        = $this->getMelisPackagistServer();
         $melisKey   = $this->getMelisKey();
         $config     = $this->getServiceLocator()->get('MelisCoreConfig');
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
