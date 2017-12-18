@@ -170,8 +170,9 @@ class MelisMarketPlaceController extends AbstractActionController
                     //compare the package local version to the repository
                     if(isset($tmpPackages[$idx]['packageModuleName'])) {
                         $d = $this->getMarketPlaceService()->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
+
                         if(!empty($d)){
-                            $tmpPackages[$idx]['version_status'] = $d['version_status'];
+                            $tmpPackages[$idx]['version_status'] = $this->getVersionStatusText($d);
                         }else{
                             $tmpPackages[$idx]['version_status'] = "";
                         }
