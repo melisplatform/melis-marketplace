@@ -89,6 +89,7 @@ class MelisMarketPlaceController extends AbstractActionController
             }
         }
 
+
         set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
@@ -281,11 +282,11 @@ class MelisMarketPlaceController extends AbstractActionController
                 switch($action) {
                     case $composerSvc::DOWNLOAD:
                         if(!in_array($module, $this->getModuleExceptions())) {
-                            $composerSvc->download($package, 'dev-develop');
+                            $composerSvc->download($package);
                         }
                     break;
                     case $composerSvc::UPDATE:
-//                        $composerSvc->update($package);
+                        $composerSvc->update($package);
                     break;
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {

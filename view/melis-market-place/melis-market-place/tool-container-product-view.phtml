@@ -22,7 +22,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                             <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
                                         </button>
                                         <?php } else {
-                                            if($this->version === -1) {
+                                            if($this->versionStatus === -1) {
                                         ?>
                                             <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
                                                 <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>

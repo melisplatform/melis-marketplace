@@ -100,7 +100,7 @@ $(function() {
                 $("h4#meliscore-tool-module-content-title").html(translations.tr_meliscore_module_management_modules);
             });
         }
-        else if(action === "require") {
+        else {
             melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
                 melisCoreTool.done("button");
                 doEvent(objData, function() {
@@ -111,7 +111,11 @@ $(function() {
                             // show reload and activate module buttons
                             doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module : module.module}, function(data) {
                                 if(data.success === 1) {
-                                    $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+
+                                    if(objData.action == "require") {
+                                        $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+                                    }
+
                                     $("button.melis-marketplace-modal-reload").removeClass("hidden");
                                 }
                             });
