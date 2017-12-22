@@ -283,11 +283,11 @@ class MelisMarketPlaceController extends AbstractActionController
                 switch($action) {
                     case $composerSvc::DOWNLOAD:
                         if(!in_array($module, $this->getModuleExceptions())) {
-                            $composerSvc->download($package);
+                            $composerSvc->download($package, 'dev-develop');
                         }
                     break;
                     case $composerSvc::UPDATE:
-                        $composerSvc->update($package);
+                        $composerSvc->update($package, 'dev-develop');
                     break;
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {
@@ -700,7 +700,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function execDbDeployAction()
     {
-
+        
         $success = 0;
         $request = $this->getRequest();
 
