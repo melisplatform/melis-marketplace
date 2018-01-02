@@ -137,7 +137,7 @@ class MelisMarketPlaceController extends AbstractActionController
             $domain  = $get->getHost();
             $scheme  = $get->getScheme();
 
-            //$serviceTracker->track($domain, $scheme, $modules);
+            $serviceTracker->track($domain, $scheme, $modules);
             //end verifying modules
 
             $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), array(), true);
@@ -816,7 +816,7 @@ class MelisMarketPlaceController extends AbstractActionController
         /*
          * verify list of modules
          */
-        //$trackedDomainData->track($domain, $scheme, $moduleList);
+        $trackedDomainData->track($domain, $scheme, $moduleList);
         //End verifying modules
 
         foreach ($packages['packages'] as $packagesData => $packagesValue)
@@ -881,7 +881,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if(count($trackedDomainData) > 0)
         {
-            //$trackedDomainData->track($domain, $scheme, $moduleList);
+            $trackedDomainData->track($domain, $scheme, $moduleList);
         }
         //End verifying
 
