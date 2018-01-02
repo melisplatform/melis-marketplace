@@ -5,6 +5,18 @@ return array(
     'plugins' => array(
         'meliscore' => array(
             'interface' => array(
+                'meliscore_header' => array(
+                    'interface' => array(
+                        'melis_platform_tracking' => array(
+                            'conf' => array(
+                                'id' => 'id_melis_platform_tracking',
+                                'name' => 'tr_melis_platform_tracking_title',
+                                'rightsDisplay' => "none",
+                                'type' => 'melis_platform_tracking_conf'
+                            ),
+                        ),
+                    ),
+                ),
                 'meliscore_leftmenu' => array(
                     'interface' => array(
                         'meliscore_toolstree' => array(
@@ -31,7 +43,32 @@ return array(
                 ),
             ),
         ),
+        /*
+         * Module header download-icon
+         */
+        'melis_platform_tracking_conf' => array(
+            'conf' => array(
+                'id' => 'id_melis_platform_tracking_conf',
+                'rightsDisplay' => "none",
+            ),
+            'interface' => array(
+                'melis_platform_tracking_header' => array(
+                    'conf' => array(
+                        'id' => 'id_melis_platform_tracking_header',
+                        'name' => 'tr_melis_platform_tracking_header_title',
+                        'melisKey' => 'melis_platform_tracking_header',
 
+                    ),
+                    'forward' => array(
+                        'module' => 'MelisMarketPlace',
+                        'controller' => 'MelisMarketPlace',
+                        'action' => 'market-place-module-header',
+                        'jscallback' => '',
+                        'jsdatas' => array()
+                    ),
+                ),
+            ),
+        ),
         /**
          * this is the configuration of the tool
          */
@@ -118,6 +155,29 @@ return array(
                 )
             ),
 
-        )
-    )
+        ),
+        'meliscore_dashboard' => array(
+            'interface' => array(
+                'market_place_most_downloaded_modules' => array(
+                    'conf' => array(
+                        'id' => 'id_market_place_most_downloaded_modules',
+                        'name' => 'tr_market_place_most_downloaded_modules_title',
+                        'melisKey' => 'market_place_most_downloaded_modules',
+                        'width' => 6,
+                        'height' => 'dashboard-large',
+
+                    ),
+                    'forward' => array(
+                        'module' => 'MelisMarketplace',
+                        'controller' => 'MelisMarketPlace',
+                        'action' => 'market-place-dashboard',
+                        'jscallback' => '',
+                        'jsdatas' => array()
+                    ),
+                ),
+            )
+        ),
+
+    ),
+
 );

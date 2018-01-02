@@ -464,3 +464,42 @@ function initSlick() {
         }]
     });
 }
+/*Dashboard slider*/
+$(document).ready(function(){
+    function initDashboardSlider(){
+        $(".slider-dashboard-downloaded-packages").slick({
+
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            autoplay: true,
+            autoplaySpeed: 2000,
+            arrows: true,
+            adaptiveHeight: true,
+            dots : true
+        });
+
+    }
+
+    //Initialize dashboard slider
+    initDashboardSlider();
+
+    //Refresh button in dashboard slider
+    $("body").on("click" , ".dashboard-downloaded-packages", function(){
+
+        var melisKey = "market_place_most_downloaded_modules";
+        var zoneId   = "id_market_place_most_downloaded_modules";
+
+        //Zone Reload
+        melisHelper.zoneReload(zoneId,melisKey,{},function(){
+            initDashboardSlider();
+        });
+
+    });
+
+    //link to market-place
+    $("body").on("click" , "#link-to-marketplace" , function(){
+        // tabOpen(title, icon, zoneId, melisKey, parameters, navTabsGroup, callback){
+
+        melisHelper.tabOpen(translations.tr_market_place, "fa-shopping-cart", "id_melis_market_place_tool_display", "melis_market_place_tool_display" , {}, null,null);
+    });
+});

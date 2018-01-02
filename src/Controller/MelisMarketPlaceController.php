@@ -126,6 +126,20 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if($this->getRequest()->isPost()) {
 
+            /*
+             *  For verifying the moduleList
+             */
+            $get            = $this->getRequest()->getUri();
+            $moduleService  = $this->getServiceLocator()->get('ModulesService');
+            $serviceTracker = $this->getServiceLocator()->get('MelisTrackerService');
+
+            $modules = $moduleService->getAllModules();
+            $domain  = $get->getHost();
+            $scheme  = $get->getScheme();
+
+            //$serviceTracker->track($domain, $scheme, $modules);
+            //end verifying modules
+
             $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), array(), true);
 
             $page        = isset($post['page'])        ? (int) $post['page']        : 1;
@@ -771,6 +785,137 @@ class MelisMarketPlaceController extends AbstractActionController
         $this->setDbAdapter();
 
         return $this->adapter;
+    }
+    /**
+     * dashboard view of market place
+     * @return ViewModel
+     */
+    public function marketPlaceDashboardAction()
+    {
+        $url                   = $this->getMelisPackagistServer() . "/get-most-downloaded-packages";
+        $melisKey              = $this->getmelisKey();
+        $moduleService         = $this->getServiceLocator()->get('ModulesService');
+        $trackedDomainData     = $this->getServiceLocator()->get('MelisTrackerService');
+        $data                  = array();
+        $downloadedmodulesData = array();
+        $packages              = array();
+
+
+        $downloadedmodulesData = file_get_contents($url);
+
+        $packages   = json_decode($downloadedmodulesData, true);
+
+
+        $moduleList = $moduleService->getAllModules();
+
+        $request = $this->getRequest();
+        $uri     = $request->getUri();
+        $domain  = $uri->getHost();
+        $scheme  = $uri->getScheme();
+
+        /*
+         * verify list of modules
+         */
+        //$trackedDomainData->track($domain, $scheme, $moduleList);
+        //End verifying modules
+
+        foreach ($packages['packages'] as $packagesData => $packagesValue)
+        {
+            $data[] = array(
+                'packageId'              => $packagesValue['packageId'],
+                'packageTitle'           => $packagesValue['packageTitle'],
+                'packageName'            => $packagesValue['packageName'],
+                'packageSubtitle'        => $packagesValue['packageSubtitle'],
+                'packageModuleName'      => $packagesValue['packageModuleName'],
+                'packageDescription'     => $packagesValue['packageDescription'],
+                'packageImages'          => $packagesValue['packageImages'][0],
+                'packageUrl'             => $packagesValue['packageUrl'],
+                'packageRepository'      => $packagesValue['packageRepository'],
+                'packageTotalDownloads'  => $packagesValue['packageTotalDownloads'],
+                'packageVersion'         => $packagesValue['packageVersion'],
+                'packageTimeOfRelease'   => $packagesValue['packageTimeOfRelease'],
+                'packageMaintainers'     => $packagesValue['packageMaintainers'],
+                'packageType'            => $packagesValue['packageType'],
+                'packageDateAdded'       => $packagesValue['packageDateAdded'],
+                'packageLastUpdate'      => $packagesValue['packageLastUpdate'],
+                'packageGroupId'         => $packagesValue['packageGroupId'],
+                'packageGroupName'       => $packagesValue['packageGroupName'],
+                'packageIsActive'        => $packagesValue['packageIsActive'],
+
+            );
+        }
+
+        $view = new ViewModel();
+
+        $view->melisKey = $melisKey;
+        $view->modules  = serialize($moduleList);
+        $view->scheme   = $scheme;
+        $view->domain   = $domain;
+
+        $view->downloadedPackages = $data;
+
+
+        return $view;
+    }
+
+    /**
+     * @return ViewModel
+     */
+    public function marketPlaceModuleHeaderAction()
+    {
+        $melisKey = $this->getMelisKey();
+
+        $request            = $this->getRequest();
+        $moduleService      = $this->getServiceLocator()->get('ModulesService');
+        $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
+        $trackedDomainData  = $this->getServiceLocator()->get('MelisTrackerService');
+
+        /*
+         * verify modules of their current versions
+         */
+        $moduleList = $moduleService->getAllModules();
+
+        $uri     = $request->getUri();
+        $domain  = $uri->getHost();
+        $scheme  = $uri->getScheme();
+
+        if(count($trackedDomainData) > 0)
+        {
+            //$trackedDomainData->track($domain, $scheme, $moduleList);
+        }
+        //End verifying
+
+        $data  = array();
+        $count = 0;
+
+        foreach($moduleList as $module => $moduleName){
+
+            $version = null;
+            $moduleVersion = $moduleService->getModulesAndVersions($moduleName);
+
+            if(isset($moduleVersion['version']))
+            {
+                $version = $moduleVersion['version'];
+            }
+
+            if($moduleName != 'MelisModuleConfig' && $moduleName != 'MelisSites'){
+                $status = $marketplaceService->compareLocalVersionFromRepo($moduleName, $version);
+                $data[] = array(
+                    'module_name' => $moduleName,
+                    'status'      => $status
+                );
+
+                if((int) $status == -1)
+                {
+                    $count+=1;
+                }
+            }
+        }
+        $view = new ViewModel();
+        $view->melisKey = $melisKey;
+        $view->modules = $data;
+        $view->needToUpdateModuleCount = $count;
+        return $view;
     }
 
 }

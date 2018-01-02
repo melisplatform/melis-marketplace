@@ -1,0 +1,78 @@
+<?php
+
+$id = '';
+if (!empty($this->zoneconfig['conf']['id']))
+    $id = ' id="' . $this->zoneconfig['conf']['id'] . '"';
+$data_melisKey = $this->melisKey;
+
+?>
+<div<?= $id; ?> data-melisKey='<?= $data_melisKey; ?>' class="widget-parent">
+    <div class="widget-head">
+        <div class="btn-group pull-right btn-group-xs">
+            <a class="btn btn-default dashboard-downloaded-packages" data-toggle="tab"><i class="fa fa-refresh"></i></a>
+        </div>
+        <h3 class="heading"><i class="icon-stocks-up fa fa-fw"></i> <?= $this->translate('tr_market_place_most_downloaded_modules_title'); ?></h3>
+    </div>
+    <div class="widget-body">
+       <div class="row">
+           <div class="col-md-12">
+               <?php
+               $packagesData = $this->downloadedPackages;
+               $imgFile      = $packagesData[0]['packageImages']['imageFile'];
+               ?>
+               <div class="slider-dashboard-downloaded-packages">
+
+                   <?php
+
+                   foreach($packagesData as $dataPackage => $valuePackage){
+                   $title    = $valuePackage['packageTitle'];
+                   $subTitle = $valuePackage['packageSubtitle'];
+                   $desc     = $valuePackage['packageDescription'];
+                   $imgFile  = $valuePackage['packageImages']['imageFile'];
+                   $imgTitle = $valuePackage['packageImages']['imageTitle'];
+
+                   /*
+                    * Icons
+                    */
+                   $version     = $valuePackage['packageVersion'];
+                   $github      = $valuePackage['packageRepository'];
+                   $packagist   = $valuePackage['packageUrl'];
+                   $packageName = $valuePackage['packageName'];
+                   $downloads   = $valuePackage['packageTotalDownloads'];
+
+                   ?>
+                   <div>
+                       <img class="" style="width:100%;height:auto" src="<?=$imgFile?>" alt="<?=$imgTitle?>">
+                       <br><br>
+                       <h4 class="package-title"><?= $dataPackage+1 . ". ". $title ?></h4>
+                        <div class="description">
+                            <ul class="add-info-lists">
+                                <li>
+                                    <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_version'); ?>:</span>
+                                    <span><?= $version?></span>
+                                </li>
+                                <li>
+                                    <span class="info-title"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:</span>
+                                    <span><a href="<?= $github ?>" target="_blank"><?= $github ?></a></span>
+                                </li>
+                                <li>
+                                    <span class="info-title"><img src="/MelisMarketPlace/images/packagist-icon.png" alt="" class="dl-icon-packagist"> <?= $this->translate('tr_market_place_packagist'); ?>:</span>
+                                    <span><a href="<?= $packagist ?>" target="_blank"><?= $packagist ?></a></span>
+                                </li>
+                                <li>
+                                    <span class="info-title"><i class="fa fa-tag"></i><?= $this->translate('tr_market_place_package_name'); ?>:</span>
+                                    <span><?= $packageName ?></span>
+                                </li>
+                                <li>
+                                    <span class="info-title"><i class="fa fa-download"></i> <?= $this->translate('tr_market_place_total_downloads'); ?>:</span>
+                                    <span><?= number_format($downloads); ?></span>
+                                </li>
+                            </ul>
+                        </div>
+                   </div>
+                   <?php }?>
+               </div>
+           </div>
+    </div>
+    </div>
+</div>
