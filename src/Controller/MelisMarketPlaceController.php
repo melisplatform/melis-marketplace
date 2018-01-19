@@ -828,7 +828,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 'packageSubtitle'        => $packagesValue['packageSubtitle'],
                 'packageModuleName'      => $packagesValue['packageModuleName'],
                 'packageDescription'     => $packagesValue['packageDescription'],
-                'packageImages'          => $packagesValue['packageImages'][0],
+                'packageImages'          => isset($packagesValue['packageImages'][0]) ? $packagesValue['packageImages'][0] : null ,
                 'packageUrl'             => $packagesValue['packageUrl'],
                 'packageRepository'      => $packagesValue['packageRepository'],
                 'packageTotalDownloads'  => $packagesValue['packageTotalDownloads'],
@@ -844,6 +844,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             );
         }
+
 
         $view = new ViewModel();
 
