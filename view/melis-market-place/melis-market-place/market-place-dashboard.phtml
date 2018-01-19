@@ -28,7 +28,7 @@ $data_melisKey = $this->melisKey;
                    $title    = $valuePackage['packageTitle'];
                    $subTitle = $valuePackage['packageSubtitle'];
                    $desc     = $valuePackage['packageDescription'];
-                   $imgFile  = $valuePackage['packageImages']['imageFile'];
+                   $imgFile  = isset($valuePackage['packageImages']['imageFile']) ? $valuePackage['packageImages']['imageFile'] : "http://marketplace.melisplatform.com/MelisMarketPlace/images/market-placeholder.png";
                    $imgTitle = $valuePackage['packageImages']['imageTitle'];
 
                    /*
