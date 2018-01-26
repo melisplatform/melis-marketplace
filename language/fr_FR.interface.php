@@ -24,5 +24,5 @@ return array(
     'tr_market_place_description' => 'Description',
 
     'tr_market_place_subtitle' => 'Cherchez de nouveaux modules pour Melis platform et arrêtez de réinventer la roue !',
-    'tr_market_place_composer_instruction' => '<h5 class="widget-title">Vous voulez votre module listé sur cette page?</h5>Ajoutez cette ligne dans votre composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>et il sera automatiquement inclu dans les résultats de Packagist ! Les images et textes de présentation doivent être envoyés à : <a href="#">contact@melistechnology.com</a>',
+    'tr_market_place_composer_instruction' => '<h5 class="widget-title">Vous voulez votre module listé sur cette page?</h5>Ajoutez cette ligne dans votre composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>et il sera automatiquement inclus dans les résultats de Packagist ! Les images et textes de présentation doivent être envoyés à : <a href="#">contact@melistechnology.com</a>',
 );
