@@ -88,7 +88,21 @@ class MelisMarketPlaceController extends AbstractActionController
                 }
             }
         }
-
+        
+        /**
+         * Checking if the current Platform allows to update marketplace
+         */
+        $platformTable = $this->getServiceLocator()->get('MelisCoreTablePlatform');
+        $currentPlatform = $platformTable->getEntryByField('plf_name', getenv('MELIS_PLATFORM'))->current();
+        
+        $isUpdatablePlatform = false;
+        if ($currentPlatform)
+        {
+            if ($currentPlatform->plf_update_marketplace)
+            {
+                $isUpdatablePlatform = true;
+            }
+        }
 
         set_time_limit(0);
         $response = file_get_contents($url.'/get-most-downloaded-packages');
@@ -106,6 +120,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->isExempted           = $isExempted;
         $view->versionStatus        = $version;
         $view->versionText          = $this->getVersionStatusText($version);
+        $view->isUpdatablePlatform  = $isUpdatablePlatform;
 
         return $view;
     }

@@ -2,8 +2,8 @@
 $id = '';
 if (!empty($this->zoneconfig['conf']['id']))
     $id = $this->zoneconfig['conf']['id'];
-
-?>
+    
+    ?>
 <div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId .'_' . $id; ?>" class="tab-pane container-level-a">
     <div class="innerAll spacing-x2">
         <div class="melis-store">
@@ -18,21 +18,22 @@ if (!empty($this->zoneconfig['conf']['id']))
 
                                     <div class="melis-marketplace-product-buttons">
                                         <?php if(!$this->isModuleInstalled && !$this->isExempted) { ?>
-                                        <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                            <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
-                                        </button>
+                                            <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
+                                            </button>
                                         <?php } else {
-                                            if($this->versionStatus === -1) {
+                                                if($this->versionStatus === -1 && $this->isUpdatablePlatform) {
                                         ?>
-                                            <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                                <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
-                                            </button>
-                                            <?php } ?>
-                                            <?php if(!$this->isExempted) { ?>
-                                            <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                                <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
-                                            </button>
-                                            <?php } ?>
+                                                <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                    <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
+                                                </button>
+                                            <?php } 
+                                                if(!$this->isExempted) { 
+                                            ?>
+                                                <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                    <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
+                                                </button>
+                                                <?php } ?>
                                         <?php } ?>
                                     </div>
 
