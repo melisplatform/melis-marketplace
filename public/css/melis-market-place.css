@@ -157,7 +157,7 @@
     transition: all 0.3s ease-in;
 }
 
-.slider-nav .slick-track .slick-slide.slick-current {
+.slider-nav .slick-track .slick-slide.is-active {
 	opacity: 1;
 }
 
