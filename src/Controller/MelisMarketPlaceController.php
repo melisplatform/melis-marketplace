@@ -146,7 +146,7 @@ class MelisMarketPlaceController extends AbstractActionController
              */
             $get            = $this->getRequest()->getUri();
             $moduleService  = $this->getServiceLocator()->get('ModulesService');
-            $serviceTracker = $this->getServiceLocator()->get('MelisTrackerService');
+
 
             $modules = $moduleService->getAllModules();
             $domain  = $get->getHost();
@@ -810,7 +810,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $url                   = $this->getMelisPackagistServer() . "/get-most-downloaded-packages";
         $melisKey              = $this->getmelisKey();
         $moduleService         = $this->getServiceLocator()->get('ModulesService');
-        $trackedDomainData     = $this->getServiceLocator()->get('MelisTrackerService');
+       // $trackedDomainData     = $this->getServiceLocator()->get('MelisTrackerService');
         $data                  = array();
         $downloadedmodulesData = array();
         $packages              = array();
@@ -884,7 +884,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $request            = $this->getRequest();
         $moduleService      = $this->getServiceLocator()->get('ModulesService');
         $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
-        $trackedDomainData  = $this->getServiceLocator()->get('MelisTrackerService');
+       // $trackedDomainData  = $this->getServiceLocator()->get('MelisTrackerService');
 
         /*
          * verify modules of their current versions
