@@ -895,10 +895,10 @@ class MelisMarketPlaceController extends AbstractActionController
         $domain  = $uri->getHost();
         $scheme  = $uri->getScheme();
 
-        if(count($trackedDomainData) > 0)
-        {
-            //$trackedDomainData->track($domain, $scheme, $moduleList);
-        }
+        // if(count($trackedDomainData) > 0)
+        // {
+        //     //$trackedDomainData->track($domain, $scheme, $moduleList);
+        // }
         //End verifying
 
         $data  = array();
