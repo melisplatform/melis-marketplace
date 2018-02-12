@@ -321,7 +321,48 @@ class MelisMarketPlaceController extends AbstractActionController
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {
 
-                            $defaultModules = array('MelisAssetManager','MelisCore', 'MelisEngine', 'MelisFront');
+                            /**
+                             * Remove module
+                             * $composerSvc->remove($package);
+                             * the command above remove's the package and then updates the entire composer.json entries
+                             * which is not likely, we just need to remove the module and its' autoloaded classes
+                             */
+
+                            // read the composer.json file
+
+                            $composerJsonFile = $_SERVER['DOCUMENT_ROOT'] . '/../composer.json';
+
+                            if(file_exists($composerJsonFile)) {
+                                // read the composer.json file
+                                $composerJson = json_decode(file_get_contents($composerJsonFile), true);
+
+
+                                $modulePath = $moduleSvc->getModulePath('MelisCmsProspects');
+                                if(file_exists($modulePath)) {
+                                    if(file_exists("$modulePath/.gitignore"))
+                                        unlink("$modulePath/.gitignore");
+
+                                    $this->deleteDir("$modulePath/.git");
+                                    $this->deleteDir($modulePath);
+                                }
+
+                                // update the content of composer.json
+                                $require = isset($composerJson['require']) ? $composerJson['require'] : null;
+                                if($require) {
+                                    unset($require[$package]);
+                                    $composerJson['require'] = $require;
+                                }
+
+                                $newContent = \Zend\Json\Json::encode($composerJson, false  , array('prettyPrint' => true));
+                                $newContent = str_replace('\/', '/', $newContent);
+
+                                unlink($composerJsonFile);
+                                file_put_contents($composerJsonFile, $newContent);
+
+                            }
+
+
+                            $defaultModules = array('MelisAssetManager','MelisComposerDeploy', 'MelisDbDeploy', 'MelisCore', 'MelisEngine', 'MelisFront');
                             $removeModules  = array_merge($moduleSvc->getChildDependencies($module), array($module, 'MelisModuleConfig'));
                             $activeModules  = $moduleSvc->getActiveModules($defaultModules);
 
@@ -336,8 +377,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
                             $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
 
-                            // remove module
-                            $composerSvc->remove($package);
+                            $composerSvc->dumpAutoload();
 
                         }
                     break;
@@ -933,5 +973,26 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->needToUpdateModuleCount = $count;
         return $view;
     }
+
+    protected function deleteDir($dirPath) {
+        if (is_dir($dirPath)) {
+            $objects = scandir($dirPath);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (filetype($dirPath."/".$object) == "dir") {
+                        $this->deleteDir($dirPath."/".$object);
+                    }
+                    else {
+                        chmod($dirPath."/".$object, 0777);
+                        unlink($dirPath."/".$object);
+                    }
+                }
+            }
+            reset($objects);
+            rmdir($dirPath);
+        }
+    }
+
+
 
 }
