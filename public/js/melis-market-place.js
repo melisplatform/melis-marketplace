@@ -114,15 +114,21 @@ $(function() {
 		e.preventDefault();
 	});
 
+    /**
+     * Opening market place module
+     */
 	$("body").on("click", ".melis-market-place-view-details", function() {
 		var packageId    = $(this).data().packageid;
 		var packageTitle = $(this).data().packagetitle;
-		melisHelper.disableAllTabs();
+        var openTab = $("body #melis-id-nav-bar-tabs li a.tab-element[data-id='"+ packageId +"_id_melis_market_place_tool_package_display']");
+        // check if tab is already open
+        if(!openTab.length) {
+            melisHelper.disableAllTabs();
+        }
+        // Open selected tab and enable it
         melisHelper.tabOpen(packageTitle, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display", function() {
             melisHelper.enableAllTabs();
 		});
-
-
 	});
 
     function plus(){
