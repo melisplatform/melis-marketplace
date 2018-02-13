@@ -471,14 +471,6 @@ $(function() {
     $("body").on("click", "#btnMinus", minus);
     $("body").on("click", "#btnPlus", plus);
 
-
-});
-
-
-
-
-
-
     $("body").on("hide.bs.modal", "#id_melis_market_place_tool_package_modal_content_container", function(e) {
         if(preventModalClose === true) {
             e.preventDefault();
@@ -512,7 +504,6 @@ $(function() {
     {
         $("#"+id).html('<i class="fa fa-info-circle"></i>');
     }
-
 
 });
 

@@ -653,7 +653,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $files    = $this->getTool()->sanitize($this->getRequest()->getPost('files'));
 
         $success  = 0;
-        $message  = 'No table(s) found';
+        $message  = $this->getTool()->getTranslation('tr_melis_market_place_export_table_empty');
         $response = $this->getResponse();
         if($module) {
 
@@ -666,7 +666,7 @@ class MelisMarketPlaceController extends AbstractActionController
             $values         = "";
             $export         = "";
 
-            set_time_limit(-1);
+            set_time_limit(0);
             ini_set ('memory_limit', -1);
 
             // check again if the tables are not empty
@@ -737,14 +737,12 @@ class MelisMarketPlaceController extends AbstractActionController
                     }
 
                     if($dropQueryTable) {
-                        $adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
+                        //$adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
                     }
 
                     if($sql) {
                         $success = 1;
                     }
-
-
                 }
             }
 
