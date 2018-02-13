@@ -33,11 +33,12 @@ class MelisMarketPlaceController extends AbstractActionController
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
 
         $factory      = new \Zend\Form\Factory();
-        $formElements = $this->serviceLocator->get('FormElementManager');
+        $formElements = $this->getServiceLocator()->get('FormElementManager');
         $factory->setFormElementManager($formElements);
         $searchForm   = $factory->createForm($searchForm);
 
         set_time_limit(0);
+        ini_set('memory_limit', '-1');
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
@@ -62,6 +63,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $packageId = (int) $this->params()->fromQuery('packageId', null);
 
         set_time_limit(0);
+        ini_set('memory_limit', '-1');
         $response   = file_get_contents($url.'/get-package/'.$packageId);
         $package    = Json::decode($response, Json::TYPE_ARRAY);
         $isExempted = false;
@@ -105,6 +107,7 @@ class MelisMarketPlaceController extends AbstractActionController
         }
 
         set_time_limit(0);
+        ini_set('memory_limit', '-1');
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
@@ -138,6 +141,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $itemCountPerPage  = 1;
         $pageCount         = 1;
         $currentPageNumber = 1;
+        $pagination        = null;
 
         if($this->getRequest()->isPost()) {
 
@@ -164,6 +168,7 @@ class MelisMarketPlaceController extends AbstractActionController
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
 
             set_time_limit(0);
+            ini_set('memory_limit', '-1');
             $search         = urlencode($search);
             $requestJsonUrl = $this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
                 .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1';
@@ -174,6 +179,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
             $tmpPackages    = empty($serverPackages['packages']) ?: $serverPackages['packages'];
+
 
             if(isset($serverPackages['packages']) && $serverPackages['packages']) {
                 // check if the module is installed
@@ -334,11 +340,14 @@ class MelisMarketPlaceController extends AbstractActionController
 
                             if(file_exists($composerJsonFile)) {
                                 // read the composer.json file
+                                set_time_limit(0);
+                                ini_set('memory_limit', '-1');
                                 $composerJson = json_decode(file_get_contents($composerJsonFile), true);
 
 
                                 $modulePath = $moduleSvc->getModulePath('MelisCmsProspects');
                                 if(file_exists($modulePath)) {
+
                                     if(file_exists("$modulePath/.gitignore"))
                                         unlink("$modulePath/.gitignore");
 
@@ -570,24 +579,25 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function getModuleTablesAction()
     {
-        $module         = $this->getTool()->sanitize($this->getRequest()->getPost('module', 'MelisCore'));
+        $module         = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
         $tables         = array();
         $files          = array();
 
         if($this->getRequest()->isPost()) {
             $svc            = $this->getServiceLocator()->get('ModulesService');
             $path           = $svc->getModulePath($module, true);
-            $dbDeployPath   = $path.'/install/sql/dbdeploy/';
-            $setupStructure = 'setup_structure.sql';
+            $dbDeployPath   = $path.'/install/dbdeploy/';
+            $tableInstall   = '_install.sql';
             $setupFile      = null;
 
             // look for setup_structure SQL file
             $dbDeployFiles  = array_diff(scandir($dbDeployPath), array('.', '..', '.gitignore'));
 
+
             if($dbDeployFiles) {
                 foreach($dbDeployFiles as $file) {
                     $files[] = $file;
-                    if(strrpos($file, $setupStructure) !== false) {
+                    if(strrpos($file, $tableInstall) !== false) {
                         $setupFile = $file;
                     }
                 }
@@ -597,8 +607,8 @@ class MelisMarketPlaceController extends AbstractActionController
             if(file_exists($dbDeployPath.$setupFile)) {
                 $setupFile = $dbDeployPath.$setupFile;
 
-                set_time_limit(-1);
-                ini_set ('memory_limit', -1);
+                set_time_limit(0);
+                ini_set ('memory_limit', '-1');
 
                 $setupFile = file_get_contents($setupFile);
                 if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
@@ -668,7 +678,7 @@ class MelisMarketPlaceController extends AbstractActionController
                         $dbDeployQuery = "";
                         foreach($files as $file) {
                             $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
-                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'].'/../cache/dbdeploy/'.$file;
+                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'].'/../dbdeploy/data/'.$file;
                             if(file_exists($dbDeployFileCache)) {
                                 unlink($dbDeployFileCache);
                             }
@@ -856,6 +866,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $packages              = array();
 
 
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
         $downloadedmodulesData = file_get_contents($url);
 
         $packages   = json_decode($downloadedmodulesData, true);

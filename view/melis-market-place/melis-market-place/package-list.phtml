@@ -1,6 +1,7 @@
 <?php
 $packages = $this->packages;
 $pagination = $this->pagination;
+
 ?>
     <?php if($packages && is_array($packages)) {
     echo '<ul class="products product-thumb-info-list clearfix">';
@@ -78,6 +79,7 @@ $pagination = $this->pagination;
 <div class="row">
     <div class="col-md-12 text-center">
         <?php if($pagination): ?>
+
             <ul class="pagination">
 
                 <!-- Previous page link -->

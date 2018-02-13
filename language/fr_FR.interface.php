@@ -48,6 +48,10 @@ return array(
     'melis_market_place_tool_package_remove_ko' => 'Unable to remove module %s, please try again.',
     'melis_market_place_tool_package_remove_table_dump' => 'Dumping table data for %s',
 
-    'tr_melis_module_version_empty'                 => 'All modules are updated',
+    'tr_melis_module_version_empty' => 'All modules are updated',
+    'tr_melis_market_place_empty_most_downloaded_modules' => 'No items to display',
+
+    'tr_melis_market_place_exec_do_done' => 'Done! Executing additional events.',
+    'tr_melis_market_place_done' => 'Done!',
 
 );

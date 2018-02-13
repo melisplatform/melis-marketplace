@@ -88,7 +88,7 @@ return array(
             ),
             'datas' => array(
                 'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist',
-                'exceptions' => array('MelisCore', 'MelisEngine', 'MelisFront', 'MelisAssetManager')
+                'exceptions' => array('MelisCore', 'MelisEngine', 'MelisFront', 'MelisAssetManager', 'MelisComposerDeploy', 'MelisDbDeploy')
             ),
             'interface' => array(
                 'melis_market_place_tool_display' => array(

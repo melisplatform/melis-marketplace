@@ -18,6 +18,7 @@ $data_melisKey = $this->melisKey;
            <div class="col-md-12">
                <?php
                $packagesData = $this->downloadedPackages;
+               if($packagesData) {
                $imgFile      = $packagesData[0]['packageImages']['imageFile'];
                ?>
                <div class="slider-dashboard-downloaded-packages">
@@ -72,6 +73,12 @@ $data_melisKey = $this->melisKey;
                    </div>
                    <?php }?>
                </div>
+               <?php
+               }
+               else {
+                   echo '<p>' . $this->translate('tr_melis_market_place_empty_most_downloaded_modules') . '</p>';
+               }
+               ?>
            </div>
     </div>
     </div>

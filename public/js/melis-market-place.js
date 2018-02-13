@@ -111,7 +111,7 @@ $(function() {
                             // show reload and activate module buttons
                             doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module : module.module}, function(data) {
                                 if(data.success === 1) {
-
+                                    updateCmdText(translations.tr_melis_market_place_done);
                                     if(objData.action == "require") {
                                         $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
                                     }
@@ -144,6 +144,7 @@ $(function() {
 
     function postDeleteEvent(module, tables, files)
     {
+        console.log(tables, files);
         var vConsole     = $("body").find("#melis-marketplace-event-do-response");
         var vConsoleText = vConsole.html();
 
@@ -280,7 +281,7 @@ $(function() {
                 },
                 success: function(data) {
                     vConsoleText = "" + vConsole.html();
-                    vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> Done! Executing additional events.<br/>></div>');
+                    vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>></div>');
                     vConsole.animate({
                         scrollTop: vConsole.prop("scrollHeight")
                     }, 1115);
@@ -296,7 +297,6 @@ $(function() {
             }).error(function(e) {
                 var vConsole = $("body").find("#melis-marketplace-event-do-response");
                 vConsole.html("An error has occured, please try again");
-                alert("An error has occured, please try again");
                 $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
                 $("#melis-marketplace-product-modal-hide").removeClass("disabled");
             });
@@ -419,6 +419,27 @@ $(function() {
         $("#id_melis_market_place_tool_package_modal_content_container").modal("hide");
         preventModalClose = true;
     });
+
+    function updateCmdText(text)
+    {
+        var vConsole     = $("body").find("#melis-marketplace-event-do-response");
+        var vConsoleText = "" + vConsole.html();
+
+        vConsole.html(vConsoleText + '<br/>' + text);
+        vConsole.animate({
+            scrollTop: vConsole.prop("scrollHeight")
+        }, 1115);
+    }
+
+    function addLazyCmdText(id, content)
+    {
+        updateCmdText('<br/><span id="'+id+'"><i class="fa fa-spinner fa-spin"></i></span> ' + content + '<br/>');
+    }
+
+    function doneLazyCmdText(id, content)
+    {
+        $("#"+id).html('<i class="fa fa-info-circle"></i>');
+    }
 
 
 });
