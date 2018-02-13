@@ -34,6 +34,8 @@
     "ext-json": "*",
     "ext-pdo_mysql": "*",
     "melisplatform/melis-core": "~2.2.7",
+    "melisplatform/melis-composerdeploy": "dev-master",
+    "melisplatform/melis-dbdeploy": "dev-master",
     "justinrainbow/json-schema": "5.2.1"
   },
   "require-dev": {

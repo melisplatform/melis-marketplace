@@ -1,0 +1,40 @@
+<?php
+$id = '';
+if (!empty($this->zoneconfig['conf']['id']))
+    $id = ' id="' . $this->zoneconfig['conf']['id'] . '"';
+$namePlugin = '';
+if (!empty($this->zoneconfig['conf']['name']))
+    $namePlugin = ' data-title="' . $this->zoneconfig['conf']['name'] . '"';
+$data_melisKey = $this->melisKey;
+
+?>
+
+<!-- START melis user tabs -->
+<li class="dropdown notification" <?= $id; ?> data-melisKey='<?= $data_melisKey; ?>' <?= $namePlugin; ?>>
+
+    <a href="#" class="dropdown-toggle menu-icon dropdown-hover" id="link-to-marketplace" title="<?= $this->translate('tr_melis_link_market_place'); ?>">
+        <i class="fa fa-fw fa-download" ></i>
+        <span class="badge badge-success"><?php if($this->needToUpdateModuleCount > 0) echo $this->needToUpdateModuleCount; ?></span>
+    </a>
+    <ul id="module-status" class="dropdown-menu inbox empty-notif">
+        <?php if($this->needToUpdateModuleCount == 0){?>
+        <li class="empty-notif-li">
+            <div class="media">
+                <span><?= $this->translate('tr_melis_module_version_empty'); ?></span>
+            </div>
+        </li>
+        <?php }?>
+        <?php if($this->needToUpdateModuleCount > 0){?>
+            <?php foreach($this->modules as $module => $moduleValue){?>
+                <?php if($moduleValue['status'] == -1) {?>
+                    <li class="empty-notif-li">
+                        <div class="media">
+                            <span class="text-module-to-update"><?= $moduleValue['module_name'] ?></span>
+                        </div>
+                    </li>
+                <?php }?>
+            <?php }?>
+        <?php }?>
+    </ul>
+</li>
+

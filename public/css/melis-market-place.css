@@ -7,14 +7,14 @@
     box-sizing: border-box;
 
     -webkit-user-select: none;
-       -moz-user-select: none;
-        -ms-user-select: none;
-            user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 
     -webkit-touch-callout: none;
     -khtml-user-select: none;
     -ms-touch-action: pan-y;
-        touch-action: pan-y;
+    touch-action: pan-y;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -43,10 +43,10 @@
 {
     height: 600px;
     -webkit-transform: translate3d(0, 0, 0);
-       -moz-transform: translate3d(0, 0, 0);
-        -ms-transform: translate3d(0, 0, 0);
-         -o-transform: translate3d(0, 0, 0);
-            transform: translate3d(0, 0, 0);
+    -moz-transform: translate3d(0, 0, 0);
+    -ms-transform: translate3d(0, 0, 0);
+    -o-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
 }
 
 .slick-track
@@ -122,19 +122,22 @@
 }
 
 .slider-single {
-	margin-bottom: 10px;
+    margin-bottom: 10px;
     height: 600px;
     background: rgba(144, 49, 46, 0.6);
     overflow: hidden;
 }
 
 .slider-single:hover .slick-arrow {
-	opacity: 1;
+    opacity: 1;
 }
 
 .slider-nav {
-	margin-bottom: 30px;
+    margin-bottom: 30px;
     height: 105px;
+}
+.dl-packagist-icon{
+    display: initial !important;
 }
 
 .slider-nav .slick-track,
@@ -143,11 +146,11 @@
 }
 
 .slider-nav .slick-track .slick-slide {
-	position: relative;
-	cursor: pointer;
+    position: relative;
+    cursor: pointer;
     height: 105px;
-	color: #fff;
-	text-align: center;
+    color: #fff;
+    text-align: center;
     background: #932e2a;
     opacity: 0.4;
     overflow: hidden;
@@ -157,8 +160,12 @@
     transition: all 0.3s ease-in;
 }
 
+
 .slider-nav .slick-track .slick-slide.is-active {
-	opacity: 1;
+    opacity: 1;
+}
+.slider-nav .slick-track .slick-slide.slick-current {
+    opacity: 1;
 }
 
 .slider-nav .slick-track .slick-slide:before,
@@ -176,10 +183,10 @@
 }
 
 .slider-nav .slick-track .slick-slide:before {
-	border-top: 1px solid #932e2a;
-	border-bottom: 1px solid #932e2a;
-	-webkit-transform: scale(0,1);
-	transform: scale(0,1);
+    border-top: 1px solid #932e2a;
+    border-bottom: 1px solid #932e2a;
+    -webkit-transform: scale(0,1);
+    transform: scale(0,1);
 }
 
 .slider-nav .slick-track .slick-slide:after {
@@ -190,8 +197,8 @@
 }
 
 .slider-nav img {
-	padding: 5%;
-	width: 100%;
+    padding: 5%;
+    width: 100%;
 }
 
 /* Slick Theme */
@@ -411,16 +418,16 @@
 
 
 /* Melis Store*/
-.melis-store h1, 
-.melis-store h2, 
-.melis-store h3, 
-.melis-store h4, 
+.melis-store h1,
+.melis-store h2,
+.melis-store h3,
+.melis-store h4,
 .melis-store h5 {
-	color: #932e2a
+    color: #932e2a
 }
 
 .melis-store a:hover {
-	text-decoration: none;
+    text-decoration: none;
 }
 
 .melis-store hr {
@@ -434,13 +441,13 @@
 }
 
 .melis-store .module-title {
-	color: #121214;
-	font-weight: bold;
+    color: #121214;
+    font-weight: bold;
 }
 
 .melis-store .label-dark {
     padding: 5px 6px;
-	background: #111;
+    background: #111;
     text-decoration: none;
     font-weight: normal;
     -webkit-transition: all 0.3s ease-in;
@@ -449,15 +456,15 @@
     transition: all 0.3s ease-in;
 }
 
-.melis-store .label-dark:hover, 
-.melis-store .label-dark:focus, 
+.melis-store .label-dark:hover,
+.melis-store .label-dark:focus,
 .melis-store .label-dark:active,
 .melis-store .label-dark:visited {
-	background: #932e2a;
+    background: #932e2a;
 }
 
 .melis-store .products {
-	list-style: none;
+    list-style: none;
 }
 
 .melis-store .product {
@@ -484,7 +491,7 @@
 }
 
 .melis-store .product:before {
-	border-top: 1px solid #932e2a;
+    border-top: 1px solid #932e2a;
     border-bottom: 1px solid #932e2a;
     -webkit-transform: scale(0,1);
     transform: scale(0,1);
@@ -505,7 +512,7 @@
 }
 
 .melis-store .product:hover {
-	box-shadow: 0 0 8px #da4842;
+    box-shadow: 0 0 8px #da4842;
 }
 
 .melis-store .product:hover .product-name a {
@@ -531,17 +538,17 @@
 }
 
 .melis-store .product-thumb-info-list li {
-	position: relative;
-	margin-bottom: 30px;
-	padding: 0 15px;
+    position: relative;
+    margin-bottom: 30px;
+    padding: 0 15px;
 }
 
 .melis-store .product-thumb-info-content {
-	text-align: center;
+    text-align: left;
 }
 
 .melis-store .product-thumb-info-content .product-name {
-        margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .melis-store .product-thumb-info-content .installed {
@@ -575,31 +582,31 @@
 }
 
 .melis-store .product-thumb-info {
-	position: relative;
+    position: relative;
     display: block;
-    padding: 20px 15px;
+    padding: 12px 45px 12px 15px;
     height: auto;
-	z-index: 1;
+    z-index: 1;
 }
 
 .melis-store .simple-post-list {
-	list-style: none;
+    list-style: none;
 }
 
 .melis-store .simple-post-list li {
-	margin-bottom: 15px;
-	padding-bottom: 15px;
-	border-bottom: 1px dotted #E2E2E2;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px dotted #E2E2E2;
 }
 
 .melis-store .simple-post-list li:last-child {
-	border-bottom: 0;	
+    border-bottom: 0;
 }
 
 .melis-store .simple-post-list li:after {
-	content: "";
-	clear: both;
-	display: block;
+    content: "";
+    clear: both;
+    display: block;
 }
 
 .melis-store .post-image {
@@ -617,7 +624,7 @@
 
 .melis-store .post-image .img-thumbnail {
     display: block;
-	padding: 0;
+    padding: 0;
     width: 60px;
     height: 60px;
     background: #eee;
@@ -634,25 +641,29 @@
 }
 
 .melis-store .product-thumb {
-	position: relative;
-	z-index: 1;
+    position: relative;
+    z-index: 1;
     height: 175px;
     overflow: hidden;
 }
+.melis-store .product-thumb img {
+    width: 100%;
+    height: 100%;
+}
 
 .melis-store .product-thumb:hover .product-action {
-	opacity: 1;
-	visibility: visible;
+    opacity: 1;
+    visibility: visible;
 }
 
 .melis-store .product-thumb:hover .product-action i {
-	opacity: 1;
-	visibility: visible;
+    opacity: 1;
+    visibility: visible;
     top: 50%;
 }
 
 .melis-store .product-action {
-	position: absolute;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -661,14 +672,14 @@
     opacity: 0;
     visibility: hidden;
     background: rgba(39, 39, 39, 0.4);
-	-webkit-transition: all 0.3s ease-in-out;
+    -webkit-transition: all 0.3s ease-in-out;
     -moz-transition: all 0.3s ease-in-out;
     -ms-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out;
 }
 
 .melis-store .product-action a:hover {
-	color: #932e2a;
+    color: #932e2a;
 }
 
 .melis-store .product-action i {
@@ -678,7 +689,7 @@
     left: 0;
     right: 0;
     opacity: 0;
-	visibility: hidden;
+    visibility: hidden;
     -webkit-transform: translateY(-50%);
     -moz-transform: translateY(-50%);
     -ms-transform: translateY(-50%);
@@ -690,8 +701,8 @@
 }
 
 .melis-store .product-action a {
-	display: block;
-	color: #fff;
+    display: block;
+    color: #fff;
 }
 
 .melis-store .product-thumb-info .product-name a {
@@ -701,7 +712,6 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin: 0 auto;
     font-family: 'Roboto', sans-serif;
     color: #444;
     font-weight: bold;
@@ -709,6 +719,7 @@
     letter-spacing: 0.2px;
     max-width: 400px;
     height: 2.2em;
+    height: auto;
 }
 
 .melis-store .product-thumb-info .product-name a:hover {
@@ -716,8 +727,8 @@
 }
 
 .melis-store .product-thumb-info .price {
-	display: block;
-	margin-bottom: 30px;
+    display: block;
+    margin-bottom: 30px;
 }
 
 .melis-store .product-thumb-info .price .old.amount {
@@ -741,12 +752,12 @@
 /* Sidebar */
 
 .melis-store .market-sidebar h5 {
-	margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 /* Product Page */
 .melis-store .product-summary {
-	padding-left: 15px;
+    padding-left: 15px;
 }
 
 .melis-store .product-summary .review-num {
@@ -759,12 +770,12 @@
 }
 
 .melis-store p {
-	line-height: 1.5;
+    line-height: 1.5;
 }
 
 .melis-store .product-summary .price {
-	margin: 12px 0;
-	font-size: 22px;
+    margin: 12px 0;
+    font-size: 22px;
     font-weight: bold;
     color: #932e2a;
     letter-spacing: 0.4px;
@@ -772,14 +783,14 @@
 }
 
 .melis-store .product-quantity__box {
-	float: left;
-	margin-right: 15px;
+    float: left;
+    margin-right: 15px;
 }
 
 .melis-store .product-quantity__box:after {
-	content: "";
-	clear: both;
-	display: block;
+    content: "";
+    clear: both;
+    display: block;
 }
 .melis-store .product-quantity__box span {
     float: left;
@@ -792,10 +803,10 @@
     border: 1px solid #aaa;
     font-size: 20px;
     cursor: pointer;
-	-webkit-user-select: none;  /* Chrome all / Safari all */
-	-moz-user-select: none;     /* Firefox all */
-	-ms-user-select: none;      /* IE 10+ */
-	user-select: none;          /* Likely future */      
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;          /* Likely future */
     -webkit-transition: all 0.3s ease-in;
     -moz-transition: all 0.3s ease-in;
     -ms-transition: all 0.3s ease-in;
@@ -821,14 +832,14 @@
     border-bottom: 1px solid #aaa;
 }
 .melis-store .cart-form {
-	margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 .melis-store .cart-form .btn-primary {
-	height: 40px
+    height: 40px
 }
 
 .melis-store .widget-tabs {
-	margin-top: 60px;
+    margin-top: 60px;
 }
 
 .melis-store .comment .img-thumbnail {
@@ -840,11 +851,11 @@
 }
 
 .melis-store .comment-by {
-	margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 .melis-store .review-title {
-	margin-bottom: 25px;
+    margin-bottom: 25px;
 }
 
 .melis-store #melis-market-place-view-details{
@@ -936,16 +947,211 @@
     z-index: 100;
 }
 
-.melis-module-downloads {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #909090;
+.melis-module-downloads,
+.melis-module-version {
+    display: inline-block;
+    margin: 0 5px;
+    font-weight: normal;
+    font-size: 12px;
+    letter-spacing: 1px;
 }
 
-.melis-module-downloads .fa {
+.melis-module-downloads .fa,
+.melis-module-version .fa {
     margin-right: 5px;
     color: #909090;
+}
+.product-status {
+    padding: 5px 5px;
+    background: #f3f3f3;
+}
+.product-status .installed {
+    float: left;
+}
+.product-status .installed span {
+    display: inline-block;
+    margin: 0 5px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.product-status .melis-module-version-status {
+    float: right;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #ccc;
+    display: inline-block;
+    margin: 0 5px;
+    -webkit-transition: all 0.4s ease-in-out;
+    -moz-transition: all 0.4s ease-in-out;
+    -ms-transition: all 0.4s ease-in-out;
+    transition: all 0.4s ease-in-out;
+}
+
+/*CORE*/
+.melis-store .product.meliscore:before {
+    border-top: 1px solid #ef6623;
+    border-bottom: 1px solid #ef6623;
+}
+
+.melis-store .product.meliscore:after {
+    border-right: 1px solid #ef6623;
+    border-left: 1px solid #ef6623;
+}
+
+.melis-store .product.meliscore:hover .product-name a {
+    color: #ef6623;
+}
+.melis-store .product.meliscore:hover .melis-module-version-status {
+    color: #ef6623;
+}
+
+.melis-store .product.meliscore:hover {
+    box-shadow: 0 0 8px #f7962c;
+}
+
+.meliscore .melis-svg svg .bg-color {
+    fill: #ef6623;
+}
+
+.meliscore .melis-svg svg .light-color {
+    fill: #f7962c;
+}
+
+/*CMS*/
+.melis-store .product.meliscms:before {
+    border-top: 1px solid #67b345;
+    border-bottom: 1px solid #67b345;
+}
+
+.melis-store .product.meliscms:after {
+    border-right: 1px solid #67b345;
+    border-left: 1px solid #67b345;
+}
+
+.melis-store .product.meliscms:hover .product-name a {
+    color: #67b345;
+}
+
+.melis-store .product.meliscms:hover .melis-module-version-status {
+    color: #67b345;
+}
+
+.melis-store .product.meliscms:hover {
+    box-shadow: 0 0 8px #85c556;
+}
+
+.meliscms .melis-svg svg .bg-color {
+    fill: #67b345;
+}
+
+.meliscms .melis-svg svg .light-color {
+    fill: #85c556;
+}
+
+/*MARKETING*/
+.melis-store .product.melismarketing:before {
+    border-top: 1px solid #70479c;
+    border-bottom: 1px solid #70479c;
+}
+
+.melis-store .product.melismarketing:after {
+    border-right: 1px solid #70479c;
+    border-left: 1px solid #70479c;
+}
+
+.melis-store .product.melismarketing:hover .product-name a {
+    color: #70479c;
+}
+
+.melis-store .product.melismarketing:hover .melis-module-version-status {
+    color: #70479c;
+}
+
+.melis-store .product.melismarketing:hover {
+    box-shadow: 0 0 8px #8865ac;
+}
+
+.melismarketing .melis-svg svg .bg-color {
+    fill: #70479c;
+}
+
+.melismarketing .melis-svg svg .light-color {
+    fill: #8865ac;
+}
+
+/*COMMERCE*/
+.melis-store .product.meliscommerce:before {
+    border-top: 1px solid #3085c6;
+    border-bottom: 1px solid #3085c6;
+}
+
+.melis-store .product.meliscommerce:after {
+    border-right: 1px solid #3085c6;
+    border-left: 1px solid #3085c6;
+}
+
+.melis-store .product.meliscommerce:hover .product-name a {
+    color: #3085c6;
+}
+
+.melis-store .product.meliscommerce:hover .melis-module-version-status {
+    color: #3085c6;
+}
+
+
+.melis-store .product.meliscommerce:hover {
+    box-shadow: 0 0 8px #3998d3;
+}
+
+.meliscommerce .melis-svg svg .bg-color {
+    fill: #3085c6;
+}
+
+.meliscommerce .melis-svg svg .light-color {
+    fill: #3998d3;
+}
+
+/*PLATFORM*/
+.melis-store .product.melisplatform:before {
+    border-top: 1px solid #c72127;
+    border-bottom: 1px solid #c72127;
+}
+
+.melis-store .product.melisplatform:after {
+    border-right: 1px solid #c72127;
+    border-left: 1px solid #c72127;
+}
+
+.melis-store .product.melisplatform:hover .product-name a {
+    color: #c72127;
+}
+
+.melis-store .product.melisplatform:hover .melis-module-version-status {
+    color: #c72127;
+}
+
+.melis-store .product.melisplatform:hover {
+    box-shadow: 0 0 8px #e91e27;
+}
+
+.melisplatform .melis-svg svg .bg-color {
+    fill: #c72127;
+}
+
+.melisplatform .melis-svg svg .light-color {
+    fill: #e91e27;
+}
+
+.melis-svg {
+    position: absolute;
+    top: 15px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
 }
 
 @media only screen and (max-width: 767px) {
@@ -983,4 +1189,59 @@
         table-layout: fixed;
         width: 100%;
     }
+}
+
+#melis-marketplace-event-do-response{
+    overflow:auto;
+    height: 500px;
+    background: #222;
+    color: #d0d0d0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    resize:none;
+    font-family: "Lucida Console Regular", Monospace;
+    font-size: 12px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+}
+
+.slider-dashboard-downloaded-packages .slick-slider .slick-track,
+.slick-slider .slick-list{
+    min-height:670px ;
+}
+.dl-icon-packagist{
+    display: initial !important;
+    height:auto !important;
+
+}
+.slider-dashboard-downloaded-packages .slick-dots li button:before
+{
+    font-size: 15px;
+    color : #932e2a;
+}
+.slider-dashboard-downloaded-packages .package-title{
+    font-weight:bold;
+}
+#module-status{
+    padding:10px;
+    width:270px;
+    max-height:300px;
+    overflow-y: scroll;
+    cursor: default;
+}
+.text-module-to-update {
+    color: #932E2A;
+    font-weight: 700;
+}
+.silder-dashboard-downloaded-packages {
+    height:auto;
+}
+.silder-dashboard-downloaded-packages img {
+    width: 100%;
 }

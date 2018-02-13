@@ -5,6 +5,18 @@ return array(
     'plugins' => array(
         'meliscore' => array(
             'interface' => array(
+                'meliscore_header' => array(
+                    'interface' => array(
+                        'melis_platform_tracking' => array(
+                            'conf' => array(
+                                'id' => 'id_melis_platform_tracking',
+                                'name' => 'tr_melis_platform_tracking_title',
+                                'rightsDisplay' => "none",
+                                'type' => 'melis_platform_tracking_conf'
+                            ),
+                        ),
+                    ),
+                ),
                 'meliscore_leftmenu' => array(
                     'interface' => array(
                         'meliscore_toolstree' => array(
@@ -31,7 +43,32 @@ return array(
                 ),
             ),
         ),
+        /*
+         * Module header download-icon
+         */
+        'melis_platform_tracking_conf' => array(
+            'conf' => array(
+                'id' => 'id_melis_platform_tracking_conf',
+                'rightsDisplay' => "none",
+            ),
+            'interface' => array(
+                'melis_platform_tracking_header' => array(
+                    'conf' => array(
+                        'id' => 'id_melis_platform_tracking_header',
+                        'name' => 'tr_melis_platform_tracking_header_title',
+                        'melisKey' => 'melis_platform_tracking_header',
 
+                    ),
+                    'forward' => array(
+                        'module' => 'MelisMarketPlace',
+                        'controller' => 'MelisMarketPlace',
+                        'action' => 'market-place-module-header',
+                        'jscallback' => '',
+                        'jsdatas' => array()
+                    ),
+                ),
+            ),
+        ),
         /**
          * this is the configuration of the tool
          */
@@ -41,15 +78,17 @@ return array(
             ),
             'ressources' => array(
                 'css' => array(
-                    'MelisMarketPlace/css/melis-market-place.css',
+                    '/MelisMarketPlace/css/melis-market-place.css',
                 ),
                 'js' => array(
-                    'MelisMarketPlace/js/slick.min.js',
-                    'MelisMarketPlace/js/melis-market-place.js',
+                    '/MelisMarketPlace/js/slick.min.js',
+                    '/MelisMarketPlace/js/FileSaver/FileSaver.min.js',
+                    '/MelisMarketPlace/js/melis-market-place.js',
                 )
             ),
             'datas' => array(
-                'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist'
+                'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist',
+                'exceptions' => array('MelisCore', 'MelisEngine', 'MelisFront', 'MelisAssetManager', 'MelisComposerDeploy', 'MelisDbDeploy')
             ),
             'interface' => array(
                 'melis_market_place_tool_display' => array(
@@ -83,9 +122,62 @@ return array(
                         'jscallback' => '',
                         'jsdatas' => array()
                     ),
+                ),
+                'melis_market_place_tool_package_modal_container' => array(
+                    'conf' => array(
+                        'id'   => 'id_melis_market_place_tool_package_modal_container',
+                        'name' => 'tr_melis_market_place_tool_package_modal_container',
+                        'melisKey' => 'melis_market_place_tool_package_modal_container',
+                    ),
+                    'forward' => array(
+                        'module' => 'MelisMarketPlace',
+                        'controller' => 'MelisMarketPlace',
+                        'action' => 'tool-product-modal-container',
+                        'jscallback' => '',
+                        'jsdatas' => array()
+                    ),
+                    'interface' => array(
+                        'melis_market_place_tool_package_modal_content' => array(
+                            'conf' => array(
+                                'id' => 'id_melis_market_place_tool_package_modal_content',
+                                'melisKey' => 'melis_market_place_tool_package_modal_content',
+                                'name' => 'tr_melis_market_place_tool_package_modal_content'
+                            ),
+                            'forward' => array(
+                                'module' => 'MelisMarketPlace',
+                                'controller' => 'MelisMarketPlace',
+                                'action' => 'tool-product-modal-content',
+                                'jscallback' => '',
+                                'jsdatas' => array()
+                            ),
+                        )
+                    )
                 )
             ),
 
-        )
-    )
+        ),
+        'meliscore_dashboard' => array(
+            'interface' => array(
+                'market_place_most_downloaded_modules' => array(
+                    'conf' => array(
+                        'id' => 'id_market_place_most_downloaded_modules',
+                        'name' => 'tr_market_place_most_downloaded_modules_title',
+                        'melisKey' => 'market_place_most_downloaded_modules',
+                        'width' => 6,
+                        'height' => 'dashboard-large',
+
+                    ),
+                    'forward' => array(
+                        'module' => 'MelisMarketplace',
+                        'controller' => 'MelisMarketPlace',
+                        'action' => 'market-place-dashboard',
+                        'jscallback' => '',
+                        'jsdatas' => array()
+                    ),
+                ),
+            )
+        ),
+
+    ),
+
 );

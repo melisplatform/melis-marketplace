@@ -1,0 +1,46 @@
+<?php
+$name = '';
+$id = '';
+if (!empty($this->zoneconfig['conf']['name']))
+    $name = $this->zoneconfig['conf']['name'];
+if (!empty($this->zoneconfig['conf']['id']))
+    $id = $this->zoneconfig['conf']['id'];
+
+
+?>
+<div class="modal-content" id="<?= $id; ?>" data-melisKey="<?= $this->melisKey; ?>">
+    <div class="modal-body padding-none">
+        <div class="wizard">
+            <div class="widget widget-tabs widget-tabs-double widget-tabs-responsive margin-none border-none">
+                <div class="widget-head">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#<?php echo $this->zoneconfig['conf']['id'] ?>" class="glyphicons package" data-toggle="tab" aria-expanded="true"><i></i> <?php echo $this->title ?></a></li>
+                    </ul>
+                </div>
+                <div class="widget-body innerAll inner-2x">
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="<?php echo $id ?>">
+                            <pre id="melis-marketplace-event-do-response"><i class="fa fa-spinner fa-spin"></i> <?= $this->status ?></pre>
+
+                            <a href="#id_melis_market_place_tool_package_modal_content_container" id="melis-marketplace-product-modal-hide" data-dismiss="modal" class="btn btn-danger disabled " title="
+                            <?= $this->translate('tr_meliscore_notification_modal_Close') ?>" disabled><i class="fa fa-close"></i>
+                            <?= $this->translate('tr_meliscore_notification_modal_Close') ?></a>
+
+                            <div class="pull-right">
+                                <button type="submit" class="btn btn-info melis-marketplace-modal-activate-module hidden" data-module="<?= $this->module ?>">
+                                    <i class="fa fa-check"></i> <?= sprintf($this->translate('tr_market_place_activate_module'), $module); ?>
+                                </button>
+
+                                <button type="submit" class="btn btn-info melis-marketplace-modal-reload hidden">
+                                    <i class="fa fa-refresh"></i> <?= $this->translate('tr_market_place_reload'); ?>
+                                </button>
+                            </div>
+
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -3,7 +3,12 @@ namespace MelisMarketPlace\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
+use Zend\View\Model\JsonModel;
 use Zend\Json\Json;
+use PDO;
+use Zend\Db\Sql\Sql;
+use Zend\Db\Adapter\Adapter as DbAdapter;
+use Zend\Db\Sql\Ddl;
 /**
  * Class MelisMarketPlaceController
  * @package MelisMarketPlace\Controller
@@ -12,22 +17,28 @@ class MelisMarketPlaceController extends AbstractActionController
 {
 
     /**
+     * @var DbAdapter
+     */
+    protected $adapter;
+
+    /**
      * Handles the display of the tool
      * @return ViewModel
      */
     public function toolContainerAction()
     {
-        $url       = $this->getMelisPackagistServer();
+        $url        = $this->getMelisPackagistServer();
         $melisKey   = $this->getMelisKey();
         $config     = $this->getServiceLocator()->get('MelisCoreConfig');
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
 
         $factory      = new \Zend\Form\Factory();
-        $formElements = $this->serviceLocator->get('FormElementManager');
+        $formElements = $this->getServiceLocator()->get('FormElementManager');
         $factory->setFormElementManager($formElements);
         $searchForm   = $factory->createForm($searchForm);
 
         set_time_limit(0);
+        ini_set('memory_limit', '-1');
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
@@ -52,22 +63,72 @@ class MelisMarketPlaceController extends AbstractActionController
         $packageId = (int) $this->params()->fromQuery('packageId', null);
 
         set_time_limit(0);
-        $response = file_get_contents($url.'/get-package/'.$packageId);
-        $package  = Json::decode($response, Json::TYPE_ARRAY);
+        ini_set('memory_limit', '-1');
+        $response   = file_get_contents($url.'/get-package/'.$packageId);
+        $package    = Json::decode($response, Json::TYPE_ARRAY);
+        $isExempted = false;
+
+        //get and compare the local version from repo
+        if(!empty($package)){
+
+            //get marketplace service
+            $marketPlaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
+
+            //compare the package local version to the repository
+            if(isset($package['packageModuleName'])) {
+
+                $version = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
+
+                if(!empty($d)){
+                    $package['version_status'] = $this->getVersionStatusText($version);
+                }else{
+                    $package['version_status'] = "";
+                }
+
+                if(in_array($package['packageModuleName'],  $this->getModuleExceptions())) {
+                    $isExempted = true;
+                }
+            }
+        }
+        
+        /**
+         * Checking if the current Platform allows to update marketplace
+         */
+        $platformTable = $this->getServiceLocator()->get('MelisCoreTablePlatform');
+        $currentPlatform = $platformTable->getEntryByField('plf_name', getenv('MELIS_PLATFORM'))->current();
+        
+        $isUpdatablePlatform = false;
+        if ($currentPlatform)
+        {
+            if ($currentPlatform->plf_update_marketplace)
+            {
+                $isUpdatablePlatform = true;
+            }
+        }
 
         set_time_limit(0);
+        ini_set('memory_limit', '-1');
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
-        $view            = new ViewModel();
-        $view->melisKey  = $melisKey;
-        $view->packageId = $packageId;
-        $view->package   = $package;
-        $view->packages  = $packages;
+        $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
+
+        $view                       = new ViewModel();
+        $view->melisKey             = $melisKey;
+        $view->packageId            = $packageId;
+        $view->package              = $package;
+        $view->packages             = $packages;
+        $view->isModuleInstalled    = $isModuleInstalled;
         $view->melisPackagistServer = $url;
+        $view->isExempted           = $isExempted;
+        $view->versionStatus        = $version;
+        $view->versionText          = $this->getVersionStatusText($version);
+        $view->isUpdatablePlatform  = $isUpdatablePlatform;
 
         return $view;
     }
+
+
 
     /**
      * Translates the retrieved data coming from the Melis Packagist URL
@@ -80,8 +141,23 @@ class MelisMarketPlaceController extends AbstractActionController
         $itemCountPerPage  = 1;
         $pageCount         = 1;
         $currentPageNumber = 1;
+        $pagination        = null;
 
         if($this->getRequest()->isPost()) {
+
+            /*
+             *  For verifying the moduleList
+             */
+            $get            = $this->getRequest()->getUri();
+            $moduleService  = $this->getServiceLocator()->get('ModulesService');
+
+
+            $modules = $moduleService->getAllModules();
+            $domain  = $get->getHost();
+            $scheme  = $get->getScheme();
+
+           // $serviceTracker->track($domain, $scheme, $modules);
+            //end verifying modules
 
             $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), array(), true);
 
@@ -92,6 +168,7 @@ class MelisMarketPlaceController extends AbstractActionController
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
 
             set_time_limit(0);
+            ini_set('memory_limit', '-1');
             $search         = urlencode($search);
             $requestJsonUrl = $this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
                 .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1';
@@ -102,6 +179,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
             $tmpPackages    = empty($serverPackages['packages']) ?: $serverPackages['packages'];
+
 
             if(isset($serverPackages['packages']) && $serverPackages['packages']) {
                 // check if the module is installed
@@ -123,7 +201,19 @@ class MelisMarketPlaceController extends AbstractActionController
                     else {
                         $tmpPackages[$idx]['installed'] = false;
                     }
+
+                    //compare the package local version to the repository
+                    if(isset($tmpPackages[$idx]['packageModuleName'])) {
+                        $d = $this->getMarketPlaceService()->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
+
+                        if(!empty($d)){
+                            $tmpPackages[$idx]['version_status'] = $this->getVersionStatusText($d);
+                        }else{
+                            $tmpPackages[$idx]['version_status'] = "";
+                        }
+                    }
                 }
+
                 $serverPackages['packages'] = $tmpPackages;
             }
 
@@ -148,6 +238,226 @@ class MelisMarketPlaceController extends AbstractActionController
 
         return $view;
 
+    }
+
+    public function toolProductModalContainerAction()
+    {
+        $id = $this->getTool()->sanitize($this->params()->fromRoute('id', $this->params()->fromQuery('id', '')));
+        $melisKey = $this->params()->fromRoute('melisKey', $this->params()->fromQuery('melisKey', ''));
+
+        $view = new ViewModel();
+        $view->setTerminal(true);
+        $view->id = $id;
+        $view->melisKey = $melisKey;
+
+        return $view;
+    }
+
+    public function toolProductModalContentAction()
+    {
+        $module     = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
+        $action      = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
+
+        $melisKey    = $this->params()->fromRoute('melisKey', '');
+        $title       = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
+        $data        = array();
+        $status      = '';
+        $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
+
+        switch($action) {
+            case $composerSvc::DOWNLOAD:
+                $status = 'Downloading...';
+            break;
+            case $composerSvc::UPDATE:
+                $status = 'Updating...';
+            break;
+            case $composerSvc::REMOVE:
+                $status = 'Removing...';
+            break;
+        }
+
+
+        $view = new ViewModel();
+
+        $view->melisKey = $melisKey;
+        $view->title    = $title;
+        $view->module   = $module;
+        $view->status   = $status;
+
+
+
+        return $view;
+    }
+
+    public function melisMarketPlaceProductDoAction()
+    {
+
+        $success = 0;
+        $message = 'melis_market_place_tool_package_do_event_message_ko';
+        $errors  = array();
+        $request = $this->getRequest();
+        $title   = 'tr_market_place';
+        $post    = array();
+        
+        if($request->isPost()) {
+
+            $moduleSvc = $this->getServiceLocator()->get('ModulesService');
+            $post      = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
+
+            $this->getEventManager()->trigger('melis_marketplace_product_do_start', $this, $post);
+
+            $action  = isset($post['action'])  ? $post['action']  : '';
+            $package = isset($post['package']) ? $post['package'] : '';
+            $module  = isset($post['module'])  ? $post['module']  : '';
+
+            if($action && $package && $module) {
+
+                $title       = $this->getTool()->getTranslation('tr_market_place_'.$action) . ' ' .  $module;
+                $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
+
+                switch($action) {
+                    case $composerSvc::DOWNLOAD:
+                        if(!in_array($module, $this->getModuleExceptions())) {
+                            $composerSvc->download($package, 'dev-develop');
+                        }
+                    break;
+                    case $composerSvc::UPDATE:
+                        $composerSvc->update($package, 'dev-develop');
+                    break;
+                    case $composerSvc::REMOVE:
+                        if(!in_array($module, $this->getModuleExceptions())) {
+
+                            /**
+                             * Remove module
+                             * $composerSvc->remove($package);
+                             * the command above remove's the package and then updates the entire composer.json entries
+                             * which is not likely, we just need to remove the module and its' autoloaded classes
+                             */
+
+                            // read the composer.json file
+
+                            $composerJsonFile = $_SERVER['DOCUMENT_ROOT'] . '/../composer.json';
+
+                            if(file_exists($composerJsonFile)) {
+                                // read the composer.json file
+                                set_time_limit(0);
+                                ini_set('memory_limit', '-1');
+                                $composerJson = json_decode(file_get_contents($composerJsonFile), true);
+
+
+                                $modulePath = $moduleSvc->getModulePath('MelisCmsProspects');
+                                if(file_exists($modulePath)) {
+
+                                    if(file_exists("$modulePath/.gitignore"))
+                                        unlink("$modulePath/.gitignore");
+
+                                    $this->deleteDir("$modulePath/.git");
+                                    $this->deleteDir($modulePath);
+                                }
+
+                                // update the content of composer.json
+                                $require = isset($composerJson['require']) ? $composerJson['require'] : null;
+                                if($require) {
+                                    unset($require[$package]);
+                                    $composerJson['require'] = $require;
+                                }
+
+                                $newContent = \Zend\Json\Json::encode($composerJson, false  , array('prettyPrint' => true));
+                                $newContent = str_replace('\/', '/', $newContent);
+
+                                unlink($composerJsonFile);
+                                file_put_contents($composerJsonFile, $newContent);
+
+                            }
+
+
+                            $defaultModules = array('MelisAssetManager','MelisComposerDeploy', 'MelisDbDeploy', 'MelisCore', 'MelisEngine', 'MelisFront');
+                            $removeModules  = array_merge($moduleSvc->getChildDependencies($module), array($module, 'MelisModuleConfig'));
+                            $activeModules  = $moduleSvc->getActiveModules($defaultModules);
+
+                            // create new module.load file
+                            $retainModules  = array();
+
+                            foreach($activeModules as $module) {
+                                if(!in_array($module, $removeModules)) {
+                                    $retainModules[] = $module;
+                                }
+                            }
+
+                            $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
+
+                            $composerSvc->dumpAutoload();
+
+                        }
+                    break;
+                    default:
+                        echo $this->getTool()->getTranslation($message);
+                    break;
+                }
+            }
+        }
+
+        $response = array(
+            'success' => $success,
+            'title'   => $this->getTool()->getTranslation($title),
+            'message' => $this->getTool()->getTranslation($message),
+            'errors'  => $errors,
+            'post'    => $post
+        );
+
+        // add to flash messenger
+        $this->getEventManager()->trigger('melis_marketplace_product_do_finish', $this, $response);
+
+        $view = new ViewModel();
+        $view->setTerminal(true);
+
+        return $view;
+
+    }
+
+    public function activateModuleAction()
+    {
+        $success = 0;
+        $request = $this->getRequest();
+
+        if($request->isPost()) {
+            $module        = $this->getTool()->sanitize($request->getPost('module'));
+            $moduleSvc     = $this->getServiceLocator()->get('ModulesService');
+            $activeModules = $moduleSvc->getActiveModules();
+
+            if(!in_array($module, $activeModules)) {
+                // add to module loader
+                $defaultModules = array('MelisAssetManager','MelisCore', 'MelisEngine', 'MelisFront', 'MelisDbDeploy');
+
+                // remove MelisModuleConfig, to avoid duplication
+                $idx = array_search('MelisModuleConfig', $activeModules);
+                if (false !== $idx) {
+                    unset($activeModules[$idx]);
+                }
+
+                // create the module.load file
+                $moduleSvc->createModuleLoader('config/', array_merge($activeModules, array($module)), $defaultModules);
+            }
+
+            // since we are still running the function, we cannot get the accurate modules that are being loaded
+            // instead, we can read the module.load
+            $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
+            if(file_exists($moduleLoadFile)) {
+                $modules = include $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
+
+                // recheck if the module requested to be added is in module.load
+                if(in_array($module, $modules)) {
+                    $success = 1;
+                }
+            }
+
+        }
+
+        $response = array(
+            'success' => $success
+        );
+
+        return new JsonModel($response);
     }
 
 
@@ -188,6 +498,7 @@ class MelisMarketPlaceController extends AbstractActionController
         if($server)
             return $server;
     }
+
     private function removeMelisPackagistServer()
     {
         $env    = getenv('MELIS_PLATFORM') ?: 'default';
@@ -196,4 +507,512 @@ class MelisMarketPlaceController extends AbstractActionController
         if($env)
             return $env;
     }
+
+
+    /**
+     * Returns the list of modules that is inside the exceptions array
+     * @return mixed
+     */
+    private function getModuleExceptions()
+    {
+        $env     = getenv('MELIS_PLATFORM') ?: 'default';
+        $config  = $this->getServiceLocator()->get('MelisCoreConfig');
+        $modules = $config->getItem('melis_market_place_tool_config/datas/')['exceptions'];
+
+        if($modules)
+            return $modules;
+    }
+
+    /**
+     * Checks if the module is installed or not
+     * @param $module
+     * @return bool
+     */
+    private function isModuleInstalled($module)
+    {
+        $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
+        $installedModules = array_map(function($a) {
+            return trim(strtolower($a));
+        }, $installedModules);
+
+        if(in_array(strtolower($module), $installedModules)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function getMarketPlaceService()
+    {
+        return $this->getServiceLocator()->get('MelisMarketPlaceService');
+    }
+
+    private function getVersionStatusText($status)
+    {
+        $service = $this->getMarketPlaceService();
+
+        switch($status) {
+            case $service::NEED_UPDATE:
+                return $this->getTool()->getTranslation('tr_market_place_version_update');
+            break;
+            case $service::UP_TO_DATE:
+                return $this->getTool()->getTranslation('tr_market_place_version_up_to_date');
+            break;
+            case $service::IN_ADVANCE:
+                return $this->getTool()->getTranslation('tr_market_place_version_in_advance');
+            break;
+        }
+    }
+
+    public function isModuleExistsAction()
+    {
+        $isExist = 0;
+        $module  = '';
+        $request = $this->getRequest();
+
+        if($request->isPost()) {
+
+            $module = $this->getTool()->sanitize($request->getPost('module'));
+            if($module) {
+                $isExist = (bool) $this->isModuleInstalled($module);
+            }
+        }
+
+        $response = array(
+            'module'  => $module,
+            'isExist' => $isExist
+        );
+
+        return new JsonModel($response);
+
+    }
+
+    public function getModuleTablesAction()
+    {
+        $module         = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
+        $tables         = array();
+        $files          = array();
+
+        if($this->getRequest()->isPost()) {
+            $svc            = $this->getServiceLocator()->get('ModulesService');
+            $path           = $svc->getModulePath($module, true);
+            $dbDeployPath   = $path.'/install/dbdeploy/';
+            $tableInstall   = '_install.sql';
+            $setupFile      = null;
+
+            // look for setup_structure SQL file
+            $dbDeployFiles  = array_diff(scandir($dbDeployPath), array('.', '..', '.gitignore'));
+
+
+            if($dbDeployFiles) {
+                foreach($dbDeployFiles as $file) {
+                    $files[] = $file;
+                    if(strrpos($file, $tableInstall) !== false) {
+                        $setupFile = $file;
+                    }
+                }
+            }
+
+
+            if(file_exists($dbDeployPath.$setupFile)) {
+                $setupFile = $dbDeployPath.$setupFile;
+
+                set_time_limit(0);
+                ini_set ('memory_limit', '-1');
+
+                $setupFile = file_get_contents($setupFile);
+                if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
+                    $tables = isset($matches[0]) ? $matches[0] : null;
+                    $tables = array_map(function($a) {
+                        $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
+                        $n = trim($n);
+                        return  $n;
+                    }, $tables);
+                    if(is_array($tables)) {
+                        $tables = (array) $tables;
+                    }
+                }
+            }
+        }
+
+
+
+        return new JsonModel(array(
+            'module' => $module,
+            'tables' => $tables,
+            'files'  => $files
+        ));
+    }
+
+
+    public function exportTablesAction()
+    {
+
+        $module   = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
+        $tables   = $this->getTool()->sanitize($this->getRequest()->getPost('tables'));
+        $files    = $this->getTool()->sanitize($this->getRequest()->getPost('files'));
+
+        $success  = 0;
+        $message  = 'No table(s) found';
+        $response = $this->getResponse();
+        if($module) {
+
+            $sql            = '';
+            $insert         = "INSERT INTO `%s`(%s) VALUES(%s);".PHP_EOL;
+            $dumpInfo       = "\n--\n-- Dumping data for table `%s`\n--\n";
+            $copyright      = "-- Melis Platform SQL Dump\n-- https://www.melistechnology.com\n";
+            $commit         = "\nCOMMIT;";
+            $columns        = "";
+            $values         = "";
+            $export         = "";
+
+            set_time_limit(-1);
+            ini_set ('memory_limit', -1);
+
+            // check again if the tables are not empty
+            if(is_array($tables)) {
+
+
+                // trim the matched texts
+                $tables = array_map(function($a) {
+                    $n = trim($a);
+                    return  $n;
+                }, $tables);
+
+                $adapter = $this->getAdapter();
+
+                if($this->getAdapter()) {
+
+                    // remove data on dbDeploy
+                    if($files) {
+                        $dbDeployQuery = "";
+                        foreach($files as $file) {
+                            $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
+                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'].'/../dbdeploy/data/'.$file;
+                            if(file_exists($dbDeployFileCache)) {
+                                unlink($dbDeployFileCache);
+                            }
+                        }
+
+                        if($dbDeployQuery) {
+                            $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
+                        }
+
+                    }
+
+                    $dropQueryTable = "";
+                    foreach($tables as $table) {
+                        try {
+                            $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+                            if($resultSet) {
+                                // CREATE AN INSERT SQL FILE
+                                $sql .= sprintf($dumpInfo, $table);
+                                foreach($resultSet as $data) {
+
+                                    // clear columns and values every loop
+                                    $columns   = '';
+                                    $values    = '';
+
+                                    foreach($data as $column => $value) {
+                                        $columns .= "`$column`, ";
+
+                                        if(is_numeric($value) || $value == '0')
+                                            $values  .= "$value, ";
+                                        else if(is_null($value))
+                                            $values  .= "NULL, ";
+                                        else
+                                            $values  .= "'$value', ";
+                                    }
+
+                                    $columns = substr($columns, 0, strlen($columns)-2);
+                                    $values  = substr($values,  0, strlen($values) -2);
+                                    $sql    .= sprintf($insert, $table, $columns, $values);
+                                }
+                            }
+
+                            $dropQueryTable .= "DROP TABLE IF EXISTS `{$table}`;" . PHP_EOL;
+                        }catch(\PDOException $e) {
+                            $message .= ' '. PHP_EOL . $e->getMessage() . PHP_EOL;
+                        }
+                    }
+
+                    if($dropQueryTable) {
+                        $adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
+                    }
+
+                    if($sql) {
+                        $success = 1;
+                    }
+
+
+                }
+            }
+
+            if($success) {
+
+                $export   = $copyright.$sql.$commit;
+                $fileName = strtolower($module).'_export_data.sql';
+
+
+                $response->getHeaders()
+                    ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
+                    ->addHeaderLine('Content-Disposition', 'attachment; filename="'.$fileName)
+                    ->addHeaderLine('Content-Length'     , strlen($export))
+                    ->addHeaderLine('Pragma'             , 'no-cache')
+                    ->addHeaderLine('Content-Type'       , 'application/sql;charset=UTF-8')
+                    ->addHeaderLine('error'              , '0')
+                    ->addHeaderLine('fileName'           , $fileName);
+
+                $response->setContent($export);
+                $response->setStatusCode(200);
+
+                $view = new ViewModel();
+                $view->setTerminal(true);
+
+                $view->content = $response->getContent();
+
+                return $view;
+            }
+
+
+        }
+
+        if(!$success) {
+            $response->getHeaders()->addHeaderLine("error", 1);
+            //$response->setStatusCode(500);
+            return new JsonModel(array(
+                'success' => $success,
+                'message' => $message
+            ));
+        }
+    }
+
+    public function execDbDeployAction()
+    {
+        
+        $success = 0;
+        $request = $this->getRequest();
+
+        if($request->isPost()) {
+
+            $module = $this->getTool()->sanitize($request->getPost('module'));
+
+            if($module) {
+                $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
+                $deployDiscoveryService->processing($module);
+                $success = 1;
+            }
+        }
+
+        $response = array(
+            'success' => $success
+        );
+
+        return new JsonModel($response);
+
+    }
+    public function testAction()
+    {
+        $test = $this->getServiceLocator()->get('MelisComposerService');
+
+        $test->remove('melisplatform/melis-cms-prospects');
+
+
+        die;
+    }
+
+    /**
+     * Sets the Database adapter that will be used when querying
+     * the database, this will use the configuration set
+     * on the database config file
+     */
+    private function setDbAdapter()
+    {
+        // access the database configuration
+        $config = $this->getServiceLocator()->get('config');
+        $db     = $config['db'];
+
+        if($db) {
+
+            $driver = $db['driver'];
+            $dsn = $db['dsn'];
+            $username = $db['username'];
+            $password = $db['password'];
+
+            $this->adapter = new DbAdapter(array(
+                'driver' => $driver,
+                'dsn' => $dsn,
+                'username' => $username,
+                'password' => $password,
+                'driver_options' => array(
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'"
+                )
+            ));
+        }
+    }
+
+    /**
+     * Returns the instance of DbAdapter
+     * @return DbAdapter
+     */
+    private function getAdapter()
+    {
+        $this->setDbAdapter();
+
+        return $this->adapter;
+    }
+    /**
+     * dashboard view of market place
+     * @return ViewModel
+     */
+    public function marketPlaceDashboardAction()
+    {
+        $url                   = $this->getMelisPackagistServer() . "/get-most-downloaded-packages";
+        $melisKey              = $this->getmelisKey();
+        $moduleService         = $this->getServiceLocator()->get('ModulesService');
+       // $trackedDomainData     = $this->getServiceLocator()->get('MelisTrackerService');
+        $data                  = array();
+        $downloadedmodulesData = array();
+        $packages              = array();
+
+
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+        $downloadedmodulesData = file_get_contents($url);
+
+        $packages   = json_decode($downloadedmodulesData, true);
+
+
+        $moduleList = $moduleService->getAllModules();
+
+        $request = $this->getRequest();
+        $uri     = $request->getUri();
+        $domain  = $uri->getHost();
+        $scheme  = $uri->getScheme();
+
+        /*
+         * verify list of modules
+         */
+      //  $trackedDomainData->track($domain, $scheme, $moduleList);
+        //End verifying modules
+
+        foreach ($packages['packages'] as $packagesData => $packagesValue)
+        {
+            $data[] = array(
+                'packageId'              => $packagesValue['packageId'],
+                'packageTitle'           => $packagesValue['packageTitle'],
+                'packageName'            => $packagesValue['packageName'],
+                'packageSubtitle'        => $packagesValue['packageSubtitle'],
+                'packageModuleName'      => $packagesValue['packageModuleName'],
+                'packageDescription'     => $packagesValue['packageDescription'],
+                'packageImages'          => isset($packagesValue['packageImages'][0]) ? $packagesValue['packageImages'][0] : null ,
+                'packageUrl'             => $packagesValue['packageUrl'],
+                'packageRepository'      => $packagesValue['packageRepository'],
+                'packageTotalDownloads'  => $packagesValue['packageTotalDownloads'],
+                'packageVersion'         => $packagesValue['packageVersion'],
+                'packageTimeOfRelease'   => $packagesValue['packageTimeOfRelease'],
+                'packageMaintainers'     => $packagesValue['packageMaintainers'],
+                'packageType'            => $packagesValue['packageType'],
+                'packageDateAdded'       => $packagesValue['packageDateAdded'],
+                'packageLastUpdate'      => $packagesValue['packageLastUpdate'],
+                'packageGroupId'         => $packagesValue['packageGroupId'],
+                'packageGroupName'       => $packagesValue['packageGroupName'],
+                'packageIsActive'        => $packagesValue['packageIsActive'],
+
+            );
+        }
+
+
+        $view = new ViewModel();
+
+        $view->melisKey = $melisKey;
+        $view->modules  = serialize($moduleList);
+        $view->scheme   = $scheme;
+        $view->domain   = $domain;
+
+        $view->downloadedPackages = $data;
+
+
+        return $view;
+    }
+
+    /**
+     * @return ViewModel
+     */
+    public function marketPlaceModuleHeaderAction()
+    {
+        $melisKey = $this->getMelisKey();
+
+        $request            = $this->getRequest();
+        $moduleService      = $this->getServiceLocator()->get('ModulesService');
+        $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
+       // $trackedDomainData  = $this->getServiceLocator()->get('MelisTrackerService');
+
+        /*
+         * verify modules of their current versions
+         */
+        $moduleList = $moduleService->getAllModules();
+
+        $uri     = $request->getUri();
+        $domain  = $uri->getHost();
+        $scheme  = $uri->getScheme();
+
+        // if(count($trackedDomainData) > 0)
+        // {
+        //     //$trackedDomainData->track($domain, $scheme, $moduleList);
+        // }
+        //End verifying
+
+        $data  = array();
+        $count = 0;
+
+        foreach($moduleList as $module => $moduleName){
+
+            $version = null;
+            $moduleVersion = $moduleService->getModulesAndVersions($moduleName);
+
+            if(isset($moduleVersion['version']))
+            {
+                $version = $moduleVersion['version'];
+            }
+
+            if($moduleName != 'MelisModuleConfig' && $moduleName != 'MelisSites'){
+                $status = $marketplaceService->compareLocalVersionFromRepo($moduleName, $version);
+                $data[] = array(
+                    'module_name' => $moduleName,
+                    'status'      => $status
+                );
+
+                if((int) $status == -1)
+                {
+                    $count+=1;
+                }
+            }
+        }
+        $view = new ViewModel();
+        $view->melisKey = $melisKey;
+        $view->modules = $data;
+        $view->needToUpdateModuleCount = $count;
+        return $view;
+    }
+
+    protected function deleteDir($dirPath) {
+        if (is_dir($dirPath)) {
+            $objects = scandir($dirPath);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (filetype($dirPath."/".$object) == "dir") {
+                        $this->deleteDir($dirPath."/".$object);
+                    }
+                    else {
+                        chmod($dirPath."/".$object, 0777);
+                        unlink($dirPath."/".$object);
+                    }
+                }
+            }
+            reset($objects);
+            rmdir($dirPath);
+        }
+    }
+
 }

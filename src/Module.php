@@ -9,7 +9,7 @@ use Zend\Session\Container;
 /**
  * Class Module
  * @package MelisMarketPlace
- * @version v1.0
+ * @require melis-core
  */
 class Module
 {

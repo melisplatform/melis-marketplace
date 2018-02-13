@@ -39,6 +39,47 @@ return array(
                     ),
                 ),
             ),
+            /*
+             * This route will handle the
+             * alone setup of a module
+             */
+            'setup-melis-marketplace' => array(
+                'type'    => 'Literal',
+                'options' => array(
+                    'route'    => '/MelisMarketPlace',
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'MelisMarketPlace\Controller',
+                        'controller'    => 'MelisSetup',
+                        'action'        => 'setup-form',
+                    ),
+                ),
+                'may_terminate' => true,
+                'child_routes' => array(
+                    'default' => array(
+                        'type'    => 'Segment',
+                        'options' => array(
+                            'route'    => '/[:controller[/:action]]',
+                            'constraints' => array(
+                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            ),
+                            'defaults' => array(
+//
+                            ),
+                        ),
+                    ),
+                    'setup' => array(
+                        'type' => 'Segment',
+                        'options' => array(
+                            'route' => '/setup',
+                            'defaults' => array(
+                                'controller' => 'MelisMarketPlace\Controller\MelisSetup',
+                                'action' => 'setup-form',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
         ),
     ),
 
@@ -54,13 +95,14 @@ return array(
             'translator' => 'MvcTranslator',
         ),
         'factories' => array(
-
+            'MelisMarketPlaceService' => 'MelisMarketPlace\Service\Factory\MelisMarketPlaceServiceFactory',
         ),
     ),
 
     'controllers' => array(
         'invokables' => array(
             'MelisMarketPlace\Controller\MelisMarketPlace' => 'MelisMarketPlace\Controller\MelisMarketPlaceController',
+            'MelisMarketPlace\Controller\MelisSetup' => 'MelisMarketPlace\Controller\MelisSetupController',
         ),
     ),
     'view_manager' => array(
