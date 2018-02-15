@@ -20,14 +20,14 @@ use Zend\Session\Container;
 
 class MelisSetupController extends AbstractActionController
 {
-    public function setupFormAction()
-    {
-        return null;
+    // public function setupFormAction()
+    // {
+    //     return null;
 
-    }
+    // }
 
-    public function setupResultAction()
-    {
-        return null;
-    }
+    // public function setupResultAction()
+    // {
+    //     return null;
+    // }
 }
