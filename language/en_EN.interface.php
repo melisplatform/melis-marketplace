@@ -54,6 +54,8 @@ return array(
 
     'tr_melis_market_place_exec_do_done' => 'Done! Executing additional events.',
     'tr_melis_market_place_done' => 'Done!',
-    'tr_melis_market_place_export_table_empty' => 'Nothing to export'
+    'tr_melis_market_place_export_table_empty' => 'Nothing to export',
+
+    'tr_melis_link_market_place' => 'Market Place',
 
 );

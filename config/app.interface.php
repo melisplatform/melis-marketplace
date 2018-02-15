@@ -55,7 +55,7 @@ return array(
                 'melis_platform_tracking_header' => array(
                     'conf' => array(
                         'id' => 'id_melis_platform_tracking_header',
-                        'name' => 'tr_melis_platform_tracking_header_title',
+                        'name' => 'tr_melis_link_market_place',
                         'melisKey' => 'melis_platform_tracking_header',
 
                     ),
