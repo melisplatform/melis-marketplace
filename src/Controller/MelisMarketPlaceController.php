@@ -427,7 +427,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             if(!in_array($module, $activeModules)) {
                 // add to module loader
-                $defaultModules = array('MelisAssetManager','MelisCore', 'MelisEngine', 'MelisFront', 'MelisDbDeploy');
+                $defaultModules = array('MelisAssetManager','MelisComposerDeploy', 'MelisDbDeploy', 'MelisCore', 'MelisEngine', 'MelisFront', 'MelisDbDeploy');
 
                 // remove MelisModuleConfig, to avoid duplication
                 $idx = array_search('MelisModuleConfig', $activeModules);
