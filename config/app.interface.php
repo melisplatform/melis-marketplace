@@ -179,10 +179,4 @@ return array(
         ),
 
     ),
-    'interface_ordering' => array(
-        'meliscore_header' => array(
-            'melis_platform_tracking',
-
-        ),
-    ),
 );
