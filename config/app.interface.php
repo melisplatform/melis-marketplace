@@ -7,6 +7,7 @@ return array(
             'interface' => array(
                 'meliscore_header' => array(
                     'interface' => array(
+                        'meliscore_header_close_all_tabs' => array(),
                         'melis_platform_tracking' => array(
                             'conf' => array(
                                 'id' => 'id_melis_platform_tracking',
@@ -15,6 +16,10 @@ return array(
                                 'type' => 'melis_platform_tracking_conf'
                             ),
                         ),
+                        'meliscore_header_flash_messenger' => array(),
+                        'meliscore_header_language' => array(),
+                        'meliscore_header_logout' => array(),
+
                     ),
                 ),
                 'meliscore_leftmenu' => array(
@@ -102,7 +107,7 @@ return array(
                     'forward' => array(
                         'module' => 'MelisMarketPlace',
                         'controller' => 'MelisMarketPlace',
-                         'action' => 'tool-container',
+                        'action' => 'tool-container',
                         'jscallback' => 'fetchPackages();',
                         'jsdatas' => array()
                     ),
