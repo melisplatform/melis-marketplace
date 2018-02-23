@@ -24,7 +24,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                         <?php } else {
                                                 if($this->versionStatus === -1 && $this->isUpdatablePlatform) {
                                         ?>
-                                                <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                <button class="btn btn-info melis-marketplace-product-action hidden" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
                                                     <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
                                                 </button>
                                             <?php } 
