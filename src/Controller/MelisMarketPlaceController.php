@@ -31,6 +31,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $melisKey   = $this->getMelisKey();
         $config     = $this->getServiceLocator()->get('MelisCoreConfig');
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
+        $packageGroupData = file_get_contents('http://marketplace.local/melis-packagist/get-package-group',true);
+        $packageGroupData = Json::decode($packageGroupData, Json::TYPE_ARRAY);
 
         $factory      = new \Zend\Form\Factory();
         $formElements = $this->getServiceLocator()->get('FormElementManager');
@@ -47,6 +49,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->melisKey             = $melisKey;
         $view->melisPackagistServer = $url;
         $view->packages             = $packages;
+        $view->packageGroupData  =  $packageGroupData;
         $view->setVariable('searchForm', $searchForm);
 
         return $view;
@@ -150,6 +153,8 @@ class MelisMarketPlaceController extends AbstractActionController
              */
             $get            = $this->getRequest()->getUri();
             $moduleService  = $this->getServiceLocator()->get('ModulesService');
+            $config     = $this->getServiceLocator()->get('MelisCoreConfig');
+            $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
 
 
             $modules = $moduleService->getAllModules();
@@ -159,6 +164,11 @@ class MelisMarketPlaceController extends AbstractActionController
            // $serviceTracker->track($domain, $scheme, $modules);
             //end verifying modules
 
+            $factory      = new \Zend\Form\Factory();
+            $formElements = $this->getServiceLocator()->get('FormElementManager');
+            $factory->setFormElementManager($formElements);
+            $searchForm   = $factory->createForm($searchForm);
+
             $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), array(), true);
 
             $page        = isset($post['page'])        ? (int) $post['page']        : 1;
@@ -166,12 +176,17 @@ class MelisMarketPlaceController extends AbstractActionController
             $orderBy     = isset($post['orderBy'])     ? $post['orderBy']           : 'mp_total_downloads';
             $order       = isset($post['order'])       ? $post['order']             : 'desc';
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
+            $group       = isset($this->getRequest()->getQuery()['group']) ? (string) $this->getRequest()->getQuery()['group'] : null;
+
+
+            //$group = explode(",",$group);
 
             set_time_limit(0);
             ini_set('memory_limit', '-1');
             $search         = urlencode($search);
             $requestJsonUrl = $this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
-                .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1';
+                .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1'.'/group/'. $group;
+
 
             try {
                 $serverPackages = file_get_contents($requestJsonUrl);
@@ -235,7 +250,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->pageCount         = $pageCount;
         $view->currentPageNumber = $currentPageNumber;
         $view->pagination        = $pagination;
-
+        $view->setVariable('searchForm', $searchForm);
         return $view;
 
     }
@@ -894,31 +909,32 @@ class MelisMarketPlaceController extends AbstractActionController
       //  $trackedDomainData->track($domain, $scheme, $moduleList);
         //End verifying modules
 
-        foreach ($packages['packages'] as $packagesData => $packagesValue)
-        {
-            $data[] = array(
-                'packageId'              => $packagesValue['packageId'],
-                'packageTitle'           => $packagesValue['packageTitle'],
-                'packageName'            => $packagesValue['packageName'],
-                'packageSubtitle'        => $packagesValue['packageSubtitle'],
-                'packageModuleName'      => $packagesValue['packageModuleName'],
-                'packageDescription'     => $packagesValue['packageDescription'],
-                'packageImages'          => isset($packagesValue['packageImages'][0]) ? $packagesValue['packageImages'][0] : null ,
-                'packageUrl'             => $packagesValue['packageUrl'],
-                'packageRepository'      => $packagesValue['packageRepository'],
-                'packageTotalDownloads'  => $packagesValue['packageTotalDownloads'],
-                'packageVersion'         => $packagesValue['packageVersion'],
-                'packageTimeOfRelease'   => $packagesValue['packageTimeOfRelease'],
-                'packageMaintainers'     => $packagesValue['packageMaintainers'],
-                'packageType'            => $packagesValue['packageType'],
-                'packageDateAdded'       => $packagesValue['packageDateAdded'],
-                'packageLastUpdate'      => $packagesValue['packageLastUpdate'],
-                'packageGroupId'         => $packagesValue['packageGroupId'],
-                'packageGroupName'       => $packagesValue['packageGroupName'],
-                'packageIsActive'        => $packagesValue['packageIsActive'],
+        if(isset($packages['packages']))
+            foreach ($packages['packages'] as $packagesData => $packagesValue)
+            {
+                $data[] = array(
+                    'packageId'              => $packagesValue['packageId'],
+                    'packageTitle'           => $packagesValue['packageTitle'],
+                    'packageName'            => $packagesValue['packageName'],
+                    'packageSubtitle'        => $packagesValue['packageSubtitle'],
+                    'packageModuleName'      => $packagesValue['packageModuleName'],
+                    'packageDescription'     => $packagesValue['packageDescription'],
+                    'packageImages'          => isset($packagesValue['packageImages'][0]) ? $packagesValue['packageImages'][0] : null ,
+                    'packageUrl'             => $packagesValue['packageUrl'],
+                    'packageRepository'      => $packagesValue['packageRepository'],
+                    'packageTotalDownloads'  => $packagesValue['packageTotalDownloads'],
+                    'packageVersion'         => $packagesValue['packageVersion'],
+                    'packageTimeOfRelease'   => $packagesValue['packageTimeOfRelease'],
+                    'packageMaintainers'     => $packagesValue['packageMaintainers'],
+                    'packageType'            => $packagesValue['packageType'],
+                    'packageDateAdded'       => $packagesValue['packageDateAdded'],
+                    'packageLastUpdate'      => $packagesValue['packageLastUpdate'],
+                    'packageGroupId'         => $packagesValue['packageGroupId'],
+                    'packageGroupName'       => $packagesValue['packageGroupName'],
+                    'packageIsActive'        => $packagesValue['packageIsActive'],
 
-            );
-        }
+                );
+            }
 
 
         $view = new ViewModel();

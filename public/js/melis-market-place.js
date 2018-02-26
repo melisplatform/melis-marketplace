@@ -1,26 +1,46 @@
-window.fetchPackages = function(page, search, orderBy, order, itemPerPage) {
+window.fetchPackages = function(page, search, orderBy, order, itemPerPage,group) {
 
     page   			= page || 1;
     search 			= search || $("body").find("input#melis_market_place_search_input").val();
     orderBy  		= orderBy || 'mp_total_downloads';
-
+    if(!group) {
+        group = ["1", "2", "3", "4"];
+    }
     var order       = order || 'desc';
     var itemPerPage = itemPerPage || 8;
-
+    $(".market-place-btn-filter-group button").attr("disabled", "disabled");
     $.ajax(
         {
             type: 'POST',
-            url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page="+page+"&search="+search+"&orderBy="+orderBy,
-            data: {page: page, search : search, orderBy : orderBy, order : order, itemPerPage : itemPerPage},
+            url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page="+page+"&search="+search+"&orderBy="+orderBy+"&group="+group,
+            data: {page: page, search : search, orderBy : orderBy, order : order, itemPerPage : itemPerPage, group : group},
             dataType: "html",
             success: function(data) {
+
                 $("body").find("div#melis-market-place-package-list").html(data);
+                $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
             },
         });
 
 
 }
 
+function getActiveGroupIdFilter(){
+    var groupId = $(".market-place-btn-filter-group").find('.active');
+    var btnId = [];
+    var tmpData = {};
+
+    //get the active buttons Id
+    for(var ctr=0;ctr < groupId.length; ctr++){
+        var dataId = $(groupId[ctr]).val();
+
+        btnId.push(dataId);
+    }
+    tmpData = [btnId];
+
+
+    return tmpData;
+}
 function initSlick(tab) {
     // Big Slider
     $('#'+tab + ' .slider-single').not('.slick-initialized').slick({
@@ -374,7 +394,8 @@ $(function() {
         var divOverlay = '<div class="melis-overlay"></div>';
         $("#melis-market-place-package-list").append(divOverlay);
         var page = $(this).data("goto-page");
-        fetchPackages(page);
+        var groupId = getActiveGroupIdFilter();
+        fetchPackages(page,null,null,null,null, groupId);
     });
 
     $("body").on("keypress", "input#melis_market_place_search_input", function(e) {
@@ -385,9 +406,10 @@ $(function() {
 
     $("body").on("click", "button#btnMarketPlaceSearch", function() {
         var divOverlay = '<div class="melis-overlay"></div>';
-        $("#melis-market-place-package-list").append(divOverlay);
+        $(".product-list-view").append(divOverlay);
         var search = $("body").find("input#melis_market_place_search_input").val();
-        fetchPackages(null, search);
+        var groupId = getActiveGroupIdFilter();
+        fetchPackages(null, search, null,null,null, groupId);
 
     });
 
@@ -505,6 +527,7 @@ $(function() {
         $("#"+id).html('<i class="fa fa-info-circle"></i>');
     }
 
+
 });
 
 
@@ -586,4 +609,32 @@ $(document).ready(function(){
 
         melisHelper.tabOpen(translations.tr_market_place, "fa-shopping-cart", "id_melis_market_place_tool_display", "melis_market_place_tool_display" , {}, null,null);
     });
+
+
+    /*
+   * This is for filtering button
+   */
+    $("body").on("click", ".market-place-btn-filter-group .btn", function() {
+
+        var flag = 0 ;
+        //put overlay for loading
+        var divOverlay = '<div class="melis-overlay"></div>';
+        $(".product-list-view").append(divOverlay);
+
+        var isActive = $(this).hasClass("active");
+
+
+
+        //get ActiveButtons
+        $(this).toggleClass("active");
+
+        var data = getActiveGroupIdFilter();
+        var search  = $("body").find("input#melis_market_place_search_input").val();
+
+        fetchPackages(null, search, null, null, null, data);
+
+
+    });
+
+
 });

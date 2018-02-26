@@ -4,6 +4,8 @@ if (!empty($this->zoneconfig['conf']['id']))
     $id = $this->zoneconfig['conf']['id'];
 
 $form = $this->searchForm;
+
+$packageGroupData = $this->packageGroupData;
 ?>
 <div data-melisKey="<?= $this->melisKey ?>" id="<?= $id; ?>" class="tab-pane container-level-a" data-melispackagistserver="<?= $this->melisPackagistServer; ?>">
     <div class="innerAll spacing-x2">
@@ -29,23 +31,47 @@ $form = $this->searchForm;
                                 </select>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <?= $this->formRow($form->get('melis_market_place_search_input')); ?>
+                                    <span class="input-group-btn">
+                                     <button class="btn btn-primary" id="btnMarketPlaceSearch" type="button"><i class="fa fa-search"></i></button>
+                                </span>
+
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="market-place-btn-filter-group">
+                                    <?php
+
+                                    foreach ($packageGroupData as $groupData => $groupValue){
+                                        $typeName = substr($groupValue['mp_group_name'],5); ?>
+
+                                        <button class='btn btn-primary active <?= strtolower($typeName)?>' value='<?=$groupValue['mp_group_id']?>' >
+                                            <div class="melis-svg">
+                                                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 30 30" enable-background="new 0 0 30 30" xml:space="preserve">
+                                                    <g>
+                                                        <rect class="bg-color" y="0.1" fill="#C52127" width="29.9" height="29.9"></rect>
+                                                        <rect class="light-color" x="14.6" y="2.7" fill="#E71E26" width="12.7" height="24.6"></rect>
+                                                        <g>
+                                                            <path fill="#FFFFFF" d="M7.4,21.1V9.5H22v11.7h-2.9v-8.8h-2.9v8.8h-2.9v-8.8h-2.9v8.8H7.4z"></path>
+                                                        </g>
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                            <?= $typeName?>
+                                        </button>
+                                    <?php }?>
+                                </div>
+                            </div>
+                        </div>
                         <div id="melis-market-place-package-list"></div>
                     </div>
 
                 </div>
                 <div class="col-md-3">
                     <aside class="market-sidebar">
-
-                            <div class="input-group">
-                                <?= $this->formRow($form->get('melis_market_place_search_input')); ?>
-                                <span class="input-group-btn">
-                                    <button class="btn btn-primary" id="btnMarketPlaceSearch" type="button"><i class="fa fa-search"></i></button>
-                                </span>
-                            </div>
-
-
-                        <hr class="hr">
-
 
                         <div class="melis-marketplace-tags hidden">
                             <h5><?= $this->translate('tr_market_place_tags'); ?></h5>
