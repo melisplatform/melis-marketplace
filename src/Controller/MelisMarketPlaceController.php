@@ -31,7 +31,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $melisKey   = $this->getMelisKey();
         $config     = $this->getServiceLocator()->get('MelisCoreConfig');
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
-        $packageGroupData = file_get_contents('http://marketplace.local/melis-packagist/get-package-group',true);
+        $packageGroupData = $url . '/get-package-group';
         $packageGroupData = Json::decode($packageGroupData, Json::TYPE_ARRAY);
 
         $factory      = new \Zend\Form\Factory();
