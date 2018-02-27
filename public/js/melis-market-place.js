@@ -7,7 +7,7 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage,group)
         group = ["1", "2", "3", "4"];
     }
     var order       = order || 'desc';
-    var itemPerPage = itemPerPage || 8;
+    var itemPerPage = itemPerPage || 9;
     $(".market-place-btn-filter-group button").attr("disabled", "disabled");
     $("#btnMarketPlaceSearch").attr("disabled", "disabled");
     $.ajax(
