@@ -1265,6 +1265,19 @@
     color: #fff;
 }
 
+.market-place-btn-filter-group .btn-primary {
+    background: #d4d4d4;
+    border-color: #d4d4d4;
+    letter-spacing: 0.6px;
+}
+
+.market-place-btn-filter-group .btn-primary[disabled],
+.market-place-btn-filter-group .btn-primary[disabled]:hover {
+    color: #fff;
+    background: #d4d4d4;
+    border-color: #d4d4d4;
+}
+
 .market-place-btn-filter-group .btn-primary.core.active,
 .market-place-btn-filter-group .btn-primary.core.active:hover,
 .market-place-btn-filter-group .btn-primary.core.active:focus,
@@ -1313,22 +1326,25 @@
     color: #ef6623;
 }
 
-.market-place-btn-filter-group .cms:hover {
+.market-place-btn-filter-group .cms:hover,
+.market-place-btn-filter-group .cms:active {
+    background: none;
     border-color: #67b345;
     color: #67b345;
-    /*box-shadow: 0 0 8px #85c556 !important;*/
 }
 
-.market-place-btn-filter-group .marketing:hover {
+.market-place-btn-filter-group .marketing:hover,
+.market-place-btn-filter-group .marketing:active {
+    background: none;
     border-color: #70479c;
     color: #70479c;
-    /*box-shadow: 0 0 8px #8865ac !important;*/
 }
 
-.market-place-btn-filter-group .commerce:hover {
+.market-place-btn-filter-group .commerce:hover,
+.market-place-btn-filter-group .commerce:active {
+    background: none;
     border-color: #159cd4;
     color: #159cd4;
-    /*box-shadow: 0 0 8px #1ebeea !important;*/
 }
 
 .market-place-btn-filter-group .core .melis-svg .bg-color {

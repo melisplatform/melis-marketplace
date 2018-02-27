@@ -9,6 +9,7 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage,group)
     var order       = order || 'desc';
     var itemPerPage = itemPerPage || 8;
     $(".market-place-btn-filter-group button").attr("disabled", "disabled");
+    $("#btnMarketPlaceSearch").attr("disabled", "disabled");
     $.ajax(
         {
             type: 'POST',
@@ -19,6 +20,7 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage,group)
 
                 $("body").find("div#melis-market-place-package-list").html(data);
                 $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
+                $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
             },
         });
 
