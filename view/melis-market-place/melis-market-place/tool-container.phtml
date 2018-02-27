@@ -48,7 +48,7 @@ $packageGroupData = $this->packageGroupData;
                                     foreach ($packageGroupData as $groupData => $groupValue){
                                         $typeName = substr($groupValue['mp_group_name'],5); ?>
 
-                                        <button class='btn btn-primary active <?= strtolower($typeName)?>' value='<?=$groupValue['mp_group_id']?>' >
+                                        <button class='btn btn-primary <?= strtolower($typeName)?>' value='<?=$groupValue['mp_group_id']?>' >
                                             <div class="melis-svg">
                                                 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 30 30" enable-background="new 0 0 30 30" xml:space="preserve">
                                                     <g>
