@@ -8,12 +8,12 @@ return array(
                 'meliscore_header' => array(
                     'interface' => array(
                         'meliscore_header_close_all_tabs' => array(),
-                        'melis_platform_tracking' => array(
+                        'market_place_header_icon' => array(
                             'conf' => array(
-                                'id' => 'id_melis_platform_tracking',
+                                'id' => 'id_market_place_header_icon',
                                 'name' => 'tr_melis_platform_tracking_title',
                                 'rightsDisplay' => "none",
-                                'type' => 'melis_platform_tracking_conf'
+                                'type' => 'market_place_header_icon'
                             ),
                         ),
                         'meliscore_header_flash_messenger' => array(),
@@ -51,17 +51,17 @@ return array(
         /*
          * Module header download-icon
          */
-        'melis_platform_tracking_conf' => array(
+        'market_place_header_icon' => array(
             'conf' => array(
-                'id' => 'id_melis_platform_tracking_conf',
+                'id' => 'id_market_place_header_icon',
                 'rightsDisplay' => "none",
             ),
             'interface' => array(
-                'melis_platform_tracking_header' => array(
+                ',market_place_header_conf' => array(
                     'conf' => array(
-                        'id' => 'id_melis_platform_tracking_header',
+                        'id' => 'id_market_place_header_conf',
                         'name' => 'tr_melis_link_market_place',
-                        'melisKey' => 'melis_platform_tracking_header',
+                        'melisKey' => 'market_place_header_conf',
 
                     ),
                     'forward' => array(

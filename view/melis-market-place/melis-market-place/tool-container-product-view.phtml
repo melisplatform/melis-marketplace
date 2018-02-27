@@ -17,7 +17,7 @@ if (!empty($this->zoneconfig['conf']['id']))
                                     <p><?= $this->package['packageSubtitle']; ?></p>
 
                                     <div class="melis-marketplace-product-buttons">
-                                        <?php if(!$this->isModuleInstalled && !$this->isExempted) { ?>
+                                        <?php if(!$this->isModuleInstalled && !$this->isExempted && $this->isUpdatablePlatform) { ?>
                                             <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
                                                 <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
                                             </button>
@@ -30,9 +30,13 @@ if (!empty($this->zoneconfig['conf']['id']))
                                             <?php } 
                                                 if(!$this->isExempted) { 
                                             ?>
-                                                <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                                    <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
-                                                </button>
+                                                    <?php if($this->isInstalled) { ?>
+                                                    <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+
+                                                        <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
+
+                                                    </button>
+                                                    <?php } ?>
                                                 <?php } ?>
                                         <?php } ?>
                                     </div>

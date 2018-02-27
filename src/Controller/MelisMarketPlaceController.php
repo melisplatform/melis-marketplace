@@ -49,7 +49,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->melisKey             = $melisKey;
         $view->melisPackagistServer = $url;
         $view->packages             = $packages;
-        $view->packageGroupData  =  $packageGroupData;
+        $view->packageGroupData     =  $packageGroupData;
+
         $view->setVariable('searchForm', $searchForm);
 
         return $view;
@@ -67,19 +68,22 @@ class MelisMarketPlaceController extends AbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-        $response   = file_get_contents($url.'/get-package/'.$packageId);
-        $package    = Json::decode($response, Json::TYPE_ARRAY);
-        $isExempted = false;
+        $response    = file_get_contents($url.'/get-package/'.$packageId);
+        $package     = Json::decode($response, Json::TYPE_ARRAY);
+        $isExempted  = false;
+        $isInstalled = false;
 
         //get and compare the local version from repo
         if(!empty($package)){
 
             //get marketplace service
             $marketPlaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
+            $moduleSvc          = $this->getServiceLocator()->get('ModulesService');
+
 
             //compare the package local version to the repository
             if(isset($package['packageModuleName'])) {
-
+                $module  = $package['packageModuleName'];
                 $version = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
 
                 if(!empty($d)){
@@ -88,26 +92,15 @@ class MelisMarketPlaceController extends AbstractActionController
                     $package['version_status'] = "";
                 }
 
-                if(in_array($package['packageModuleName'],  $this->getModuleExceptions())) {
+                if(in_array($module,  $this->getModuleExceptions())) {
                     $isExempted = true;
                 }
+
+                if($moduleSvc->getModulePath($module))
+                    $isInstalled = true;
             }
         }
-        
-        /**
-         * Checking if the current Platform allows to update marketplace
-         */
-        $platformTable = $this->getServiceLocator()->get('MelisCoreTablePlatform');
-        $currentPlatform = $platformTable->getEntryByField('plf_name', getenv('MELIS_PLATFORM'))->current();
-        
-        $isUpdatablePlatform = false;
-        if ($currentPlatform)
-        {
-            if ($currentPlatform->plf_update_marketplace)
-            {
-                $isUpdatablePlatform = true;
-            }
-        }
+
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
@@ -126,9 +119,32 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->isExempted           = $isExempted;
         $view->versionStatus        = $version;
         $view->versionText          = $this->getVersionStatusText($version);
-        $view->isUpdatablePlatform  = $isUpdatablePlatform;
+        $view->isUpdatablePlatform  = $this->allowUpdate();
+        $view->isInstalled          = $isInstalled;
 
         return $view;
+    }
+
+
+    /**
+     * Checking if the current Platform allows to update marketplace
+     * @return bool
+     */
+    private function allowUpdate()
+    {
+
+        $platformTable   = $this->getServiceLocator()->get('MelisCoreTablePlatform');
+        $currentPlatform = $platformTable->getEntryByField('plf_name', getenv('MELIS_PLATFORM'))->current();
+
+        if ($currentPlatform)
+        {
+            if ($currentPlatform->plf_update_marketplace)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -151,17 +167,10 @@ class MelisMarketPlaceController extends AbstractActionController
             /*
              *  For verifying the moduleList
              */
-            $get            = $this->getRequest()->getUri();
-            $moduleService  = $this->getServiceLocator()->get('ModulesService');
             $config     = $this->getServiceLocator()->get('MelisCoreConfig');
             $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
 
 
-            $modules = $moduleService->getAllModules();
-            $domain  = $get->getHost();
-            $scheme  = $get->getScheme();
-
-           // $serviceTracker->track($domain, $scheme, $modules);
             //end verifying modules
 
             $factory      = new \Zend\Form\Factory();
@@ -178,8 +187,6 @@ class MelisMarketPlaceController extends AbstractActionController
             $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
             $group       = isset($this->getRequest()->getQuery()['group']) ? (string) $this->getRequest()->getQuery()['group'] : null;
 
-
-            //$group = explode(",",$group);
 
             set_time_limit(0);
             ini_set('memory_limit', '-1');
@@ -245,11 +252,12 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $view->setTerminal(true);
 
-        $view->packages          = $packages;
-        $view->itemCountPerPage  = $itemCountPerPage;
-        $view->pageCount         = $pageCount;
-        $view->currentPageNumber = $currentPageNumber;
-        $view->pagination        = $pagination;
+        $view->packages             = $packages;
+        $view->itemCountPerPage     = $itemCountPerPage;
+        $view->pageCount            = $pageCount;
+        $view->currentPageNumber    = $currentPageNumber;
+        $view->pagination           = $pagination;
+        $view->isUpdatablePlatform  = $this->allowUpdate();
         $view->setVariable('searchForm', $searchForm);
         return $view;
 
