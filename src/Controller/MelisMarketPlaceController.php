@@ -333,7 +333,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 switch($action) {
                     case $composerSvc::DOWNLOAD:
                         if(!in_array($module, $this->getModuleExceptions())) {
-                            $composerSvc->download($package, 'dev-develop');
+                            $composerSvc->download($package);
                         }
                     break;
                     case $composerSvc::UPDATE:
