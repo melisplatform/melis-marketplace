@@ -17,6 +17,8 @@ return array(
     'tr_market_place_tags' => 'Tags',
 
     'tr_market_place_version' => 'Version',
+    'tr_market_place_lastest_version' => 'Latest version',
+    'tr_market_place_current_version' => 'Current version',
     'tr_market_place_github' => 'Github',
     'tr_market_place_packagist' => 'Packagist',
     'tr_market_place_package_name' => ' Package name',

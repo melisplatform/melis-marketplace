@@ -71,7 +71,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $response    = file_get_contents($url.'/get-package/'.$packageId);
         $package     = Json::decode($response, Json::TYPE_ARRAY);
         $isExempted  = false;
-        $isInstalled = false;
+
+        $currentVersion = null;
 
         //get and compare the local version from repo
         if(!empty($package)){
@@ -83,6 +84,8 @@ class MelisMarketPlaceController extends AbstractActionController
 
             //compare the package local version to the repository
             if(isset($package['packageModuleName'])) {
+
+
                 $module  = $package['packageModuleName'];
                 $version = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
 
@@ -96,18 +99,17 @@ class MelisMarketPlaceController extends AbstractActionController
                     $isExempted = true;
                 }
 
-                if($moduleSvc->getModulePath($module))
-                    $isInstalled = true;
             }
         }
 
-
-        set_time_limit(0);
-        ini_set('memory_limit', '-1');
         $response = file_get_contents($url.'/get-most-downloaded-packages');
         $packages = Json::decode($response, Json::TYPE_ARRAY);
 
         $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
+
+        if($isModuleInstalled) {
+            $currentVersion = $moduleSvc->getModulesAndVersions($module)['version'];
+        }
 
         $view                       = new ViewModel();
         $view->melisKey             = $melisKey;
@@ -120,7 +122,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->versionStatus        = $version;
         $view->versionText          = $this->getVersionStatusText($version);
         $view->isUpdatablePlatform  = $this->allowUpdate();
-        $view->isInstalled          = $isInstalled;
+        $view->currentVersion       = $currentVersion;
 
         return $view;
     }
@@ -347,7 +349,7 @@ class MelisMarketPlaceController extends AbstractActionController
                         }
                     break;
                     case $composerSvc::UPDATE:
-                        //$composerSvc->update($package, 'dev-develop');
+                        $composerSvc->update($package, 'dev-develop');
                     break;
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {
@@ -555,14 +557,8 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     private function isModuleInstalled($module)
     {
-        $installedModules = $this->getServiceLocator()->get('ModulesService')->getAllModules();
-        $installedModules = array_map(function($a) {
-            return trim(strtolower($a));
-        }, $installedModules);
-
-        if(in_array(strtolower($module), $installedModules)) {
+        if($this->getServiceLocator()->get('ModulesService')->getModulePath($module))
             return true;
-        }
 
         return false;
     }
