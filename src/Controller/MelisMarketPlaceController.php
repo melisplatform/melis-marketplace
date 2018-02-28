@@ -196,7 +196,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
 
             try {
-                $serverPackages = file_get_contents($requestJsonUrl);
+                $serverPackages = @file_get_contents($requestJsonUrl);
             }catch(\Exception $e) {}
 
             $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
@@ -213,7 +213,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
                 // rewrite array, add installed status
                 foreach($serverPackages['packages'] as $idx => $package) {
-
+                    $isInstalled = false;
                     // to make sure it will match
                     $packageName = trim(strtolower($package['packageModuleName']));
 
@@ -224,12 +224,14 @@ class MelisMarketPlaceController extends AbstractActionController
                         $tmpPackages[$idx]['installed'] = false;
                     }
 
+                    $isInstalled = (bool) $tmpPackages[$idx]['installed'];
+
                     //compare the package local version to the repository
                     if(isset($tmpPackages[$idx]['packageModuleName'])) {
                         $d = $this->getMarketPlaceService()->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
 
                         if(!empty($d)){
-                            $tmpPackages[$idx]['version_status'] = $this->getVersionStatusText($d);
+                            $tmpPackages[$idx]['version_status'] = $isInstalled === true ? $this->getVersionStatusText($d) : "";
                         }else{
                             $tmpPackages[$idx]['version_status'] = "";
                         }
