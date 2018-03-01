@@ -24,13 +24,13 @@ if (!empty($this->zoneconfig['conf']['id']))
                                         <?php } else {
                                                 if($this->versionStatus === -1 && $this->isUpdatablePlatform) {
                                         ?>
-                                                <button class="btn btn-info melis-marketplace-product-action hidden" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
                                                     <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
                                                 </button>
                                             <?php } 
                                                 if(!$this->isExempted) { 
                                             ?>
-                                                    <?php if($this->isInstalled) { ?>
+                                                    <?php if($this->isModuleInstalled) { ?>
                                                     <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
 
                                                         <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
@@ -48,9 +48,15 @@ if (!empty($this->zoneconfig['conf']['id']))
                                     <h5 class="sm-info-title"> <?= $this->translate('tr_market_place_package_additional_info'); ?></h5>
                                     <ul class="add-info-lists">
                                         <li>
-                                            <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_version'); ?>:</span>
+                                            <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_lastest_version'); ?>:</span>
                                             <span><?= $this->package['packageVersion']; ?></span>
                                         </li>
+                                        <?php if($this->isModuleInstalled): ?>
+                                        <li>
+                                            <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_current_version'); ?>:</span>
+                                            <span><?= $this->currentVersion; ?></span>
+                                        </li>
+                                        <?php endif; ?>
                                         <li>
                                             <span class="info-title"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:</span>
                                             <span><a href="<?= $this->package['packageRepository']; ?>" target="_blank"><?= $this->package['packageRepository']; ?></a></span>

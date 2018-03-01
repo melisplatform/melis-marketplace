@@ -10,29 +10,31 @@ return array(
     'tr_market_place_single_view_content' => 'Melis Market Place package view content',
 
     'tr_market_place_check_on_github' => 'Check on Github',
-    'tr_market_place_search' => 'Search...',
+    'tr_market_place_search' => 'Rechercher...',
     'tr_market_place_search_ko' => ' No package found',
     'tr_market_place_total_downloads' => 'Téléchargements',
     'tr_market_place_most_downloaded_package' => 'Packages les plus téléchargés',
     'tr_market_place_tags' => 'Tags',
 
     'tr_market_place_version' => 'Version',
+    'tr_market_place_lastest_version' => 'Dernière version',
+    'tr_market_place_current_version' => 'Version actuelle',
     'tr_market_place_github' => 'Github',
     'tr_market_place_packagist' => 'Packagist',
     'tr_market_place_package_name' => ' Nom du package',
-    'tr_market_place_package_installed' => ' Installed',
+    'tr_market_place_package_installed' => ' Installé',
     'tr_market_place_package_additional_info' => 'Informations complémentaires',
     'tr_market_place_description' => 'Description',
-    'tr_market_place_version_up_to_date' => 'Up to date',
+    'tr_market_place_version_up_to_date' => 'A jour',
     'tr_market_place_version_update' => 'Update',
-    'tr_market_place_version_in_advance' => 'In advance',
+    'tr_market_place_version_in_advance' => 'En avance',
 
 
     'tr_market_place_unknown_command' => ' Unknown command %s',
     'tr_market_place_install' => 'Install',
-    'tr_market_place_require' => 'Download',
+    'tr_market_place_require' => 'Télécharger',
     'tr_market_place_update' => 'Update',
-    'tr_market_place_remove' => 'Remove',
+    'tr_market_place_remove' => 'Supprimer',
     'tr_market_place_reload' => 'Reload',
     'tr_market_place_activate_module' => 'Activate %s',
 
@@ -49,7 +51,7 @@ return array(
     'melis_market_place_tool_package_remove_ko' => 'Unable to remove module %s, please try again.',
     'melis_market_place_tool_package_remove_table_dump' => 'Dumping table data for %s',
 
-    'tr_melis_module_version_empty' => 'All modules are updated',
+    'tr_melis_module_version_empty' => 'Tous les modules sont mis à jour',
     'tr_melis_market_place_empty_most_downloaded_modules' => 'No items to display',
 
     'tr_melis_market_place_exec_do_done' => 'Done! Executing additional events.',
