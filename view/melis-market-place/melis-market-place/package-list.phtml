@@ -70,7 +70,7 @@ $form = $this->searchForm;
                         <?php
                         $statusClass = 'melis-module-version-status';
                         if($package['version_status'] == 'Update') {
-                            $statusClass = 'text-danger melis-module-version-status';
+                            $statusClass = 'melis-module-version-status need-update';
                         }
                         ?>
                         <span class="<?= $statusClass ?>"> <?= $this->translate($package['version_status']); ?></span>
