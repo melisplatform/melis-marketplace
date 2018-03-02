@@ -349,7 +349,7 @@ class MelisMarketPlaceController extends AbstractActionController
                         }
                     break;
                     case $composerSvc::UPDATE:
-                        $composerSvc->update($package, 'dev-develop');
+                        $composerSvc->update($package);
                     break;
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {
@@ -963,25 +963,14 @@ class MelisMarketPlaceController extends AbstractActionController
     {
         $melisKey = $this->getMelisKey();
 
-        $request            = $this->getRequest();
         $moduleService      = $this->getServiceLocator()->get('ModulesService');
         $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
-       // $trackedDomainData  = $this->getServiceLocator()->get('MelisTrackerService');
 
         /*
          * verify modules of their current versions
          */
         $moduleList = $moduleService->getAllModules();
 
-        $uri     = $request->getUri();
-        $domain  = $uri->getHost();
-        $scheme  = $uri->getScheme();
-
-        // if(count($trackedDomainData) > 0)
-        // {
-        //     //$trackedDomainData->track($domain, $scheme, $moduleList);
-        // }
-        //End verifying
 
         $data  = array();
         $count = 0;
