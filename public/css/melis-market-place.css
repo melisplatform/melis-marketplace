@@ -991,6 +991,10 @@
     transition: all 0.4s ease-in-out;
 }
 
+.product-status .melis-module-version-status.need-update {
+    color: #a94442;
+}
+
 /*CORE*/
 .melis-store .product.meliscore:before {
     border-top: 1px solid #ef6623;
