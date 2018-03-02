@@ -349,7 +349,7 @@ class MelisMarketPlaceController extends AbstractActionController
                         }
                     break;
                     case $composerSvc::UPDATE:
-                        $composerSvc->update($package);
+                        $composerSvc->download($package);
                     break;
                     case $composerSvc::REMOVE:
                         if(!in_array($module, $this->getModuleExceptions())) {
