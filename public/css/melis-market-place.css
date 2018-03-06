@@ -717,8 +717,8 @@
     font-weight: bold;
     font-size: 16px;
     letter-spacing: 0.2px;
+    line-height: 1.4;
     max-width: 400px;
-    height: 2.2em;
     height: auto;
 }
 
@@ -1158,6 +1158,13 @@
     height: 30px;
 }
 
+@media only screen and (min-width: 768px) {
+    .melis-store .product-thumb-info .product-name a {
+        font-size: 14px;
+        height: 2.6em;
+    }
+}
+
 @media only screen and (max-width: 767px) {
     .melis-store-items {
         margin-right: 0;
@@ -1187,6 +1194,7 @@
     }
 
 }
+
 @media only screen and (max-width: 992px) {
     .melis-store .slick-slider {
         display: table;
