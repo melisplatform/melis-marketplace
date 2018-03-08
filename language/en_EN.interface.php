@@ -60,4 +60,13 @@ return array(
 
     'tr_melis_link_market_place' => 'Market Place',
 
+    'tr_melis_marketplace_package_directory_removable_ok' => '%s directory is removable',
+    'tr_melis_marketplace_package_directory_removable_ko' => '%s directory is not removable, please check your rights and try again.',
+    'tr_melis_marketplace_package_directory_change_permission' => 'Changing permission on %s, please wait...',
+    'tr_melis_marketplace_package_directory_change_permission_ko' => 'Unable to change permission on %s',
+    'tr_melis_marketplace_package_directory_change_permission_ko' => 'Permission updated on %s',
+
+
+
+
 );

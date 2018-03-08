@@ -372,14 +372,16 @@ class MelisMarketPlaceController extends AbstractActionController
                                 $composerJson = json_decode(file_get_contents($composerJsonFile), true);
 
 
-                                $modulePath = $moduleSvc->getModulePath('MelisCmsProspects');
+                                $modulePath = $moduleSvc->getModulePath($module);
                                 if(file_exists($modulePath)) {
 
                                     if(file_exists("$modulePath/.gitignore"))
                                         unlink("$modulePath/.gitignore");
 
-                                    $this->deleteDir("$modulePath/.git");
-                                    $this->deleteDir($modulePath);
+                                    if($this->hasDirRights($modulePath)) {
+                                        $this->deleteDir("$modulePath/.git");
+                                        $this->deleteDir($modulePath);
+                                    }
                                 }
 
                                 // update the content of composer.json
@@ -440,6 +442,68 @@ class MelisMarketPlaceController extends AbstractActionController
 
         return $view;
 
+    }
+
+    public function isPackageDirectoryRemovableAction()
+    {
+        $success = 0;
+        $message = 'tr_melis_marketplace_package_directory_removable_ko';
+        $request = $this->getRequest();
+        $title   = 'tr_market_place';
+        $module  = 'Package';
+        if($request->isPost()) {
+
+            $post       = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
+            $moduleSvc  = $this->getServiceLocator()->get('ModulesService');
+            $module     = isset($post['module'])  ? $post['module']  : '';
+            $modulePath = $moduleSvc->getModulePath($module);
+
+            if($this->hasDirRights($modulePath)) {
+                $success = 1;
+                $message = 'tr_melis_marketplace_package_directory_removable_ok';
+            }
+
+        }
+
+        $response = array(
+            'success' => $success,
+            'title'   => $this->getTool()->getTranslation($title),
+            'message' => $this->getTool()->getTranslation($message, $module),
+        );
+
+        return new JsonModel($response);
+    }
+
+    public function changePackageDirectoryPermissionAction()
+    {
+        $success = 0;
+        $message = 'tr_melis_marketplace_package_directory_change_permission_ko';
+        $request = $this->getRequest();
+        $title   = 'tr_market_place';
+        $module  = 'Package';
+        if($request->isPost()) {
+
+            $post       = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
+            $moduleSvc  = $this->getServiceLocator()->get('ModulesService');
+            $module     = isset($post['module'])  ? $post['module']  : '';
+            $modulePath = $moduleSvc->getModulePath($module);
+
+            chmod($modulePath, 0777);
+
+            if($this->hasDirRights($modulePath)) {
+                $success = 1;
+                $message = 'tr_melis_marketplace_package_directory_change_permission_ko';
+            }
+
+        }
+
+        $response = array(
+            'success' => $success,
+            'title'   => $this->getTool()->getTranslation($title),
+            'message' => $this->getTool()->getTranslation($message, $module),
+        );
+
+        return new JsonModel($response);
     }
 
     public function activateModuleAction()
@@ -1003,6 +1067,17 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->modules = $data;
         $view->needToUpdateModuleCount = $count;
         return $view;
+    }
+
+    protected function hasDirRights($dirPath)
+    {
+        if(!file_exists($dirPath))
+            return false;
+
+        if(is_writable($dirPath) && is_readable($dirPath))
+            return true;
+
+        return false;
     }
 
     protected function deleteDir($dirPath) {
