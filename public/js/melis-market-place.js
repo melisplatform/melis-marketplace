@@ -155,9 +155,12 @@ $(function() {
                             melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
 
                                 melisCoreTool.done("button");
-                                doEvent(objData, function () {
-                                    postDeleteEvent(module, tables, files);
+                                checkPermission(module, function() {
+                                    doEvent(objData, function () {
+                                        postDeleteEvent(module, tables, files);
+                                    });
                                 });
+
                             });
                         }
                     );
@@ -173,8 +176,10 @@ $(function() {
                             melisHelper.createModal(zoneId, melisKey, true, objData,  modalUrl, function() {
 
                                 melisCoreTool.done("button");
-                                doEvent(objData, function() {
-                                    postDeleteEvent(module, tables, files);
+                                checkPermission(module, function() {
+                                    doEvent(objData, function () {
+                                        postDeleteEvent(module, tables, files);
+                                    });
                                 });
                             });
                         }
@@ -228,9 +233,36 @@ $(function() {
         location.reload(true);
     });
 
+    function checkPermission(module, callback)
+    {
+        var vConsole     = $("body").find("#melis-marketplace-event-do-response");
+        var vConsoleText = vConsole.html();
+
+        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isPackageDirectoryRemovable", {module: module}, function(resp) {
+            if(resp.success == "1") {
+                callback();
+            }
+            else {
+                doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/changePackageDirectoryPermission", {module: module}, function(response) {
+                    vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.tr_melis_marketplace_package_directory_change_permission.replace("%s", module) + '</span><br/>');
+                    if(resp.success == "1") {
+                        callback();
+                    }
+                    else {
+                        vConsole.html(vConsoleText + '<br/><span style="color:#ff190d">' + response.message + '</span>');
+                        vConsole.animate({
+                            scrollTop: vConsole.prop("scrollHeight")
+                        }, 1115);
+                    }
+                });
+            }
+
+        });
+    }
+
     function postDeleteEvent(module, tables, files)
     {
-        console.log(tables, files);
+
         var vConsole     = $("body").find("#melis-marketplace-event-do-response");
         var vConsoleText = vConsole.html();
 
@@ -238,6 +270,7 @@ $(function() {
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
 
             if(!module.isExist || module.isExist === false) {
+
                 vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.melis_market_place_tool_package_remove_ok.replace("%s", module.module) + '</span>');
 
                 // export tables
@@ -280,7 +313,6 @@ $(function() {
                         }
                     });
                 }
-
                 $("button.melis-marketplace-modal-reload").removeClass("hidden");
 
             }
