@@ -1027,41 +1027,94 @@ class MelisMarketPlaceController extends AbstractActionController
     {
         $melisKey = $this->getMelisKey();
 
+
         $moduleService      = $this->getServiceLocator()->get('ModulesService');
         $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
+        $requestJsonUrl     = $this->getMelisPackagistServer().'/get-packages/page/1/search//item_per_page/0/order/asc/order_by//status/2/group/';
+        $serverPackages     = array();
+        $packagesData       = array();
+        $tmpData            = array();
+        $excludedModules    = array(
+            'MelisAssetManager',
+            'MelisComposerDeploy',
+            'MelisDbDeploy',
+            'MelisInstaller',
+            'MelisCore',
+            'MelisEngine',
+            'MelisFront',
+        );
+
+        try {
+            $serverPackages = @file_get_contents($requestJsonUrl);
+        }catch(\Exception $e) {}
+
+        $serverPackages = json_decode($serverPackages,true);
+
+
+        //Get the all latest packages
+        if(is_array($serverPackages))
+            foreach ($serverPackages['packages'] as $packagist => $packageVal){
+                $tmpData[] = array(
+                    'packageId'         => $packageVal['packageId'],
+                    'packageModuleName' => $packageVal['packageTitle'],
+                    'latestVersion'     => $packageVal['packageVersion'],
+                    'packageName'       => $packageVal['packageName'],
+                    'groupName'         => $packageVal['packageGroupName'],
+                );
+
+                array_push($packagesData,$packageVal['packageModuleName']);
+            }
 
         /*
          * verify modules of their current versions
          */
-        $moduleList = $moduleService->getAllModules();
-
+        $moduleList         = $moduleService->getVendorModules();
+        $moduleList         = array_diff($moduleList, $excludedModules);
 
         $data  = array();
         $count = 0;
 
         foreach($moduleList as $module => $moduleName){
 
-            $version = null;
-            $moduleVersion = $moduleService->getModulesAndVersions($moduleName);
+            $version     = null;
+            $packageId   = null;
+            $packageName = null;
+            $groupName   = null;
+            $currentVersion  = null;
 
-            if(isset($moduleVersion['version']))
-            {
-                $version = $moduleVersion['version'];
-            }
+           for($i = 0 ; $i < count($tmpData); $i++){
 
-            if($moduleName != 'MelisModuleConfig' && $moduleName != 'MelisSites'){
-                $status = $marketplaceService->compareLocalVersionFromRepo($moduleName, $version);
-                $data[] = array(
-                    'module_name' => $moduleName,
-                    'status'      => $status
-                );
+               $moduleVersion = $moduleService->getModulesAndVersions($moduleName);
 
-                if((int) $status == -1)
-                {
-                    $count+=1;
+                if($moduleVersion['package'] == $tmpData[$i]['packageName']){
+
+                    $version     = $tmpData[$i]['latestVersion'];
+                    $packageId   = $tmpData[$i]['packageId'];
+                    $packageName = $tmpData[$i]['packageModuleName'];
+                    $groupName   = $tmpData[$i]['groupName'];
+                    $currentVersion   = $moduleVersion['version'];
                 }
+
             }
+            //Get the version difference of local modules from repo modules
+            $status = $marketplaceService->compareLocalVersionFromRepo($moduleName, $version);
+
+            $data[] = array(
+                'module_name'   => $packageName,
+                'latestVersion' => $version,
+                'status'        => $status,
+                'packageId'     => $packageId,
+                'groupName'     => $groupName,
+                'currentVersion'    => $currentVersion,
+            );
+
+            if((int) $status == -1)
+            {
+                $count++;
+            }
+
         }
+
         $view = new ViewModel();
         $view->melisKey = $melisKey;
         $view->modules = $data;

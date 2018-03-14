@@ -23,13 +23,22 @@ $data_melisKey = $this->melisKey;
                 <span><?= $this->translate('tr_melis_module_version_empty'); ?></span>
             </div>
         </li>
-        <?php }?>
+        <?php }
+        ?>
         <?php if($this->needToUpdateModuleCount > 0){?>
-            <?php foreach($this->modules as $module => $moduleValue){?>
+            <?php foreach($this->modules as $module => $moduleValue){
+                $typeName = substr($moduleValue['groupName'],5);
+                ?>
                 <?php if($moduleValue['status'] == -1) {?>
-                    <li class="empty-notif-li">
-                        <div class="media">
-                            <span class="text-module-to-update"><?= $moduleValue['module_name'] ?></span>
+                    <li>
+                       <span class="img-circle media-object"></span>
+                       <div class="media">
+                            <div class="media-body" id="outdated-module-link" data-packageid="<?= $moduleValue['packageId']?>"  data-packagetitle="<?= $moduleValue['module_name']?> ">
+                               <i class="fa fa-info-circle"></i>
+                                <a  class="strong text-primary"><?= $moduleValue['module_name'] ?>  <em class="currentVersion"><?= $moduleValue['currentVersion']?> </em></a><span class="time-email"></span>
+                              <div class="clearfix"></div><?= $this->translate('tr_melis_market_place_tool_package_module_outdated')?><em class="latestVersion"><?= $moduleValue['latestVersion']?> </em>
+                                <i class="fa fa-download latest-version-icon"></i>
+                            </div>
                         </div>
                     </li>
                 <?php }?>
