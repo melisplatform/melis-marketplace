@@ -66,7 +66,8 @@ return array(
     'tr_melis_marketplace_package_directory_change_permission_ko' => 'Unable to change permission on %s',
     'tr_melis_marketplace_package_directory_change_permission_ko' => 'Permission updated on %s',
 
-
+    'tr_melis_market_place_tool_package_modal_content' => 'Modal content',
+    'tr_melis_market_place_tool_package_module_outdated' => 'Update available!',
 
 
 );

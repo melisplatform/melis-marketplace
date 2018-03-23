@@ -166,7 +166,7 @@ return array(
                 'market_place_most_downloaded_modules' => array(
                     'conf' => array(
                         'id' => 'id_market_place_most_downloaded_modules',
-                        'name' => 'tr_market_place_most_downloaded_modules_title',
+                        'name' => 'tr_market_place_most_downloaded_package',
                         'melisKey' => 'market_place_most_downloaded_modules',
                         'width' => 6,
                         'height' => 'dashboard-large',
