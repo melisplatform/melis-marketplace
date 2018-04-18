@@ -89,7 +89,21 @@ return array(
                     '/MelisMarketPlace/js/slick.min.js',
                     '/MelisMarketPlace/js/FileSaver/FileSaver.min.js',
                     '/MelisMarketPlace/js/melis-market-place.js',
-                )
+                ),
+                /**
+                 * the "build" configuration compiles all assets into one file to make
+                 * lesser requests
+                 */
+                'build' => [
+                    // lists of assets that will be loaded in the layout
+                    'css' => [
+                        '/MelisMarketPlace/build/css/bundle.css',
+
+                    ],
+                    'js' => [
+                        '/MelisMarketPlace/build/js/bundle.js',
+                    ]
+                ]
             ),
             'datas' => array(
                 'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist',
