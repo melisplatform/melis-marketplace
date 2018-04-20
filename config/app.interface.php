@@ -175,27 +175,6 @@ return array(
             ),
 
         ),
-//        'meliscore_dashboard' => array(
-//            'interface' => array(
-//                'market_place_most_downloaded_modules' => array(
-//                    'conf' => array(
-//                        'id' => 'id_market_place_most_downloaded_modules',
-//                        'name' => 'tr_market_place_most_downloaded_package',
-//                        'melisKey' => 'market_place_most_downloaded_modules',
-//                        'width' => 6,
-//                        'height' => 'dashboard-large',
-//
-//                    ),
-//                    'forward' => array(
-//                        'module' => 'MelisMarketplace',
-//                        'controller' => 'MelisMarketPlace',
-//                        'action' => 'market-place-dashboard',
-//                        'jscallback' => '',
-//                        'jsdatas' => array()
-//                    ),
-//                ),
-//            )
-//        ),
 
     ),
 );

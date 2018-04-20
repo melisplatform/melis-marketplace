@@ -843,7 +843,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     }
 
                     if($dropQueryTable) {
-                        //$adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
                     }
 
                     if($sql) {
@@ -883,7 +882,6 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if(!$success) {
             $response->getHeaders()->addHeaderLine("error", 1);
-            //$response->setStatusCode(500);
             return new JsonModel(array(
                 'success' => $success,
                 'message' => $message
@@ -974,7 +972,6 @@ class MelisMarketPlaceController extends AbstractActionController
         $url                   = $this->getMelisPackagistServer() . "/get-most-downloaded-packages";
         $melisKey              = $this->getmelisKey();
         $moduleService         = $this->getServiceLocator()->get('ModulesService');
-       // $trackedDomainData     = $this->getServiceLocator()->get('MelisTrackerService');
         $data                  = array();
         $downloadedmodulesData = array();
         $packages              = array();
@@ -999,7 +996,6 @@ class MelisMarketPlaceController extends AbstractActionController
         /*
          * verify list of modules
          */
-      //  $trackedDomainData->track($domain, $scheme, $moduleList);
         //End verifying modules
 
         if(isset($packages['packages']))
