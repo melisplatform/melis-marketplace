@@ -1,0 +1,24 @@
+<melis-marketplace>
+	<package_info>
+		<mp_title>Melis Marketplace</mp_title>
+		<mp_subtitle>The module that shows the Market Place of Melis Platform.</mp_subtitle>
+		<mp_description>
+			This module is the very one that displays that page.<br />
+			It is meant to display all existing Melis Platform modules and to make the link between composer and automatic updates of all modules deployed on Melis Platform.
+		</mp_description>
+		<mp_maintainers>melisplatform</mp_maintainers>
+		<mp_group>Melis Core</mp_group>
+	</package_info>
+	<package_images>
+		<img_1>
+			<mpi_image_title>Melis Platform's marketplace</mpi_image_title>
+			<mpi_image_file>melis-marketplace.JPG</mpi_image_file>
+			<mpi_image_main>1</mpi_image_main>
+		</img_1>
+		<img_2>
+			<mpi_image_title>Melis Platform's marketplace module details</mpi_image_title>
+			<mpi_image_file>melis-marketplace-2.JPG</mpi_image_file>
+			<mpi_image_main>0</mpi_image_main>
+		</img_2>
+	</package_images>
+</melis-marketplace>
