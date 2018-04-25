@@ -76,6 +76,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+        $marketPlaceStatus = $this->checkStatusMarketPlace();
         $response    = @file_get_contents($url.'/get-package/'.$packageId);
         try{
             $package     = Json::decode($response, Json::TYPE_ARRAY);
@@ -140,6 +141,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->versionText          = $this->getVersionStatusText($version);
         $view->isUpdatablePlatform  = $this->allowUpdate();
         $view->currentVersion       = $currentVersion;
+        $view->marketPlaceStatus    = $marketPlaceStatus;
 
         return $view;
     }
@@ -1170,6 +1172,23 @@ class MelisMarketPlaceController extends AbstractActionController
             reset($objects);
             rmdir($dirPath);
         }
+    }
+    private function checkStatusMarketPlace()
+    {
+        //Table
+        $platformTbl = $this->getServiceLocator()->get('MelisCoreTablePlatform');
+        //Get the current Env
+        $currentEnv = getenv('MELIS_PLATFORM');
+        try{
+            $marketPlaceStatus = $platformTbl->getEntryByField('plf_name',$currentEnv)->current();
+
+        }catch (\Exception $e){
+
+
+        }
+
+        return $marketPlaceStatus->plf_update_marketplace ?? null;
+
     }
 
 }
