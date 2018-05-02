@@ -89,7 +89,21 @@ return array(
                     '/MelisMarketPlace/js/slick.min.js',
                     '/MelisMarketPlace/js/FileSaver/FileSaver.min.js',
                     '/MelisMarketPlace/js/melis-market-place.js',
-                )
+                ),
+                /**
+                 * the "build" configuration compiles all assets into one file to make
+                 * lesser requests
+                 */
+                'build' => [
+                    // lists of assets that will be loaded in the layout
+                    'css' => [
+                        '/MelisMarketPlace/build/css/bundle.css',
+
+                    ],
+                    'js' => [
+                        '/MelisMarketPlace/build/js/bundle.js',
+                    ]
+                ]
             ),
             'datas' => array(
                 'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist',
@@ -160,27 +174,6 @@ return array(
                 )
             ),
 
-        ),
-        'meliscore_dashboard' => array(
-            'interface' => array(
-                'market_place_most_downloaded_modules' => array(
-                    'conf' => array(
-                        'id' => 'id_market_place_most_downloaded_modules',
-                        'name' => 'tr_market_place_most_downloaded_package',
-                        'melisKey' => 'market_place_most_downloaded_modules',
-                        'width' => 6,
-                        'height' => 'dashboard-large',
-
-                    ),
-                    'forward' => array(
-                        'module' => 'MelisMarketplace',
-                        'controller' => 'MelisMarketPlace',
-                        'action' => 'market-place-dashboard',
-                        'jscallback' => '',
-                        'jsdatas' => array()
-                    ),
-                ),
-            )
         ),
 
     ),

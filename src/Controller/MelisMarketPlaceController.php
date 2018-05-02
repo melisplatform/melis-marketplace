@@ -31,9 +31,13 @@ class MelisMarketPlaceController extends AbstractActionController
         $melisKey   = $this->getMelisKey();
         $config     = $this->getServiceLocator()->get('MelisCoreConfig');
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
-        $packageGroupData = file_get_contents($url . '/get-package-group',true);
-        $packageGroupData = Json::decode($packageGroupData, Json::TYPE_ARRAY);
 
+        $packageGroupData = @file_get_contents($url . '/get-package-group',true);
+        try{
+            $packageGroupData = Json::decode($packageGroupData, Json::TYPE_ARRAY);
+        }catch (\Exception $e){
+            $packageGroupData = null;
+        }
         $factory      = new \Zend\Form\Factory();
         $formElements = $this->getServiceLocator()->get('FormElementManager');
         $factory->setFormElementManager($formElements);
@@ -41,8 +45,12 @@ class MelisMarketPlaceController extends AbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-        $response = file_get_contents($url.'/get-most-downloaded-packages');
-        $packages = Json::decode($response, Json::TYPE_ARRAY);
+        $response = @file_get_contents($url.'/get-most-downloaded-packages');
+        try{
+            $packages = Json::decode($response, Json::TYPE_ARRAY);
+        }catch (\Exception $e){
+            $packages = null;
+        }
 
         $view = new ViewModel();
 
@@ -68,8 +76,14 @@ class MelisMarketPlaceController extends AbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-        $response    = file_get_contents($url.'/get-package/'.$packageId);
-        $package     = Json::decode($response, Json::TYPE_ARRAY);
+        $marketPlaceStatus = $this->checkStatusMarketPlace();
+        $response    = @file_get_contents($url.'/get-package/'.$packageId);
+        try{
+            $package     = Json::decode($response, Json::TYPE_ARRAY);
+
+        }catch (\Exception $e){
+            $package = null;
+        }
         $isExempted  = false;
 
         $currentVersion = null;
@@ -102,8 +116,12 @@ class MelisMarketPlaceController extends AbstractActionController
             }
         }
 
-        $response = file_get_contents($url.'/get-most-downloaded-packages');
-        $packages = Json::decode($response, Json::TYPE_ARRAY);
+        $response = @file_get_contents($url.'/get-most-downloaded-packages');
+        try{
+            $packages = Json::decode($response, Json::TYPE_ARRAY);
+        }catch (\Exception $e){
+            $packages = null;
+        }
 
         $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
 
@@ -123,6 +141,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->versionText          = $this->getVersionStatusText($version);
         $view->isUpdatablePlatform  = $this->allowUpdate();
         $view->currentVersion       = $currentVersion;
+        $view->marketPlaceStatus    = $marketPlaceStatus;
 
         return $view;
     }
@@ -196,12 +215,12 @@ class MelisMarketPlaceController extends AbstractActionController
             $requestJsonUrl = $this->getMelisPackagistServer().'/get-packages/page/'.$page.'/search/'.$search
                 .'/item_per_page/'.$itemPerPage.'/order/'.$order.'/order_by/'.$orderBy.'/status/1'.'/group/'. $group;
 
-
+            $serverPackages = @file_get_contents($requestJsonUrl);
             try {
-                $serverPackages = @file_get_contents($requestJsonUrl);
-            }catch(\Exception $e) {}
-
-            $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
+                $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
+            }catch (\Exception $e){
+                $serverPackages = null;
+            }
             $tmpPackages    = empty($serverPackages['packages']) ?: $serverPackages['packages'];
 
 
@@ -369,7 +388,11 @@ class MelisMarketPlaceController extends AbstractActionController
                                 // read the composer.json file
                                 set_time_limit(0);
                                 ini_set('memory_limit', '-1');
-                                $composerJson = json_decode(file_get_contents($composerJsonFile), true);
+                                try{
+                                    $composerJson = json_decode(@file_get_contents($composerJsonFile), true);
+                                }catch (\Exception $e){
+                                    $composerJson = null;
+                                }
 
 
                                 $modulePath = $moduleSvc->getModulePath($module);
@@ -705,7 +728,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 set_time_limit(0);
                 ini_set ('memory_limit', '-1');
 
-                $setupFile = file_get_contents($setupFile);
+                $setupFile = @file_get_contents($setupFile);
                 if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
                     $tables = isset($matches[0]) ? $matches[0] : null;
                     $tables = array_map(function($a) {
@@ -822,7 +845,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     }
 
                     if($dropQueryTable) {
-                        //$adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
                     }
 
                     if($sql) {
@@ -862,7 +884,6 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if(!$success) {
             $response->getHeaders()->addHeaderLine("error", 1);
-            //$response->setStatusCode(500);
             return new JsonModel(array(
                 'success' => $success,
                 'message' => $message
@@ -953,7 +974,6 @@ class MelisMarketPlaceController extends AbstractActionController
         $url                   = $this->getMelisPackagistServer() . "/get-most-downloaded-packages";
         $melisKey              = $this->getmelisKey();
         $moduleService         = $this->getServiceLocator()->get('ModulesService');
-       // $trackedDomainData     = $this->getServiceLocator()->get('MelisTrackerService');
         $data                  = array();
         $downloadedmodulesData = array();
         $packages              = array();
@@ -961,10 +981,12 @@ class MelisMarketPlaceController extends AbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-        $downloadedmodulesData = file_get_contents($url);
-
-        $packages   = json_decode($downloadedmodulesData, true);
-
+        $downloadedmodulesData = @file_get_contents($url);
+        try{
+            $packages   = json_decode($downloadedmodulesData, true);
+        }catch (\Exception $e){
+            $packages = null;
+        }
 
         $moduleList = $moduleService->getAllModules();
 
@@ -976,7 +998,6 @@ class MelisMarketPlaceController extends AbstractActionController
         /*
          * verify list of modules
          */
-      //  $trackedDomainData->track($domain, $scheme, $moduleList);
         //End verifying modules
 
         if(isset($packages['packages']))
@@ -1044,11 +1065,12 @@ class MelisMarketPlaceController extends AbstractActionController
             'MelisFront',
         );
 
+        $serverPackages = @file_get_contents($requestJsonUrl);
         try {
-            $serverPackages = @file_get_contents($requestJsonUrl);
-        }catch(\Exception $e) {}
-
-        $serverPackages = json_decode($serverPackages,true);
+            $serverPackages = json_decode($serverPackages,true);
+        }catch (\Exception $e){
+            $serverPackages = null;
+        }
 
 
         //Get the all latest packages
@@ -1150,6 +1172,23 @@ class MelisMarketPlaceController extends AbstractActionController
             reset($objects);
             rmdir($dirPath);
         }
+    }
+    private function checkStatusMarketPlace()
+    {
+        //Table
+        $platformTbl = $this->getServiceLocator()->get('MelisCoreTablePlatform');
+        //Get the current Env
+        $currentEnv = getenv('MELIS_PLATFORM');
+        try{
+            $marketPlaceStatus = $platformTbl->getEntryByField('plf_name',$currentEnv)->current();
+
+        }catch (\Exception $e){
+
+
+        }
+
+        return $marketPlaceStatus->plf_update_marketplace ?? null;
+
     }
 
 }
