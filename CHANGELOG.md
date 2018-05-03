@@ -3,15 +3,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]  
 ### Added  
-* indicators for update  
-* melis groups (core / marketing /cms / commerce)  
+
 
 ### Changed   
-* composer.json and dependencies  
-* execution of composer hooks for DB
+
 
 ### Removed  
 
 
-## [2.2.0] - 2017-10-17
-Latest stable version
+## Release Notes
+## v2.4.0 - 2018-05-03
+* Added bundled CSS and JS
+* Added Melis module categories (core / marketing /cms / commerce)  
+* Updated composer.json dependencies
+* Updated module update indicators
+* Updated composer.json and dependencies  
+* Updated execution of composer hooks for DB
