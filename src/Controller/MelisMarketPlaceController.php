@@ -540,31 +540,28 @@ class MelisMarketPlaceController extends AbstractActionController
             $activeModules = $moduleSvc->getActiveModules();
 
             if(!in_array($module, $activeModules)) {
-                // add to module loader
-                $defaultModules = array('MelisAssetManager','MelisComposerDeploy', 'MelisDbDeploy', 'MelisCore');
 
-                // remove MelisModuleConfig, to avoid duplication
-                $idx = array_search('MelisModuleConfig', $activeModules);
-                if (false !== $idx) {
-                    unset($activeModules[$idx]);
-                }
+                // since we are still running the function, we cannot get the accurate modules that are being loaded
+                // instead, we can read the module.load
+                $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
 
-                // create the module.load file
-                $moduleSvc->createModuleLoader('config/', array_merge($activeModules, array($module)), $defaultModules);
-            }
+                if(file_exists($moduleLoadFile)) {
 
-            // since we are still running the function, we cannot get the accurate modules that are being loaded
-            // instead, we can read the module.load
-            $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
-            if(file_exists($moduleLoadFile)) {
-                $modules = include $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
+                    $modules = include $_SERVER['DOCUMENT_ROOT'].'/../config/melis.module.load.php';
 
-                // recheck if the module requested to be added is in module.load
-                if(in_array($module, $modules)) {
-                    $success = 1;
+                    $moduleCount    = count($modules);
+                    $insertAtIdx    = $moduleCount - 1;
+                    array_splice($modules, $insertAtIdx, 0, $module);
+
+                    // create the module.load file
+                    $moduleSvc->createModuleLoader('config/', $modules, [], []);
+
+                    // recheck if the module requested to be added is in module.load
+                    if(in_array($module, $modules)) {
+                        $success = 1;
+                    }
                 }
             }
-
         }
 
         $response = array(
