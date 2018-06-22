@@ -105,11 +105,19 @@ return array(
             'MelisMarketPlace\Controller\MelisSetup' => 'MelisMarketPlace\Controller\MelisSetupController',
         ),
     ),
+    'controller_plugins' => array(
+        'invokables' => array(
+            //Dashboard Plugins
+            'MelisMarketPlaceDashboardPluginMostDownloadedPackages' => 'MelisMarketPlace\Controller\DashboardPlugins\MelisMarketPlaceDashboardPluginMostDownloadedPackages',
+        ),
+    ),
     'view_manager' => array(
         'display_not_found_reason' => true,
         'display_exceptions'       => true,
         'doctype'                  => 'HTML5',
         'template_map' => array(
+            //Dashboard Plugins
+            'MelisMarketplaceDashboardPluginMostDownloadedPackages/most-downloaded-packages' => __DIR__ . '/../view/dashboard-plugins/marketplace-dashboard-plugin-most-downloaded-packages.phtml',
         ),
         'template_path_stack' => array(
             __DIR__ . '/../view',

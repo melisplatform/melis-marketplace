@@ -68,4 +68,8 @@ return array(
     'tr_melis_market_place_tool_package_modal_content' => 'Modal contenu',
     'tr_melis_market_place_tool_package_module_outdated' => 'Mise à jour disponible !',
 
+    //Dashboard Plugins
+    'tr_PluginSection_melismarketplace' => 'Melis Market Place',
+    'tr_melis_marketplace_dashboard_plugin_most_downloaded_packages' => 'Most Downloaded Packages',
+    'tr_melis_marketplace_dashboard_plugin_most_downloaded_packages_description' => 'This tool gives you an overview on the most downloaded packages.',
 );
