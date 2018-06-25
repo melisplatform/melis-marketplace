@@ -70,6 +70,6 @@ return array(
 
     //Dashboard Plugins
     'tr_PluginSection_melismarketplace' => 'Melis Market Place',
-    'tr_melis_marketplace_dashboard_plugin_most_downloaded_packages' => 'Most Downloaded Packages',
-    'tr_melis_marketplace_dashboard_plugin_most_downloaded_packages_description' => 'This tool gives you an overview on the most downloaded packages.',
+    'tr_melis_marketplace_dashboard_plugin_most_downloaded_packages' => 'La plupart des packages téléchargés',
+    'tr_melis_marketplace_dashboard_plugin_most_downloaded_packages_description' => 'Ce plugin affiche la vue d\'ensemble des paquets les plus téléchargés.',
 );
