@@ -98,7 +98,7 @@ return array(
                     // lists of assets that will be loaded in the layout
                     'css' => [
                         '/MelisMarketPlace/build/css/bundle.css',
-
+ 
                     ],
                     'js' => [
                         '/MelisMarketPlace/build/js/bundle.js',

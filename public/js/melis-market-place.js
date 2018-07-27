@@ -264,7 +264,7 @@ $(function() {
     {
 
         var vConsole     = $("body").find("#melis-marketplace-event-do-response");
-        var vConsoleText = vConsole.html();
+        var vConsoleText = vConsole.html() + '<br/>';
 
         // check if the module still exists
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
