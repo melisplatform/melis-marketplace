@@ -49,14 +49,14 @@ return array(
     'melis_market_place_tool_package_remove_confirm' => 'Are you sure you want to remove this module?',
     'melis_market_place_tool_package_remove_ok' => '%s has been removed successfully',
     'melis_market_place_tool_package_remove_ko' => 'Unable to remove module %s, please try again.',
-    'melis_market_place_tool_package_remove_table_dump' => 'Dumping table data for %s',
+    'melis_market_place_tool_package_remove_table_dump' => 'Checking data to export for %s...',
 
     'tr_melis_module_version_empty' => 'Tous les modules sont mis à jour',
     'tr_melis_market_place_empty_most_downloaded_modules' => 'No items to display',
 
     'tr_melis_market_place_exec_do_done' => 'Done! Executing additional events.',
     'tr_melis_market_place_done' => 'Done!',
-    'tr_melis_market_place_export_table_empty' => 'Nothing to export',
+    'tr_melis_market_place_export_table_empty' => 'No data to be exported for this module',
     'tr_melis_link_market_place' => 'Market Place',
 
     'tr_melis_marketplace_package_directory_removable_ok' => '%s directory is removable',
