@@ -57,6 +57,7 @@ return array(
     'tr_melis_market_place_exec_do_done' => 'Done! Executing additional events.',
     'tr_melis_market_place_done' => 'Done!',
     'tr_melis_market_place_export_table_empty' => 'No data to be exported for this module',
+    'tr_melis_market_place_export_table_ok' => 'Module data has been exported.',
     'tr_melis_link_market_place' => 'Market Place',
 
     'tr_melis_marketplace_package_directory_removable_ok' => '%s directory is removable',
