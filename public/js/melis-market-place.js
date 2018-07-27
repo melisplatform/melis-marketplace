@@ -297,13 +297,13 @@ $(function() {
                                         scrollTop: vConsole.prop("scrollHeight")
                                     }, 1115);
                                     $("button.melis-marketplace-modal-reload").removeClass("hidden");
-                                    vConsole.html(vConsoleText + '<br/><span style="color:#02de02">Done</span>');
+                                    vConsole.html(vConsoleText + '<br/>' + translations.tr_melis_market_place_export_table_ok + '<br/><span style="color:#02de02">Done</span>');
                                 }
                                 else {
                                     vConsoleText = vConsole.html();
                                     vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">'+data.message+'</span>');
                                     vConsoleText = vConsole.html();
-                                    vConsole.html(vConsoleText + '<br/>' + translations.tr_melis_market_place_export_table_ok + '<br/><span style="color:#02de02">Done</span>');
+                                    vConsole.html(vConsoleText + '<br/><span style="color:#02de02">Done</span>');
                                     vConsole.animate({
                                         scrollTop: vConsole.prop("scrollHeight")
                                     }, 1115);
