@@ -16,6 +16,14 @@ return array(
     'tr_market_place_most_downloaded_package' => 'Most downloaded packages',
     'tr_market_place_tags' => 'Tags',
 
+    'tr_market_place_not_allowed' => 'This platform is not allowed to download from marketplace. Please check with an admin if you want to do so.',
+
+    'tr_market_place_modal_download_title' => 'Download module',
+    'tr_market_place_modal_download_content' => 'Are you sure you want to download module %s',
+
+    'tr_market_place_modal_update_title' => 'Update module',
+    'tr_market_place_modal_update_content' => 'Are you sure you want to update module %s',
+
     'tr_market_place_version' => 'Version',
     'tr_market_place_lastest_version' => 'Latest version',
     'tr_market_place_current_version' => 'Current version',
@@ -54,7 +62,7 @@ return array(
     'tr_melis_module_version_empty' => 'All modules are updated',
     'tr_melis_market_place_empty_most_downloaded_modules' => 'No items to display',
 
-    'tr_melis_market_place_exec_do_done' => 'Done!<hr/>Executing additional events.',
+    'tr_melis_market_place_exec_do_done' => 'Executing additional events.',
     'tr_melis_market_place_done' => 'Done!',
     'tr_melis_market_place_export_table_empty' => 'No data to be exported for this module',
     'tr_melis_market_place_export_table_ok' => 'Module data has been exported.',
@@ -69,6 +77,7 @@ return array(
 
     'tr_melis_market_place_tool_package_modal_content' => 'Modal content',
     'tr_melis_market_place_tool_package_module_outdated' => 'Update available!',
+    'tr_melis_market_place_task_done' => 'Task finished',
 
 
 );

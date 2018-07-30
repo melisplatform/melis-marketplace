@@ -23,8 +23,6 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage,group)
                 $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
             },
         });
-
-
 }
 
 function getActiveGroupIdFilter(){
@@ -39,7 +37,6 @@ function getActiveGroupIdFilter(){
         btnId.push(dataId);
     }
     tmpData = [btnId];
-
 
     return tmpData;
 }
@@ -151,7 +148,7 @@ $(function() {
                         translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
                         translations.tr_meliscore_general_proceed,
                         translations.melis_market_place_tool_package_remove_confirm_on_dependencies.replace("%s", module)+modules+"<br/>"+translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
-                        function() {
+                        function () {
                             melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
 
                                 melisCoreTool.done("button");
@@ -173,8 +170,7 @@ $(function() {
                         translations.tr_meliscore_general_confirm,
                         translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
                         function() {
-                            melisHelper.createModal(zoneId, melisKey, true, objData,  modalUrl, function() {
-
+                            melisHelper.createModal(zoneId, melisKey, true, objData,  modalUrl, function () {
                                 melisCoreTool.done("button");
                                 checkPermission(module, function() {
                                     doEvent(objData, function () {
@@ -192,30 +188,49 @@ $(function() {
             });
         }
         else {
-            melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
-                melisCoreTool.done("button");
-                doEvent(objData, function() {
+            // Download and update action
+            var modalTitle = translations.tr_market_place_modal_download_title;
+            var modalContent = translations.tr_market_place_modal_download_content.replace('%s', module);
 
-                    // check if the module exists
-                    doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
-                        if(module.isExist || module.isExist === true) {
-                            // show reload and activate module buttons
-                            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module : module.module}, function(data) {
-                                if(data.success === 1) {
-                                    updateCmdText(translations.tr_melis_market_place_done);
-                                    if(objData.action == "require") {
-                                        $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
-                                    }
+            if (action == 'update') {
+                modalTitle = translations.tr_market_place_modal_update_title;
+                modalContent = translations.tr_market_place_modal_update_content;
+            }
 
-                                    $("button.melis-marketplace-modal-reload").removeClass("hidden");
+            melisCoreTool.confirm(
+                translations.tr_meliscore_common_yes,
+                translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
+                modalTitle,
+                modalContent,
+                function () {
+
+                    melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
+                        melisCoreTool.done("button");
+                        doEvent(objData, function() {
+                            // check if the module exists
+                            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
+                                if(module.isExist || module.isExist === true) {
+                                    // show reload and activate module buttons
+                                    doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module : module.module}, function(data) {
+                                        if(data.success === 1) {
+                                            updateCmdText(translations.tr_melis_market_place_task_done);
+                                            if(objData.action == "require") {
+                                                $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+                                            }
+        
+                                            $("button.melis-marketplace-modal-reload").removeClass("hidden");
+                                        }
+                                    });
+        
                                 }
                             });
-
-                        }
+                        });
+        
                     });
-                });
+                }
+            );
 
-            });
+            melisCoreTool.done("button");
         }
 
     });
@@ -303,13 +318,12 @@ $(function() {
                                     vConsoleText = vConsole.html();
                                     vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">'+data.message+'</span>');
                                     vConsoleText = vConsole.html();
-                                    vConsole.html(vConsoleText + '<br/><span style="color:#02de02">Done</span>');
+                                    vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.tr_melis_market_place_task_done + '</span>');
                                     vConsole.animate({
                                         scrollTop: vConsole.prop("scrollHeight")
                                     }, 1115);
                                 }
                             }
-
                         }
                     });
                 }
@@ -399,7 +413,7 @@ $(function() {
                 },
                 success: function(data) {
                     vConsoleText = "" + vConsole.html();
-                    vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/></div>');
+                    vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
                     vConsole.animate({
                         scrollTop: vConsole.prop("scrollHeight")
                     }, 1115);

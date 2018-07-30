@@ -2,8 +2,7 @@
 $id = '';
 if (!empty($this->zoneconfig['conf']['id']))
     $id = $this->zoneconfig['conf']['id'];
-    
-    ?>
+?>
 <div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId .'_' . $id; ?>" class="tab-pane container-level-a">
     <div class="innerAll spacing-x2">
         <div class="melis-store">
@@ -15,6 +14,9 @@ if (!empty($this->zoneconfig['conf']['id']))
                                 <div class="store-heading">
                                     <h2 class="module-title"><?= $this->package['packageTitle']; ?></h2>
                                     <p><?= $this->package['packageSubtitle']; ?></p>
+                                    <?php if (!$this->isUpdatablePlatform): ?>
+                                    <p class="text-danger"><i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?></p>
+                                    <?php endif; ?>
                                     <?php if($this->marketPlaceStatus){?>
                                     <div class="melis-marketplace-product-buttons">
                                         <?php if(!$this->isModuleInstalled && !$this->isExempted ) {

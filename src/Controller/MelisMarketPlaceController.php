@@ -33,11 +33,12 @@ class MelisMarketPlaceController extends AbstractActionController
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
 
         $packageGroupData = @file_get_contents($url . '/get-package-group',true);
-        try{
+        try {
             $packageGroupData = Json::decode($packageGroupData, Json::TYPE_ARRAY);
-        }catch (\Exception $e){
+        } catch (\Exception $e){
             $packageGroupData = null;
         }
+
         $factory      = new \Zend\Form\Factory();
         $formElements = $this->getServiceLocator()->get('FormElementManager');
         $factory->setFormElementManager($formElements);
@@ -46,9 +47,9 @@ class MelisMarketPlaceController extends AbstractActionController
         set_time_limit(0);
         ini_set('memory_limit', '-1');
         $response = @file_get_contents($url.'/get-most-downloaded-packages');
-        try{
+        try {
             $packages = Json::decode($response, Json::TYPE_ARRAY);
-        }catch (\Exception $e){
+        } catch (\Exception $e){
             $packages = null;
         }
 
@@ -57,7 +58,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->melisKey             = $melisKey;
         $view->melisPackagistServer = $url;
         $view->packages             = $packages;
-        $view->packageGroupData     =  $packageGroupData;
+        $view->packageGroupData     = $packageGroupData;
+        $view->isUpdatablePlatform  = $this->allowUpdate();
 
         $view->setVariable('searchForm', $searchForm);
 
@@ -89,43 +91,40 @@ class MelisMarketPlaceController extends AbstractActionController
         $currentVersion = null;
 
         //get and compare the local version from repo
-        if(!empty($package)){
+        if (!empty($package)){
 
             //get marketplace service
             $marketPlaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
             $moduleSvc          = $this->getServiceLocator()->get('ModulesService');
 
-
             //compare the package local version to the repository
-            if(isset($package['packageModuleName'])) {
-
+            if (isset($package['packageModuleName'])) {
 
                 $module  = $package['packageModuleName'];
                 $version = $marketPlaceService->compareLocalVersionFromRepo($package['packageModuleName'], $package['packageVersion']);
 
-                if(!empty($d)){
+                if (!empty($d)) {
                     $package['version_status'] = $this->getVersionStatusText($version);
-                }else{
+                } else {
                     $package['version_status'] = "";
                 }
 
-                if(in_array($module,  $this->getModuleExceptions())) {
+                if (in_array($module,  $this->getModuleExceptions())) {
                     $isExempted = true;
                 }
-
             }
         }
 
         $response = @file_get_contents($url.'/get-most-downloaded-packages');
-        try{
+        try {
             $packages = Json::decode($response, Json::TYPE_ARRAY);
-        }catch (\Exception $e){
+        } catch (\Exception $e){
             $packages = null;
         }
 
         $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
 
-        if($isModuleInstalled) {
+        if ($isModuleInstalled) {
             $currentVersion = $moduleSvc->getModulesAndVersions($module)['version'];
         }
 
@@ -371,8 +370,7 @@ class MelisMarketPlaceController extends AbstractActionController
                         $composerSvc->download($package);
                     break;
                     case $composerSvc::REMOVE:
-                        if(!in_array($module, $this->getModuleExceptions())) {
-
+                        if (!in_array($module, $this->getModuleExceptions())) {
                             /**
                              * Remove module
                              * $composerSvc->remove($package);
@@ -381,7 +379,6 @@ class MelisMarketPlaceController extends AbstractActionController
                              */
 
                             // read the composer.json file
-
                             $composerJsonFile = $_SERVER['DOCUMENT_ROOT'] . '/../composer.json';
 
                             if(file_exists($composerJsonFile)) {
@@ -393,7 +390,6 @@ class MelisMarketPlaceController extends AbstractActionController
                                 }catch (\Exception $e){
                                     $composerJson = null;
                                 }
-
 
                                 $modulePath = $moduleSvc->getModulePath($module);
                                 if(file_exists($modulePath)) {
@@ -414,16 +410,14 @@ class MelisMarketPlaceController extends AbstractActionController
                                     $composerJson['require'] = $require;
                                 }
 
-                                $newContent = \Zend\Json\Json::encode($composerJson, false  , array('prettyPrint' => true));
+                                $newContent = \Zend\Json\Json::encode($composerJson, false, array('prettyPrint' => true));
                                 $newContent = str_replace('\/', '/', $newContent);
 
                                 unlink($composerJsonFile);
                                 file_put_contents($composerJsonFile, $newContent);
-
                             }
 
-
-                            $defaultModules = array('MelisAssetManager','MelisComposerDeploy', 'MelisDbDeploy', 'MelisCore', 'MelisEngine', 'MelisFront');
+                            $defaultModules = array('MelisAssetManager','MelisComposerDeploy', 'MelisDbDeploy', 'MelisCore');
                             $removeModules  = array_merge($moduleSvc->getChildDependencies($module), array($module, 'MelisModuleConfig'));
                             $activeModules  = $moduleSvc->getActiveModules($defaultModules);
 
@@ -435,11 +429,8 @@ class MelisMarketPlaceController extends AbstractActionController
                                     $retainModules[] = $module;
                                 }
                             }
-
                             $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
-
                             $composerSvc->dumpAutoload();
-
                         }
                     break;
                     default:
@@ -675,10 +666,10 @@ class MelisMarketPlaceController extends AbstractActionController
         $module  = '';
         $request = $this->getRequest();
 
-        if($request->isPost()) {
+        if ($request->isPost()) {
 
             $module = $this->getTool()->sanitize($request->getPost('module'));
-            if($module) {
+            if ($module) {
                 $isExist = (bool) $this->isModuleInstalled($module);
             }
         }
@@ -698,7 +689,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $tables         = array();
         $files          = array();
 
-        if($this->getRequest()->isPost()) {
+        if ($this->getRequest()->isPost()) {
             $svc            = $this->getServiceLocator()->get('ModulesService');
             $path           = $svc->getModulePath($module, true);
             $dbDeployPath   = $path.'/install/dbdeploy/';
@@ -709,38 +700,35 @@ class MelisMarketPlaceController extends AbstractActionController
             $dbDeployFiles  = array_diff(scandir($dbDeployPath), array('.', '..', '.gitignore'));
 
 
-            if($dbDeployFiles) {
-                foreach($dbDeployFiles as $file) {
+            if ($dbDeployFiles) {
+                foreach ($dbDeployFiles as $file) {
                     $files[] = $file;
-                    if(strrpos($file, $tableInstall) !== false) {
+                    if (strrpos($file, $tableInstall) !== false) {
                         $setupFile = $file;
                     }
                 }
             }
 
-
-            if(file_exists($dbDeployPath.$setupFile)) {
+            if (file_exists($dbDeployPath.$setupFile)) {
                 $setupFile = $dbDeployPath.$setupFile;
 
                 set_time_limit(0);
                 ini_set ('memory_limit', '-1');
 
                 $setupFile = @file_get_contents($setupFile);
-                if(preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
+                if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
                     $tables = isset($matches[0]) ? $matches[0] : null;
                     $tables = array_map(function($a) {
                         $n = str_replace(array('CREATE TABLE IF NOT EXISTS', '`'), '', $a);
                         $n = trim($n);
                         return  $n;
                     }, $tables);
-                    if(is_array($tables)) {
+                    if (is_array($tables)) {
                         $tables = (array) $tables;
                     }
                 }
             }
         }
-
-
 
         return new JsonModel(array(
             'module' => $module,
@@ -752,7 +740,6 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function exportTablesAction()
     {
-
         $module   = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
         $tables   = $this->getTool()->sanitize($this->getRequest()->getPost('tables'));
         $files    = $this->getTool()->sanitize($this->getRequest()->getPost('files'));
@@ -760,7 +747,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $success  = 0;
         $message  = $this->getTool()->getTranslation('tr_melis_market_place_export_table_empty');
         $response = $this->getResponse();
-        if($module) {
+        if ($module) {
 
             $sql            = '';
             $insert         = "INSERT INTO `%s`(%s) VALUES(%s);".PHP_EOL;
@@ -775,11 +762,10 @@ class MelisMarketPlaceController extends AbstractActionController
             ini_set ('memory_limit', -1);
 
             // check again if the tables are not empty
-            if(is_array($tables)) {
-
+            if (is_array($tables)) {
 
                 // trim the matched texts
-                $tables = array_map(function($a) {
+                $tables = array_map(function ($a) {
                     $n = trim($a);
                     return  $n;
                 }, $tables);
@@ -787,29 +773,27 @@ class MelisMarketPlaceController extends AbstractActionController
                 $adapter = $this->getAdapter();
 
                 if($this->getAdapter()) {
-
                     // remove data on dbDeploy
-                    if($files) {
+                    if ($files) {
                         $dbDeployQuery = "";
-                        foreach($files as $file) {
+                        foreach ($files as $file) {
                             $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
                             $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'].'/../dbdeploy/data/'.$file;
-                            if(file_exists($dbDeployFileCache)) {
+                            if (file_exists($dbDeployFileCache)) {
                                 unlink($dbDeployFileCache);
                             }
                         }
 
-                        if($dbDeployQuery) {
+                        if ($dbDeployQuery) {
                             $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
                         }
-
                     }
 
                     $dropQueryTable = "";
                     foreach($tables as $table) {
                         try {
                             $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
-                            if($resultSet) {
+                            if ($resultSet) {
                                 // CREATE AN INSERT SQL FILE
                                 $sql .= sprintf($dumpInfo, $table);
                                 foreach($resultSet as $data) {
@@ -836,7 +820,7 @@ class MelisMarketPlaceController extends AbstractActionController
                             }
 
                             $dropQueryTable .= "DROP TABLE IF EXISTS `{$table}`;" . PHP_EOL;
-                        }catch(\PDOException $e) {
+                        } catch(\PDOException $e) {
                             $message .= ' '. PHP_EOL . $e->getMessage() . PHP_EOL;
                         }
                     }
@@ -850,11 +834,9 @@ class MelisMarketPlaceController extends AbstractActionController
                 }
             }
 
-            if($success) {
-
+            if ($success) {
                 $export   = $copyright.$sql.$commit;
                 $fileName = strtolower($module).'_export_data.sql';
-
 
                 $response->getHeaders()
                     ->addHeaderLine('Cache-Control'      , 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
@@ -879,7 +861,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         }
 
-        if(!$success) {
+        if (!$success) {
             $response->getHeaders()->addHeaderLine("error", 1);
             return new JsonModel(array(
                 'success' => $success,
@@ -894,11 +876,11 @@ class MelisMarketPlaceController extends AbstractActionController
         $success = 0;
         $request = $this->getRequest();
 
-        if($request->isPost()) {
+        if ($request->isPost()) {
 
             $module = $this->getTool()->sanitize($request->getPost('module'));
 
-            if($module) {
+            if ($module) {
                 $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
                 $deployDiscoveryService->processing($module);
                 $success = 1;
