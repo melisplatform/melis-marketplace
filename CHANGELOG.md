@@ -9,9 +9,11 @@ All notable changes to this project will be documented in this file.
 ### Changed   
 * composer.json and dependencies  
 * execution of composer hooks for DB
+* Updated action logs messages when dowloading, updating and removing a module
+* Updated translations
 
 ### Removed  
 
 
-## [2.2.0] - 2017-10-17
+## [2.5.0] - 2018-07-31
 Latest stable version
