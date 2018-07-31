@@ -47,7 +47,7 @@ return array(
 
     'tr_market_place_subtitle' => 'Search new modules for Melis Platform and stop reinventing the wheel!',
 
-    'tr_market_place_composer_instruction' => '<h5 class="widget-title">Want your module listed on this page?</h5>Add this line to your composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>and it will automatically be included in the results grabbed from Packagist! Images and texts must me sent to: <a href="#">contact@melistechnology.com</a>',
+    'tr_market_place_composer_instruction' => '<h5 class="widget-title">Want your module listed on this page?</h5>Add this line to your composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>and it will automatically be included in the results grabbed from Packagist! Images and texts must be defined in your sources under the form of an XML located in a etc/ folder of your module. Please have a look <a target="_blank" href="https://github.com/melisplatform/melis-cms/tree/master/etc/MarketPlace">here</a> to have an example of the structure.',
 
     'tr_melis_market_place_tool_package_modal_container' => 'Melis marketplace modal container',
     'melis_market_place_tool_package_modal_content' => 'Melis marketplace modal content',
