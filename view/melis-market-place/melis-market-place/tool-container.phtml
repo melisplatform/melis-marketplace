@@ -4,9 +4,7 @@ if (!empty($this->zoneconfig['conf']['id']))
     $id = $this->zoneconfig['conf']['id'];
 
 $form = $this->searchForm;
-
 $packageGroupData = $this->packageGroupData;
-
 ?>
 <div data-melisKey="<?= $this->melisKey ?>" id="<?= $id; ?>" class="tab-pane container-level-a" data-melispackagistserver="<?= $this->melisPackagistServer; ?>">
     <div class="innerAll spacing-x2">
@@ -19,6 +17,9 @@ $packageGroupData = $this->packageGroupData;
                                 <div class="store-heading">
                                     <h2 class="content-heading"><strong><?= $this->translate('tr_market_place'); ?></strong></h2>
                                     <p><?= $this->translate('tr_market_place_subtitle'); ?></p>
+                                    <?php if (!$this->isUpdatablePlatform): ?>
+                                    <p class="text-danger"><i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?></p>
+                                    <?php endif ?>
                                 </div>
                             </div>
                             <div class="col-md-3">

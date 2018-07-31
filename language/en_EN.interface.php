@@ -16,6 +16,14 @@ return array(
     'tr_market_place_most_downloaded_package' => 'Most downloaded packages',
     'tr_market_place_tags' => 'Tags',
 
+    'tr_market_place_not_allowed' => 'This platform is not allowed to download from marketplace. Please check with an admin if you want to do so.',
+
+    'tr_market_place_modal_download_title' => 'Download module',
+    'tr_market_place_modal_download_content' => 'Are you sure you want to download module %s',
+
+    'tr_market_place_modal_update_title' => 'Update module',
+    'tr_market_place_modal_update_content' => 'Are you sure you want to update module %s',
+
     'tr_market_place_version' => 'Version',
     'tr_market_place_lastest_version' => 'Latest version',
     'tr_market_place_current_version' => 'Current version',
@@ -39,7 +47,7 @@ return array(
 
     'tr_market_place_subtitle' => 'Search new modules for Melis Platform and stop reinventing the wheel!',
 
-    'tr_market_place_composer_instruction' => '<h5 class="widget-title">Want your module listed on this page?</h5>Add this line to your composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>and it will automatically be included in the results grabbed from Packagist! Images and texts must me sent to: <a href="#">contact@melistechnology.com</a>',
+    'tr_market_place_composer_instruction' => '<h5 class="widget-title">Want your module listed on this page?</h5>Add this line to your composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>and it will automatically be included in the results grabbed from Packagist! Images and texts must be defined in your sources under the form of an XML located in a etc/ folder of your module. Please have a look <a target="_blank" href="https://github.com/melisplatform/melis-cms/tree/master/etc/MarketPlace">here</a> to have an example of the structure.',
 
     'tr_melis_market_place_tool_package_modal_container' => 'Melis marketplace modal container',
     'melis_market_place_tool_package_modal_content' => 'Melis marketplace modal content',
@@ -49,14 +57,15 @@ return array(
     'melis_market_place_tool_package_remove_confirm' => 'Are you sure you want to remove %s?',
     'melis_market_place_tool_package_remove_ok' => '%s has been removed successfully',
     'melis_market_place_tool_package_remove_ko' => 'Unable to remove module %s, please try again.',
-    'melis_market_place_tool_package_remove_table_dump' => 'Dumping table data for %s',
+    'melis_market_place_tool_package_remove_table_dump' => 'Checking data to export for %s...',
 
     'tr_melis_module_version_empty' => 'All modules are updated',
     'tr_melis_market_place_empty_most_downloaded_modules' => 'No items to display',
 
-    'tr_melis_market_place_exec_do_done' => 'Done! Executing additional events.',
+    'tr_melis_market_place_exec_do_done' => 'Executing additional events.',
     'tr_melis_market_place_done' => 'Done!',
-    'tr_melis_market_place_export_table_empty' => 'Nothing to export',
+    'tr_melis_market_place_export_table_empty' => 'No data to be exported for this module',
+    'tr_melis_market_place_export_table_ok' => 'Module data has been exported.',
 
     'tr_melis_link_market_place' => 'Market Place',
 
@@ -68,6 +77,7 @@ return array(
 
     'tr_melis_market_place_tool_package_modal_content' => 'Modal content',
     'tr_melis_market_place_tool_package_module_outdated' => 'Update available!',
+    'tr_melis_market_place_task_done' => 'Task finished',
 
 
 );
