@@ -194,7 +194,7 @@ $(function() {
 
             if (action == 'update') {
                 modalTitle = translations.tr_market_place_modal_update_title;
-                modalContent = translations.tr_market_place_modal_update_content;
+                modalContent = translations.tr_market_place_modal_update_content.replace('%s', module);;
             }
 
             melisCoreTool.confirm(
