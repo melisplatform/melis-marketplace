@@ -87,7 +87,6 @@ return array(
                 ),
                 'js' => array(
                     '/MelisMarketPlace/js/slick.min.js',
-                    '/MelisMarketPlace/js/FileSaver/FileSaver.min.js',
                     '/MelisMarketPlace/js/melis-market-place.js',
                 ),
                 /**
