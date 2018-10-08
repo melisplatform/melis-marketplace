@@ -24,7 +24,7 @@ return array(
                 ),
                 'meliscore_leftmenu' => array(
                     'interface' => array(
-                        'meliscore_toolstree' => array(
+                        'meliscore_toolstree_section' => array(
                             'interface' => array(
                                 'melis_market_place_business_app_menu' => array(
                                     'conf' => array(
@@ -87,7 +87,6 @@ return array(
                 ),
                 'js' => array(
                     '/MelisMarketPlace/js/slick.min.js',
-                    '/MelisMarketPlace/js/FileSaver/FileSaver.min.js',
                     '/MelisMarketPlace/js/melis-market-place.js',
                 ),
                 /**
