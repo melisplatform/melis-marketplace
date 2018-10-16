@@ -95,7 +95,6 @@ return array(
                  */
                 'build' => [
                     // lists of assets that will be loaded in the layout
-                    'disable_bundle' => true,
                     'css' => [
                         '/MelisMarketPlace/build/css/bundle.css',
                     ],
