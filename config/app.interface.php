@@ -24,22 +24,12 @@ return array(
                 ),
                 'meliscore_leftmenu' => array(
                     'interface' => array(
-                        'meliscore_toolstree_section' => array(
+                        'melismarketplace_toolstree_section' => array(
                             'interface' => array(
-                                'melis_market_place_business_app_menu' => array(
+                                // this will be the configuration of the tool.
+                                'melis_market_place_tool_config' => array(
                                     'conf' => array(
-                                        'id'   => 'id_melis_market_place_business_app_menu',
-                                        'name' => 'tr_market_place',
-                                        'icon' =>  'fa fa-shopping-cart',
-                                        'rights_checkbox_disable' => true,
-                                    ),
-                                    'interface' => array(
-                                        // this will be the configuration of the tool.
-                                        'melis_market_place_tool_config' => array(
-                                            'conf' => array(
-                                                'type' => '/melis_market_place_tool_config/interface/melis_market_place_tool_display',
-                                            ),
-                                        ),
+                                        'type' => '/melis_market_place_tool_config/interface/melis_market_place_tool_display',
                                     ),
                                 ),
                             ),
