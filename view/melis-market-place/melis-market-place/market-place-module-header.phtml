@@ -25,11 +25,11 @@ $data_melisKey = $this->melisKey;
         </li>
         <?php }
         ?>
-        <?php if($this->needToUpdateModuleCount > 0){?>
-            <?php foreach($this->modules as $module => $moduleValue){
+        <?php if ($this->needToUpdateModuleCount > 0) {?>
+            <?php foreach ($this->modules as $module => $moduleValue) {
                 $typeName = substr($moduleValue['groupName'],5);
                 ?>
-                <?php if($moduleValue['status'] == -1) {?>
+                <?php if ($moduleValue['status'] == -1) {?>
                     <li>
                        <span class="img-circle media-object"></span>
                        <div class="media">

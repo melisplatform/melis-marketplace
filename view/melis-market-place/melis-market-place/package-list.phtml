@@ -6,9 +6,9 @@ $form = $this->searchForm;
 
 <hr>
    <div class="product-list-view">
-        <?php if($packages && is_array($packages)) {
+        <?php if ($packages && is_array($packages)) {
         echo '<ul class="products product-thumb-info-list clearfix">';
-            foreach($packages as $package) { ?>
+            foreach ($packages as $package) { ?>
             <li class="col-sm-6 col-md-6 col-lg-4">
                 <div class="product melis-market-place-view-details <?= strtolower(trim($package['packageGroupName'])) ?>" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
                     <a href="#">
@@ -58,10 +58,9 @@ $form = $this->searchForm;
                     <div class="clearfix product-status">
                         <span class="installed">
                             <?php
-                            if((bool) $package['installed']) {
+                            if ((bool) $package['installed']) {
                                 echo '<span class="text-success"><i class="fa fa-check-circle"></i> '.$this->translate('tr_market_place_package_installed').'</span>';
-                            }
-                            else {
+                            } else {
                                 if($this->isUpdatablePlatform)
                                     echo '<span class="text-warning"><i class="fa fa-download"></i> '.$this->translate('tr_market_place_require').'</span>';
                             }
@@ -69,7 +68,7 @@ $form = $this->searchForm;
                         </span>
                         <?php
                         $statusClass = 'melis-module-version-status';
-                        if($package['version_status'] == 'Update') {
+                        if ($package['version_status'] == 'Update') {
                             $statusClass = 'melis-module-version-status need-update';
                         }
                         ?>
@@ -88,12 +87,11 @@ $form = $this->searchForm;
         ?>
     <div class="row">
         <div class="col-md-12 text-center">
-            <?php if($pagination): ?>
+            <?php if ($pagination): ?>
 
                 <ul class="pagination">
-
                     <!-- Previous page link -->
-                    <?php if($pagination['previous']['enabled'] == 'true'): ?>
+                    <?php if ($pagination['previous']['enabled'] == 'true'): ?>
                         <li><a href="#" class="melis-market-place-pagination" data-goto-page="<?= $pagination['previous']['page']; ?>"><i class="icon icon-chevron-left"></i></a>
                         </li>
                     <?php else: ?>
@@ -104,9 +102,8 @@ $form = $this->searchForm;
                         </li>
                     <?php endif; ?>
 
-
                     <?php
-                    foreach($pagination['pages'] as $page) {
+                    foreach ($pagination['pages'] as $page) {
                         $active = '';
                         $link   = '<a href="#" class="melis-market-place-pagination" data-goto-page="'.$page['page'].'">'.$page['page'].'</a>';
 
@@ -119,7 +116,7 @@ $form = $this->searchForm;
                     ?>
 
                     <!-- Next page link -->
-                    <?php if($pagination['next']['enabled'] == 'true'): ?>
+                    <?php if ($pagination['next']['enabled'] == 'true'): ?>
                         <li><a href="#" class="melis-market-place-pagination" data-goto-page="<?= $pagination['next']['page']; ?>"><i class="icon icon-chevron-right"></i></a>
                         </li>
                     <?php else: ?>
