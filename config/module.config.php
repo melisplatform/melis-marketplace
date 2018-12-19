@@ -1,128 +1,128 @@
 <?php
 
 namespace MelisMarketPlace;
-return array(
-    'router' => array(
-        'routes' => array(
-            'melis-backoffice' => array(
-                'type'    => 'Segment',
-                'options' => array(
-                    'route'    => '/melis[/]',
-                ),
-                'child_routes' => array(
-                    'application-MelisMarketPlace' => array(
-                        'type'    => 'Literal',
-                        'options' => array(
-                            'route'    => 'MelisMarketPlace',
-                            'defaults' => array(
+return [
+    'router' => [
+        'routes' => [
+            'melis-backoffice' => [
+                'type' => 'Segment',
+                'options' => [
+                    'route' => '/melis[/]',
+                ],
+                'child_routes' => [
+                    'application-MelisMarketPlace' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route' => 'MelisMarketPlace',
+                            'defaults' => [
                                 '__NAMESPACE__' => 'MelisMarketPlace\Controller',
-                                'controller'    => 'MelisMarketPlace',
-                                'action'        => 'toolContainer',
-                            ),
-                        ),
+                                'controller' => 'MelisMarketPlace',
+                                'action' => 'toolContainer',
+                            ],
+                        ],
                         // this route will be accessible in the browser by browsing
                         'may_terminate' => true,
-                        'child_routes' => array(
-                            'default' => array(
-                                'type'    => 'Segment',
-                                'options' => array(
-                                    'route'    => '/[:controller[/:action]]',
-                                    'constraints' => array(
+                        'child_routes' => [
+                            'default' => [
+                                'type' => 'Segment',
+                                'options' => [
+                                    'route' => '/[:controller[/:action]]',
+                                    'constraints' => [
                                         'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                        'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                    ),
-                                    'defaults' => array(
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
+                                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                    ],
+                                    'defaults' => [
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
             /*
              * This route will handle the
              * alone setup of a module
              */
-            'setup-melis-marketplace' => array(
-                'type'    => 'Literal',
-                'options' => array(
-                    'route'    => '/MelisMarketPlace',
-                    'defaults' => array(
+            'setup-melis-marketplace' => [
+                'type' => 'Literal',
+                'options' => [
+                    'route' => '/MelisMarketPlace',
+                    'defaults' => [
                         '__NAMESPACE__' => 'MelisMarketPlace\Controller',
-                        'controller'    => 'MelisSetup',
-                        'action'        => 'setup-form',
-                    ),
-                ),
+                        'controller' => 'MelisSetup',
+                        'action' => 'setup-form',
+                    ],
+                ],
                 'may_terminate' => true,
-                'child_routes' => array(
-                    'default' => array(
-                        'type'    => 'Segment',
-                        'options' => array(
-                            'route'    => '/[:controller[/:action]]',
-                            'constraints' => array(
-                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            ),
-                            'defaults' => array(
-//
-                            ),
-                        ),
-                    ),
-                    'setup' => array(
+                'child_routes' => [
+                    'default' => [
                         'type' => 'Segment',
-                        'options' => array(
+                        'options' => [
+                            'route' => '/[:controller[/:action]]',
+                            'constraints' => [
+                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                            ],
+                            'defaults' => [
+//
+                            ],
+                        ],
+                    ],
+                    'setup' => [
+                        'type' => 'Segment',
+                        'options' => [
                             'route' => '/setup',
-                            'defaults' => array(
+                            'defaults' => [
                                 'controller' => 'MelisMarketPlace\Controller\MelisSetup',
                                 'action' => 'setup-form',
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        ),
-    ),
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
 
-    'translator' => array(
+    'translator' => [
         'locale' => 'en_EN',
-    ),
+    ],
 
-    'service_manager' => array(
-        'invokables' => array(
+    'service_manager' => [
+        'invokables' => [
 
-        ),
-        'aliases' => array(
+        ],
+        'aliases' => [
             'translator' => 'MvcTranslator',
-        ),
-        'factories' => array(
+        ],
+        'factories' => [
             'MelisMarketPlaceService' => 'MelisMarketPlace\Service\Factory\MelisMarketPlaceServiceFactory',
-        ),
-    ),
+        ],
+    ],
 
-    'controllers' => array(
-        'invokables' => array(
+    'controllers' => [
+        'invokables' => [
             'MelisMarketPlace\Controller\MelisMarketPlace' => 'MelisMarketPlace\Controller\MelisMarketPlaceController',
             'MelisMarketPlace\Controller\MelisSetup' => 'MelisMarketPlace\Controller\MelisSetupController',
-        ),
-    ),
-    'view_manager' => array(
+        ],
+    ],
+    'view_manager' => [
         'display_not_found_reason' => true,
-        'display_exceptions'       => true,
-        'doctype'                  => 'HTML5',
-        'template_map' => array(
-        ),
-        'template_path_stack' => array(
+        'display_exceptions' => true,
+        'doctype' => 'HTML5',
+        'template_map' => [
+        ],
+        'template_path_stack' => [
             __DIR__ . '/../view',
-        ),
-        'strategies' => array(
+        ],
+        'strategies' => [
             'ViewJsonStrategy',
-        ),
-    ),
-    'asset_manager' => array(
-        'resolver_configs' => array(
-            'aliases' => array(
+        ],
+    ],
+    'asset_manager' => [
+        'resolver_configs' => [
+            'aliases' => [
                 'MelisMarketPlace/' => __DIR__ . '/../public/',
-            ),
-        ),
-    ),
-);
+            ],
+        ],
+    ],
+];
