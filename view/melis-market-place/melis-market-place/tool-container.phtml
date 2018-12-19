@@ -1,7 +1,8 @@
 <?php
 $id = '';
-if (!empty($this->zoneconfig['conf']['id']))
+if (!empty($this->zoneconfig['conf']['id'])) {
     $id = $this->zoneconfig['conf']['id'];
+}
 
 $form = $this->searchForm;
 $packageGroupData = $this->packageGroupData;
@@ -15,10 +16,13 @@ $packageGroupData = $this->packageGroupData;
                         <div class="row">
                             <div class="col-md-9">
                                 <div class="store-heading">
-                                    <h2 class="content-heading"><strong><?= $this->translate('tr_market_place'); ?></strong></h2>
+                                    <h2 class="content-heading">
+                                        <strong><?= $this->translate('tr_market_place'); ?></strong></h2>
                                     <p><?= $this->translate('tr_market_place_subtitle'); ?></p>
                                     <?php if (!$this->isUpdatablePlatform): ?>
-                                    <p class="text-danger"><i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?></p>
+                                        <p class="text-danger">
+                                            <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?>
+                                        </p>
                                     <?php endif ?>
                                 </div>
                             </div>
@@ -46,12 +50,12 @@ $packageGroupData = $this->packageGroupData;
                             <div class="col-md-6">
                                 <div class="market-place-btn-filter-group">
                                     <?php
-                                    if(isset($packageGroupData)){
-                                        foreach ($packageGroupData as $groupData => $groupValue){
+                                    if (isset($packageGroupData)) {
+                                        foreach ($packageGroupData as $groupData => $groupValue) {
 
-                                            $typeName = substr($groupValue['mp_group_name'],5);
-                                                if($groupValue['mp_group_id'] != 4){ ?>
-                                                <button class='btn btn-primary <?= strtolower($typeName)?>' value='<?=$groupValue['mp_group_id']?>' >
+                                            $typeName = substr($groupValue['mp_group_name'], 5);
+                                            if ($groupValue['mp_group_id'] != 4) { ?>
+                                                <button class='btn btn-primary <?= strtolower($typeName) ?>' value='<?= $groupValue['mp_group_id'] ?>'>
                                                     <div class="melis-svg">
                                                         <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 30 30" enable-background="new 0 0 30 30" xml:space="preserve">
                                                             <g>
@@ -63,11 +67,11 @@ $packageGroupData = $this->packageGroupData;
                                                             </g>
                                                         </svg>
                                                     </div>
-                                                    <?= $typeName?>
+                                                    <?= $typeName ?>
                                                 </button>
-                                                <?php }?>
-                                        <?php }?>
-                                    <?php }?>
+                                            <?php } ?>
+                                        <?php } ?>
+                                    <?php } ?>
                                 </div>
                             </div>
                         </div>
@@ -94,8 +98,8 @@ $packageGroupData = $this->packageGroupData;
                         <div id="market-place-most-downloaded-package-list">
                             <ul class="simple-post-list">
                                 <?php
-                                if(isset($this->packages['packages']) && $this->packages['packages']) {
-                                    foreach($this->packages['packages'] as $package) { ?>
+                                if (isset($this->packages['packages']) && $this->packages['packages']) {
+                                    foreach ($this->packages['packages'] as $package) { ?>
                                         <li>
                                             <div class="post-image">
                                                 <div class="img-thumbnail">
@@ -109,7 +113,9 @@ $packageGroupData = $this->packageGroupData;
                                             </div>
                                             <div class="post-info">
                                                 <a href="#" class="melis-market-place-view-details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><?= $package['packageTitle']; ?></a>
-                                                <p class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></p>
+                                                <p class="melis-module-downloads">
+                                                    <i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?>
+                                                </p>
                                                 <div class="post-meta"></div>
                                             </div>
                                         </li>
@@ -121,7 +127,7 @@ $packageGroupData = $this->packageGroupData;
                         </div>
                     </aside>
                 </div>
-            </div>    
+            </div>
         </div>
     </div>
 </div>
