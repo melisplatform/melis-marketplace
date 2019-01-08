@@ -1,28 +1,28 @@
 <?php
 
-return array(
+return [
 
-    'plugins' => array(
-        'diagnostic' => array(
-            'conf' => array(
+    'plugins' => [
+        'diagnostic' => [
+            'conf' => [
                 // user rights exclusions
                 'rightsDisplay' => 'none',
-            ),
-            'MelisMarketPlace' => array(
+            ],
+            'MelisMarketPlace' => [
                 'testFolder' => 'test',
                 'moduleTestName' => 'MelisMarketPlaceTest',
-                'db' => array(),
-                'methods' => array(
-                    'testGetPackages' => array(
-                        'payloads' => array(
+                'db' => [],
+                'methods' => [
+                    'testGetPackages' => [
+                        'payloads' => [
 
-                        ),
-                    ),
-                ),
-            ),
-        ),
-    ),
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
 
 
-);
+];
 

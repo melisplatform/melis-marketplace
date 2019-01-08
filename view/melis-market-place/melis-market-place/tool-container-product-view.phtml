@@ -1,9 +1,10 @@
 <?php
 $id = '';
-if (!empty($this->zoneconfig['conf']['id']))
+if (!empty($this->zoneconfig['conf']['id'])) {
     $id = $this->zoneconfig['conf']['id'];
+}
 ?>
-<div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId .'_' . $id; ?>" class="tab-pane container-level-a">
+<div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId . '_' . $id; ?>" class="tab-pane container-level-a">
     <div class="innerAll spacing-x2">
         <div class="melis-store">
             <div class="row">
@@ -15,108 +16,110 @@ if (!empty($this->zoneconfig['conf']['id']))
                                     <h2 class="module-title"><?= $this->package['packageTitle']; ?></h2>
                                     <p><?= $this->package['packageSubtitle']; ?></p>
                                     <?php if (!$this->isUpdatablePlatform): ?>
-                                    <p class="text-danger"><i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?></p>
+                                        <p class="text-danger">
+                                            <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?>
+                                        </p>
                                     <?php endif; ?>
-                                    <?php if($this->marketPlaceStatus){?>
-                                    <div class="melis-marketplace-product-buttons">
-                                        <?php if(!$this->isModuleInstalled && !$this->isExempted ) {
-                                                if(!$this->isUpdatablePlatform)?>
+                                    <?php if ($this->marketPlaceStatus) { ?>
+                                        <div class="melis-marketplace-product-buttons">
+                                            <?php if (!$this->isModuleInstalled && !$this->isExempted) {
+                                                if (!$this->isUpdatablePlatform) ?>
                                                     <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                                        <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
-                                                    </button>
-                                        <?php } else {
-                                                if($this->versionStatus === -1 && $this->isUpdatablePlatform) {
-                                        ?>
-                                                <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                                    <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
+                                                <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
                                                 </button>
-                                            <?php } 
-                                                if(!$this->isExempted) { 
-                                            ?>
-                                                    <?php if($this->isModuleInstalled) { ?>
-                                                    <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-
-                                                        <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
-
+                                            <?php } else {
+                                                if ($this->versionStatus === -1 && $this->isUpdatablePlatform) {
+                                                    ?>
+                                                    <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                        <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
                                                     </button>
+                                                <?php }
+                                                if (!$this->isExempted) {
+                                                    ?>
+                                                    <?php if ($this->isModuleInstalled) { ?>
+                                                        <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+
+                                                            <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
+
+                                                        </button>
                                                     <?php } ?>
                                                 <?php } ?>
-                                        <?php } ?>
-                                    </div>
-                                    <?php }?>
+                                            <?php } ?>
+                                        </div>
+                                    <?php } ?>
                                     <p><label><?= $this->translate($this->package['version_status']); ?></label></p>
                                 </div>
                             </div>
                             <div class="col-xs-12">
-                                    <h5 class="sm-info-title"> <?= $this->translate('tr_market_place_package_additional_info'); ?></h5>
-                                    <ul class="add-info-lists">
-                                        <li>
-                                            <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_lastest_version'); ?>:</span>
-                                            <span><?= $this->package['packageVersion']; ?></span>
-                                        </li>
-                                        <?php if($this->isModuleInstalled): ?>
+                                <h5 class="sm-info-title"> <?= $this->translate('tr_market_place_package_additional_info'); ?></h5>
+                                <ul class="add-info-lists">
+                                    <li>
+                                        <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_lastest_version'); ?>:</span>
+                                        <span><?= $this->package['packageVersion']; ?></span>
+                                    </li>
+                                    <?php if ($this->isModuleInstalled): ?>
                                         <li>
                                             <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_current_version'); ?>:</span>
                                             <span><?= $this->currentVersion; ?></span>
                                         </li>
-                                        <?php endif; ?>
-                                        <li>
-                                            <span class="info-title"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:</span>
-                                            <span><a href="<?= $this->package['packageRepository']; ?>" target="_blank"><?= $this->package['packageRepository']; ?></a></span>
-                                        </li>
-                                        <li>
-                                            <span class="info-title"><img src="/MelisMarketPlace/images/packagist-icon.png" alt="" class="src"> <?= $this->translate('tr_market_place_packagist'); ?>:</span>
-                                            <span><a href="<?= $this->package['packageUrl']; ?>" target="_blank"><?= $this->package['packageUrl']; ?></a></span>
-                                        </li>
-                                        <li>
-                                            <span class="info-title"><i class="fa fa-tag"></i><?= $this->translate('tr_market_place_package_name'); ?>:</span>
-                                            <span><?= $this->package['packageName']; ?></span>
-                                        </li>
-                                        <li>
-                                            <span class="info-title"><i class="fa fa-download"></i> <?= $this->translate('tr_market_place_total_downloads'); ?>:</span>
-                                            <span><?= number_format($this->package['packageTotalDownloads']); ?></span>
-                                        </li>
-                                    </ul>
+                                    <?php endif; ?>
+                                    <li>
+                                        <span class="info-title"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:</span>
+                                        <span><a href="<?= $this->package['packageRepository']; ?>" target="_blank"><?= $this->package['packageRepository']; ?></a></span>
+                                    </li>
+                                    <li>
+                                        <span class="info-title"><img src="/MelisMarketPlace/images/packagist-icon.png" alt="" class="src"> <?= $this->translate('tr_market_place_packagist'); ?>:</span>
+                                        <span><a href="<?= $this->package['packageUrl']; ?>" target="_blank"><?= $this->package['packageUrl']; ?></a></span>
+                                    </li>
+                                    <li>
+                                        <span class="info-title"><i class="fa fa-tag"></i><?= $this->translate('tr_market_place_package_name'); ?>:</span>
+                                        <span><?= $this->package['packageName']; ?></span>
+                                    </li>
+                                    <li>
+                                        <span class="info-title"><i class="fa fa-download"></i> <?= $this->translate('tr_market_place_total_downloads'); ?>:</span>
+                                        <span><?= number_format($this->package['packageTotalDownloads']); ?></span>
+                                    </li>
+                                </ul>
                             </div>
                             <div class="col-md-12">
                                 <?php
-                                if(isset($this->package['packageImages']) && $this->package['packageImages']) {
-                                ?>
-                                <div class="slider slider-single">
-                                    <?php foreach($this->package['packageImages'] as $images) {
-                                        $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
+                                if (isset($this->package['packageImages']) && $this->package['packageImages']) {
                                     ?>
-                                        <div>
-                                            <img class="" src="<?= $image; ?>"
-                                                 alt="">
-                                            <span class="img-title"><?= $images['imageTitle']; ?></span>
-                                        </div>
-                                    <?php
-                                    }
-                                    ?>
-                                </div>
-                                <!-- Insert Subtitle-->
-                                <div class="slider slider-nav">
-                                    <?php foreach($this->package['packageImages'] as $images) {
-                                    $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
-                                    ?>
-                                    <div>
-                                        <img src="<?= $image; ?>" alt="">
+                                    <div class="slider slider-single">
+                                        <?php foreach ($this->package['packageImages'] as $images) {
+                                            $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
+                                            ?>
+                                            <div>
+                                                <img class="" src="<?= $image; ?>"
+                                                     alt="">
+                                                <span class="img-title"><?= $images['imageTitle']; ?></span>
+                                            </div>
+                                            <?php
+                                        }
+                                        ?>
+                                    </div>
+                                    <!-- Insert Subtitle-->
+                                    <div class="slider slider-nav">
+                                        <?php foreach ($this->package['packageImages'] as $images) {
+                                            $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
+                                            ?>
+                                            <div>
+                                                <img src="<?= $image; ?>" alt="">
+                                            </div>
+                                            <?php
+                                        }
+                                        ?>
                                     </div>
                                     <?php
-                                    }
-                                    ?>
-                                </div>
-                                <?php
                                 }
                                 ?>
                             </div>
                         </div>
                         <?php
-                        if(isset($this->package['packageImages']) && $this->package['packageImages']) {
-                        ?>
-                        <hr>
-                        <?php
+                        if (isset($this->package['packageImages']) && $this->package['packageImages']) {
+                            ?>
+                            <hr>
+                            <?php
                         }
                         ?>
                         <h5 class="sm-info-title"><?= $this->translate('tr_market_place_description'); ?></h5>
@@ -141,8 +144,8 @@ if (!empty($this->zoneconfig['conf']['id']))
                         <div id="market-place-most-downloaded-package-list">
                             <ul class="simple-post-list">
                                 <?php
-                                if(isset($this->packages['packages']) && $this->packages['packages']) {
-                                    foreach($this->packages['packages'] as $package) { ?>
+                                if (isset($this->packages['packages']) && $this->packages['packages']) {
+                                    foreach ($this->packages['packages'] as $package) { ?>
                                         <li>
                                             <div class="post-image">
                                                 <div class="img-thumbnail">
@@ -156,7 +159,9 @@ if (!empty($this->zoneconfig['conf']['id']))
                                             </div>
                                             <div class="post-info">
                                                 <a href="#" class="melis-market-place-view-details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><?= $package['packageTitle']; ?></a>
-                                                <p class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></p>
+                                                <p class="melis-module-downloads">
+                                                    <i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?>
+                                                </p>
                                                 <div class="post-meta"></div>
                                             </div>
                                         </li>
@@ -169,11 +174,10 @@ if (!empty($this->zoneconfig['conf']['id']))
 
                     </aside>
                 </div>
-            </div>    
+            </div>
         </div>
     </div>
 
 
-    
 </div>
 <script> initSlick(activeTabId); </script>
