@@ -17,7 +17,6 @@ use Zend\Db\Sql\Ddl;
  */
 class MelisMarketPlaceController extends AbstractActionController
 {
-
     /**
      * @var DbAdapter
      */
@@ -36,6 +35,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
 
         $packageGroupData = @file_get_contents($url . '/get-package-group', true);
+
         try {
             $packageGroupData = Json::decode($packageGroupData, Json::TYPE_ARRAY);
         } catch (\Exception $e) {
