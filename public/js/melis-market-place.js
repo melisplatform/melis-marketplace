@@ -257,7 +257,7 @@ $(function () {
         var vConsoleText = vConsole.html();
 
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isPackageDirectoryRemovable", {module: module}, function (resp) {
-            if (resp.success == "1") {
+            if (resp.success == "1" || resp.success === 1) {
                 callback();
             }
             else {
