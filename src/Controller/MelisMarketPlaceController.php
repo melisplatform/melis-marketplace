@@ -491,6 +491,11 @@ class MelisMarketPlaceController extends AbstractActionController
                 switch ($action) {
                     case $composerSvc::DOWNLOAD:
                         if (!in_array($module, $this->getModuleExceptions())) {
+                            /**
+                             * @todo if the package has a type of "melisplatform-site"
+                             * then it should use the \MelisMarketPlace\Service\MelisMarketPlaceSiteInstallService
+                             * else, then use the regular composer download
+                             */
                             $composerSvc->download($package);
                         }
                         break;
@@ -499,12 +504,6 @@ class MelisMarketPlaceController extends AbstractActionController
                         break;
                     case $composerSvc::REMOVE:
                         if (!in_array($module, $this->getModuleExceptions())) {
-                            /**
-                             * Remove module
-                             * $composerSvc->remove($package);
-                             * the command above remove's the package and then updates the entire composer.json entries
-                             * which is not likely, we just need to remove the module and its' autoloaded classes
-                             */
 
                             // read the composer.json file
                             $composerJsonFile = $_SERVER['DOCUMENT_ROOT'] . '/../composer.json';
@@ -1125,7 +1124,6 @@ class MelisMarketPlaceController extends AbstractActionController
     public function marketPlaceModuleHeaderAction()
     {
         $melisKey = $this->getMelisKey();
-
 
         $moduleService = $this->getServiceLocator()->get('ModulesService');
         $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');

@@ -1,22 +1,22 @@
-window.fetchPackages = function(page, search, orderBy, order, itemPerPage,group) {
+window.fetchPackages = function (page, search, orderBy, order, itemPerPage, group) {
 
-    page   			= page || 1;
-    search 			= search || $("body").find("input#melis_market_place_search_input").val();
-    orderBy  		= orderBy || 'mp_total_downloads';
-    if(!group) {
+    page = page || 1;
+    search = search || $("body").find("input#melis_market_place_search_input").val();
+    orderBy = orderBy || 'mp_total_downloads';
+    if (!group) {
         group = ["1", "2", "3", "4"];
     }
-    var order       = order || 'desc';
+    var order = order || 'desc';
     var itemPerPage = itemPerPage || 9;
     $(".market-place-btn-filter-group button").attr("disabled", "disabled");
     $("#btnMarketPlaceSearch").attr("disabled", "disabled");
     $.ajax(
         {
             type: 'POST',
-            url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page="+page+"&search="+search+"&orderBy="+orderBy+"&group="+group,
-            data: {page: page, search : search, orderBy : orderBy, order : order, itemPerPage : itemPerPage, group : group},
+            url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page=" + page + "&search=" + search + "&orderBy=" + orderBy + "&group=" + group,
+            data: {page: page, search: search, orderBy: orderBy, order: order, itemPerPage: itemPerPage, group: group},
             dataType: "html",
-            success: function(data) {
+            success: function (data) {
 
                 $("body").find("div#melis-market-place-package-list").html(data);
                 $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
@@ -25,13 +25,13 @@ window.fetchPackages = function(page, search, orderBy, order, itemPerPage,group)
         });
 }
 
-function getActiveGroupIdFilter(){
+function getActiveGroupIdFilter() {
     var groupId = $(".market-place-btn-filter-group").find('.active');
     var btnId = [];
     var tmpData = {};
 
     //get the active buttons Id
-    for(var ctr=0;ctr < groupId.length; ctr++){
+    for (var ctr = 0; ctr < groupId.length; ctr++) {
         var dataId = $(groupId[ctr]).val();
 
         btnId.push(dataId);
@@ -40,9 +40,10 @@ function getActiveGroupIdFilter(){
 
     return tmpData;
 }
+
 function initSlick(tab) {
     // Big Slider
-    $('#'+tab + ' .slider-single').not('.slick-initialized').slick({
+    $('#' + tab + ' .slider-single').not('.slick-initialized').slick({
         slidesToShow: 1,
         slidesToScroll: 1,
         arrows: true,
@@ -50,10 +51,10 @@ function initSlick(tab) {
         adaptiveHeight: true,
     });
     // Navigation Slider
-    $('#'+tab + ' .slider-nav')
+    $('#' + tab + ' .slider-nav')
         .not('.slick-initialized')
-        .on('init', function(event, slick) {
-            $('#'+tab + ' .slider-nav .slick-slide.slick-current').addClass('is-active');
+        .on('init', function (event, slick) {
+            $('#' + tab + ' .slider-nav .slick-slide.slick-current').addClass('is-active');
         })
         .slick({
             slidesToShow: 6,
@@ -84,75 +85,77 @@ function initSlick(tab) {
             }]
         });
     // Detect active nav slider
-    $('#'+tab + ' .slider-single').on('afterChange', function(event, slick, currentSlide) {
-        $('#'+tab + ' .slider-nav').slick('slickGoTo', currentSlide);
-        var currrentNavSlideElem = '#'+tab + ' .slider-nav .slick-slide[data-slick-index="' + currentSlide + '"]';
-        $('#'+tab + ' .slider-nav .slick-slide.is-active').removeClass('is-active');
+    $('#' + tab + ' .slider-single').on('afterChange', function (event, slick, currentSlide) {
+        $('#' + tab + ' .slider-nav').slick('slickGoTo', currentSlide);
+        var currrentNavSlideElem = '#' + tab + ' .slider-nav .slick-slide[data-slick-index="' + currentSlide + '"]';
+        $('#' + tab + ' .slider-nav .slick-slide.is-active').removeClass('is-active');
         $(currrentNavSlideElem).addClass('is-active');
     });
 
-    $('#'+tab + ' .slider-nav').on('click', '.slick-slide', function(event) {
+    $('#' + tab + ' .slider-nav').on('click', '.slick-slide', function (event) {
         event.preventDefault();
         var goToSingleSlide = $(this).data('slick-index');
 
-        $('#'+tab + ' .slider-single').slick('slickGoTo', goToSingleSlide);
+        $('#' + tab + ' .slider-single').slick('slickGoTo', goToSingleSlide);
     });
 }
 
 
+$(function () {
 
-$(function() {
-
+    var preventModalClose = true;
     // Tab Click
     $("body").on('shown.bs.tab', "#melis-id-nav-bar-tabs [data-tool-meliskey='melis_market_place_tool_package_display'] a[data-toggle='tab']", function (e) {
         initSlick(activeTabId);
     });
 
-    var preventModalClose = true;
-
-    $("body").on("click", "button.melis-marketplace-product-action", function() {
-        var action  = $(this).data().action;
+    $("body").on("click", "button.melis-marketplace-product-action", function () {
+        var action = $(this).data().action;
         var package = $(this).data().package;
-        var module  = $(this).data().module;
+        var module = $(this).data().module;
 
-        var zoneId   = "id_melis_market_place_tool_package_modal_content";
+        var zoneId = "id_melis_market_place_tool_package_modal_content";
         var melisKey = "melis_market_place_tool_package_modal_content";
         var modalUrl = "/melis/MelisMarketPlace/MelisMarketPlace/toolProductModalContainer";
 
-        var objData  = {action : action, package : package, module : module};
+        var objData = {action: action, package: package, module: module};
 
         melisCoreTool.pending("button");
-        if(action === "remove") {
+        if (action === "remove") {
 
             var tables = [];
-            var files  = [];
-            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/getModuleTables", {module: module}, function(data) {
+            var files = [];
+            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/getModuleTables", {module: module}, function (data) {
                 tables = data.tables;
-                files  = data.files;
+                files = data.files;
             });
 
-            doAjax("POST", "/melis/MelisCore/Modules/getDependents", {module: module, tables : tables, files: files}, function(data) {
-                var modules    = "<br/><br/><div class='container'><div class='row'><div class='col-lg-12'><ul>%s</ul></div></div></div>";
+            doAjax("POST", "/melis/MelisCore/Modules/getDependents", {
+                module: module,
+                tables: tables,
+                files: files
+            }, function (data) {
+                var modules = "<br/><br/><div class='container'><div class='row'><div class='col-lg-12'><ul>%s</ul></div></div></div>";
                 var moduleList = '';
 
-                $.each(data.modules, function(i, v) {
-                    moduleList += "<li>"+v+"</li>";
+                $.each(data.modules, function (i, v) {
+                    moduleList += "<li>" + v + "</li>";
 
                 });
 
                 modules = modules.replace("%s", moduleList);
 
-                if(data.success) {
+                if (data.success) {
                     melisCoreTool.confirm(
                         translations.tr_meliscore_common_yes,
                         translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
                         translations.tr_meliscore_general_proceed,
-                        translations.melis_market_place_tool_package_remove_confirm_on_dependencies.replace("%s", module)+modules+"<br/>"+translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
+                        translations.melis_market_place_tool_package_remove_confirm_on_dependencies.replace("%s", module) + modules + "<br/>" + translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
                         function () {
-                            melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
+                            melisHelper.createModal(zoneId, melisKey, false, objData, modalUrl, function () {
 
                                 melisCoreTool.done("button");
-                                checkPermission(module, function() {
+                                checkPermission(module, function () {
                                     doEvent(objData, function () {
                                         postDeleteEvent(module, tables, files);
                                     });
@@ -163,16 +166,16 @@ $(function() {
                     );
                 }
 
-                if(moduleList === "") {
+                if (moduleList === "") {
                     melisCoreTool.confirm(
                         translations.tr_meliscore_common_yes,
                         translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
                         translations.tr_meliscore_general_confirm,
                         translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
-                        function() {
-                            melisHelper.createModal(zoneId, melisKey, true, objData,  modalUrl, function () {
+                        function () {
+                            melisHelper.createModal(zoneId, melisKey, true, objData, modalUrl, function () {
                                 melisCoreTool.done("button");
-                                checkPermission(module, function() {
+                                checkPermission(module, function () {
                                     doEvent(objData, function () {
                                         postDeleteEvent(module, tables, files);
                                     });
@@ -194,7 +197,8 @@ $(function() {
 
             if (action == 'update') {
                 modalTitle = translations.tr_market_place_modal_update_title;
-                modalContent = translations.tr_market_place_modal_update_content.replace('%s', module);;
+                modalContent = translations.tr_market_place_modal_update_content.replace('%s', module);
+                ;
             }
 
             melisCoreTool.confirm(
@@ -204,28 +208,28 @@ $(function() {
                 modalContent,
                 function () {
 
-                    melisHelper.createModal(zoneId, melisKey, false, objData,  modalUrl, function() {
+                    melisHelper.createModal(zoneId, melisKey, false, objData, modalUrl, function () {
                         melisCoreTool.done("button");
-                        doEvent(objData, function() {
+                        doEvent(objData, function () {
                             // check if the module exists
-                            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
-                                if(module.isExist || module.isExist === true) {
+                            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function (module) {
+                                if (module.isExist || module.isExist === true) {
                                     // show reload and activate module buttons
-                                    doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module : module.module}, function(data) {
-                                        if(data.success === 1) {
+                                    doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module: module.module}, function (data) {
+                                        if (data.success === 1) {
                                             updateCmdText(translations.tr_melis_market_place_task_done);
-                                            if(objData.action == "require") {
+                                            if (objData.action == "require") {
                                                 $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
                                             }
-        
+
                                             $("button.melis-marketplace-modal-reload").removeClass("hidden");
                                         }
                                     });
-        
+
                                 }
                             });
                         });
-        
+
                     });
                 }
             );
@@ -235,32 +239,31 @@ $(function() {
 
     });
 
-    $("body").on("click", "button.melis-marketplace-modal-activate-module", function() {
+    $("body").on("click", "button.melis-marketplace-modal-activate-module", function () {
         var module = $(this).data().module;
-        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/activateModule", {module : module}, function() {
+        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/activateModule", {module: module}, function () {
             $("button.melis-marketplace-modal-reload").trigger("click");
         });
     });
 
 
-    $("body").on("click", "button.melis-marketplace-modal-reload", function() {
+    $("body").on("click", "button.melis-marketplace-modal-reload", function () {
         melisCoreTool.processing();
         location.reload(true);
     });
 
-    function checkPermission(module, callback)
-    {
-        var vConsole     = $("body").find("#melis-marketplace-event-do-response");
+    function checkPermission(module, callback) {
+        var vConsole = $("body").find("#melis-marketplace-event-do-response");
         var vConsoleText = vConsole.html();
 
-        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isPackageDirectoryRemovable", {module: module}, function(resp) {
-            if(resp.success == "1") {
+        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isPackageDirectoryRemovable", {module: module}, function (resp) {
+            if (resp.success == "1") {
                 callback();
             }
             else {
-                doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/changePackageDirectoryPermission", {module: module}, function(response) {
+                doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/changePackageDirectoryPermission", {module: module}, function (response) {
                     vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.tr_melis_marketplace_package_directory_change_permission.replace("%s", module) + '</span><br/>');
-                    if(resp.success == "1") {
+                    if (resp.success == "1") {
                         callback();
                     }
                     else {
@@ -275,21 +278,20 @@ $(function() {
         });
     }
 
-    function postDeleteEvent(module, tables, files)
-    {
+    function postDeleteEvent(module, tables, files) {
 
-        var vConsole     = $("body").find("#melis-marketplace-event-do-response");
+        var vConsole = $("body").find("#melis-marketplace-event-do-response");
         var vConsoleText = vConsole.html() + '<br/>';
 
         // check if the module still exists
-        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function(module) {
+        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function (module) {
 
-            if(!module.isExist || module.isExist === false) {
+            if (!module.isExist || module.isExist === false) {
 
                 vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.melis_market_place_tool_package_remove_ok.replace("%s", module.module) + '</span>');
 
                 // export tables
-                if(tables.length) {
+                if (tables.length) {
                     vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">' + translations.melis_market_place_tool_package_remove_table_dump.replace("%s", module.module) + '</span>');
                     vConsole.animate({
                         scrollTop: vConsole.prop("scrollHeight")
@@ -297,16 +299,16 @@ $(function() {
 
                     $.ajax({
                         type: 'POST',
-                        url:'/melis/MelisMarketPlace/MelisMarketPlace/exportTables',
-                        data: {module: module.module, tables: tables, files : files},
-                        success: function(data, textStatus, request){
+                        url: '/melis/MelisMarketPlace/MelisMarketPlace/exportTables',
+                        data: {module: module.module, tables: tables, files: files},
+                        success: function (data, textStatus, request) {
                             var vConsoleText = vConsole.html();
                             // if data is not empty
-                            if(data) {
+                            if (data) {
                                 var isError = request.getResponseHeader("error");
-                                if(isError === "0") {
+                                if (isError === "0") {
                                     var fileName = request.getResponseHeader("fileName");
-                                    var blob     = new Blob([data], {type: "application/sql;charset=utf-8"});
+                                    var blob = new Blob([data], {type: "application/sql;charset=utf-8"});
                                     saveAs(blob, fileName);
                                     vConsole.animate({
                                         scrollTop: vConsole.prop("scrollHeight")
@@ -316,7 +318,7 @@ $(function() {
                                 }
                                 else {
                                     vConsoleText = vConsole.html();
-                                    vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">'+data.message+'</span>');
+                                    vConsole.html(vConsoleText + '<br/><span style="color:#fbff0f">' + data.message + '</span>');
                                     vConsoleText = vConsole.html();
                                     vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.tr_melis_market_place_task_done + '</span>');
                                     vConsole.animate({
@@ -340,22 +342,21 @@ $(function() {
 
     }
 
-    function doAjax(type, url, data, callbackOnSuccess, callbackOnFail)
-    {
+    function doAjax(type, url, data, callbackOnSuccess, callbackOnFail) {
         $.ajax({
-            type        : type,
-            url         : url,
-            data		: data,
-            dataType    : 'json',
-            encode		: true,
-        }).success(function(data){
-            if ( callbackOnSuccess !== undefined || callbackOnSuccess !== null) {
+            type: type,
+            url: url,
+            data: data,
+            dataType: 'json',
+            encode: true,
+        }).success(function (data) {
+            if (callbackOnSuccess !== undefined || callbackOnSuccess !== null) {
                 if (callbackOnSuccess) {
                     callbackOnSuccess(data);
                 }
             }
-        }).error(function(e) {
-            if ( callbackOnFail !== undefined || callbackOnFail !== null) {
+        }).error(function (e) {
+            if (callbackOnFail !== undefined || callbackOnFail !== null) {
                 if (callbackOnFail) {
                     callbackOnFail(data);
                 }
@@ -363,70 +364,67 @@ $(function() {
         });
     }
 
-    function doEvent(data, callback)
-    {
-        setTimeout(function() {
+    function doEvent(data, callback) {
+        setTimeout(function () {
             var vConsole = $("body").find("#melis-marketplace-event-do-response");
 
-            var vConsoleText    = vConsole.html();
+            var vConsoleText = vConsole.html();
             var lastResponseLen = false;
 
             $.ajax(
-            {
-                type: 'POST',
-                url: '/melis/MelisMarketPlace/MelisMarketPlace/melisMarketPlaceProductDo',
-                data: data,
-                dataType: "html",
-                xhrFields: {
-                    onprogress: function(e) {
+                {
+                    type: 'POST',
+                    url: '/melis/MelisMarketPlace/MelisMarketPlace/melisMarketPlaceProductDo',
+                    data: data,
+                    dataType: "html",
+                    xhrFields: {
+                        onprogress: function (e) {
 
-                        var vConsole      = $("body").find("#melis-marketplace-event-do-response");
-                        vConsole.html("");
-                        var vConsoleText  = vConsole.html();
+                            var vConsole = $("body").find("#melis-marketplace-event-do-response");
+                            vConsole.html("");
+                            var vConsoleText = vConsole.html();
 
+                            var curResponse, response = e.currentTarget.response;
+                            if (lastResponseLen === false) {
+                                curResponse = response;
+                                lastResponseLen = response.length;
+                            }
+                            else {
+                                curResponse = response.substring(lastResponseLen);
+                                lastResponseLen = response.length;
+                            }
+                            vConsoleText += curResponse + "\n<br/>";
+                            if (typeof vConsoleText !== "undefined") {
 
+                                vConsole.html(vConsoleText);
 
-                        var curResponse, response = e.currentTarget.response;
-                        if(lastResponseLen === false) {
-                            curResponse = response;
-                            lastResponseLen = response.length;
+                                // always scroll to bottom
+                                vConsole.animate({
+                                    scrollTop: vConsole.prop("scrollHeight")
+                                }, 1115);
+                            }
+
                         }
-                        else {
-                            curResponse = response.substring(lastResponseLen);
-                            lastResponseLen = response.length;
+                    },
+                    beforeSend: function () {
+                        // do additional task here
+                    },
+                    success: function (data) {
+                        vConsoleText = "" + vConsole.html();
+                        vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
+                        vConsole.animate({
+                            scrollTop: vConsole.prop("scrollHeight")
+                        }, 1115);
+                        $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
+                        $("#melis-marketplace-product-modal-hide").removeClass("disabled");
+                        $("body").find("p#melis-marketplace-console-loading").remove();
+                        if (callback !== undefined || callback !== null) {
+                            if (callback) {
+                                callback();
+                            }
                         }
-                        vConsoleText += curResponse + "\n<br/>";
-                        if(typeof vConsoleText !== "undefined") {
-
-                            vConsole.html(vConsoleText);
-
-                            // always scroll to bottom
-                            vConsole.animate({
-                                scrollTop: vConsole.prop("scrollHeight")
-                            }, 1115);
-                        }
-
                     }
-                },
-                beforeSend: function () {
-                    // do additional task here
-                },
-                success: function(data) {
-                    vConsoleText = "" + vConsole.html();
-                    vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
-                    vConsole.animate({
-                        scrollTop: vConsole.prop("scrollHeight")
-                    }, 1115);
-                    $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
-                    $("#melis-marketplace-product-modal-hide").removeClass("disabled");
-                    $("body").find("p#melis-marketplace-console-loading").remove();
-                    if ( callback !== undefined || callback !== null) {
-                        if (callback) {
-                            callback();
-                        }
-                    }
-                }
-            }).error(function(e) {
+                }).error(function (e) {
                 var vConsole = $("body").find("#melis-marketplace-event-do-response");
                 vConsole.html("An error has occured, please try again");
                 $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
@@ -437,39 +435,38 @@ $(function() {
     }
 
 
-
-    $("body").on("click", ".melis-market-place-pagination", function() {
+    $("body").on("click", ".melis-market-place-pagination", function () {
         var divOverlay = '<div class="melis-overlay"></div>';
         $("#melis-market-place-package-list").append(divOverlay);
         var page = $(this).data("goto-page");
         var groupId = getActiveGroupIdFilter();
-        fetchPackages(page,null,null,null,null, groupId);
+        fetchPackages(page, null, null, null, null, groupId);
     });
 
-    $("body").on("keypress", "input#melis_market_place_search_input", function(e) {
-        if(e.which === 13) {
+    $("body").on("keypress", "input#melis_market_place_search_input", function (e) {
+        if (e.which === 13) {
             $("body").find("button#btnMarketPlaceSearch").trigger("click");
         }
     });
 
-    $("body").on("click", "button#btnMarketPlaceSearch", function() {
+    $("body").on("click", "button#btnMarketPlaceSearch", function () {
         var divOverlay = '<div class="melis-overlay"></div>';
         $(".product-list-view").append(divOverlay);
         var search = $("body").find("input#melis_market_place_search_input").val();
         var groupId = getActiveGroupIdFilter();
-        fetchPackages(null, search, null,null,null, groupId);
+        fetchPackages(null, search, null, null, null, groupId);
 
     });
 
-    $("body").on("submit", "form#melis_market_place_search_form", function(e) {
+    $("body").on("submit", "form#melis_market_place_search_form", function (e) {
         e.preventDefault();
     });
 
-    $("body").on("click", ".melis-market-place-view-details", function() {
-        var packageId    = $(this).data().packageid;
+    $("body").on("click", ".melis-market-place-view-details", function () {
+        var packageId = $(this).data().packageid;
         var packageTitle = $(this).data().packagetitle;
         melisHelper.disableAllTabs();
-        melisHelper.tabOpen(packageTitle, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display", function() {
+        melisHelper.tabOpen(packageTitle, 'fa-shopping-cart', packageId + '_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId: packageId}, "id_melis_market_place_tool_display", function () {
 
         });
         melisHelper.enableAllTabs();
@@ -477,10 +474,10 @@ $(function() {
     });
 
 
-    function plus(){
+    function plus() {
         var qtyBox = $(this).closest(".product-quantity__box").find("#productQuantity");
         var qtycount = parseInt(qtyBox.val());
-        if(qtycount !== qtycount) {
+        if (qtycount !== qtycount) {
             qtyBox.val(1);
         } else {
             qtycount++;
@@ -488,7 +485,7 @@ $(function() {
         }
     }
 
-    function minus(){
+    function minus() {
 
         var qtyBox = $(this).closest(".product-quantity__box").find("#productQuantity");
         var qtycount = parseInt(qtyBox.val());
@@ -502,22 +499,21 @@ $(function() {
     $("body").on("click", "#btnMinus", minus);
     $("body").on("click", "#btnPlus", plus);
 
-    $("body").on("hide.bs.modal", "#id_melis_market_place_tool_package_modal_content_container", function(e) {
-        if(preventModalClose === true) {
+    $("body").on("hide.bs.modal", "#id_melis_market_place_tool_package_modal_content_container", function (e) {
+        if (preventModalClose === true) {
             e.preventDefault();
         }
     });
 
 
-    $("body").on("click", "#melis-marketplace-product-modal-hide", function() {
+    $("body").on("click", "#melis-marketplace-product-modal-hide", function () {
         preventModalClose = false;
         $("#id_melis_market_place_tool_package_modal_content_container").modal("hide");
         preventModalClose = true;
     });
 
-    function updateCmdText(text)
-    {
-        var vConsole     = $("body").find("#melis-marketplace-event-do-response");
+    function updateCmdText(text) {
+        var vConsole = $("body").find("#melis-marketplace-event-do-response");
         var vConsoleText = "" + vConsole.html();
 
         vConsole.html(vConsoleText + '<br/>' + text);
@@ -526,14 +522,12 @@ $(function() {
         }, 1115);
     }
 
-    function addLazyCmdText(id, content)
-    {
-        updateCmdText('<br/><span id="'+id+'"><i class="fa fa-spinner fa-spin"></i></span> ' + content + '<br/>');
+    function addLazyCmdText(id, content) {
+        updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i></span> ' + content + '<br/>');
     }
 
-    function doneLazyCmdText(id, content)
-    {
-        $("#"+id).html('<i class="fa fa-info-circle"></i>');
+    function doneLazyCmdText(id, content) {
+        $("#" + id).html('<i class="fa fa-info-circle"></i>');
     }
 
 
@@ -541,7 +535,7 @@ $(function() {
 
 
 function initSlick() {
-    $("#"+activeTabId + ' .slider-single').slick({
+    $("#" + activeTabId + ' .slider-single').slick({
         slidesToShow: 1,
         slidesToScroll: 1,
         arrows: true,
@@ -549,7 +543,7 @@ function initSlick() {
         asNavFor: '.slider-nav',
         adaptiveHeight: true,
     });
-    $("#"+activeTabId + ' .slider-nav').slick({
+    $("#" + activeTabId + ' .slider-nav').slick({
         slidesToShow: 6,
         slidesToScroll: 1,
         asNavFor: '.slider-single',
@@ -580,9 +574,10 @@ function initSlick() {
         }]
     });
 }
+
 /*Dashboard slider*/
-$(document).ready(function(){
-    function initDashboardSlider(){
+$(document).ready(function () {
+    function initDashboardSlider() {
         $(".slider-dashboard-downloaded-packages").slick({
 
             slidesToShow: 1,
@@ -591,7 +586,7 @@ $(document).ready(function(){
             autoplaySpeed: 2000,
             arrows: true,
             adaptiveHeight: true,
-            dots : true
+            dots: true
         });
 
     }
@@ -600,32 +595,32 @@ $(document).ready(function(){
     initDashboardSlider();
 
     //Refresh button in dashboard slider
-    $("body").on("click" , ".dashboard-downloaded-packages", function(){
+    $("body").on("click", ".dashboard-downloaded-packages", function () {
 
         var melisKey = "market_place_most_downloaded_modules";
-        var zoneId   = "id_market_place_most_downloaded_modules";
+        var zoneId = "id_market_place_most_downloaded_modules";
 
         //Zone Reload
-        melisHelper.zoneReload(zoneId,melisKey,{},function(){
+        melisHelper.zoneReload(zoneId, melisKey, {}, function () {
             initDashboardSlider();
         });
 
     });
 
     //link to market-place
-    $("body").on("click" , "#link-to-marketplace" , function(){
+    $("body").on("click", "#link-to-marketplace", function () {
         // tabOpen(title, icon, zoneId, melisKey, parameters, navTabsGroup, callback){
 
-        melisHelper.tabOpen(translations.tr_market_place, "fa-shopping-cart", "id_melis_market_place_tool_display", "melis_market_place_tool_display" , {}, null,null);
+        melisHelper.tabOpen(translations.tr_market_place, "fa-shopping-cart", "id_melis_market_place_tool_display", "melis_market_place_tool_display", {}, null, null);
     });
 
 
     /*
    * This is for filtering button
    */
-    $("body").on("click", ".market-place-btn-filter-group .btn", function() {
+    $("body").on("click", ".market-place-btn-filter-group .btn", function () {
 
-        var flag = 0 ;
+        var flag = 0;
         //put overlay for loading
         var divOverlay = '<div class="melis-overlay"></div>';
         $(".product-list-view").append(divOverlay);
@@ -633,12 +628,11 @@ $(document).ready(function(){
         var isActive = $(this).hasClass("active");
 
 
-
         //get ActiveButtons
         $(this).toggleClass("active");
 
         var data = getActiveGroupIdFilter();
-        var search  = $("body").find("input#melis_market_place_search_input").val();
+        var search = $("body").find("input#melis_market_place_search_input").val();
 
         fetchPackages(null, search, null, null, null, data);
 
@@ -649,12 +643,12 @@ $(document).ready(function(){
      * For outdated melis modules
      * that needs to be updated
      */
-    $("body").on("click", "#outdated-module-link", function() {
-        var packageId    = $(this).data().packageid;
+    $("body").on("click", "#outdated-module-link", function () {
+        var packageId = $(this).data().packageid;
         var packageTitle = $(this).data().packagetitle;
 
         melisHelper.disableAllTabs();
-        melisHelper.tabOpen(packageTitle, 'fa-shopping-cart', packageId+'_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId : packageId}, "id_melis_market_place_tool_display", function() {
+        melisHelper.tabOpen(packageTitle, 'fa-shopping-cart', packageId + '_id_melis_market_place_tool_package_display', 'melis_market_place_tool_package_display', {packageId: packageId}, "id_melis_market_place_tool_display", function () {
 
         });
         melisHelper.enableAllTabs();
