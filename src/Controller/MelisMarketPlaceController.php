@@ -30,9 +30,6 @@ class MelisMarketPlaceController extends AbstractActionController
     /** @var string  */
     const MODULE_SETUP_RESULT_FORM = 'setupResultAction';
 
-    /** @var string */
-    const MODULE_SETUP_FORM_SHOW_ON_INSTALL = 'displayFormOnInstallation';
-
     /** @var string  */
     const MODULE_SETUP_FORM_SHOW_ON_DOWNLOAD = 'displayFormOnMarketPlaceDownload';
 
@@ -1086,11 +1083,6 @@ class MelisMarketPlaceController extends AbstractActionController
         $domain = $uri->getHost();
         $scheme = $uri->getScheme();
 
-        /*
-         * verify list of modules
-         */
-        //End verifying modules
-
         if (isset($packages['packages'])) {
             foreach ($packages['packages'] as $packagesData => $packagesValue) {
                 $data[] = [
@@ -1113,7 +1105,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     'packageGroupId' => $packagesValue['packageGroupId'],
                     'packageGroupName' => $packagesValue['packageGroupName'],
                     'packageIsActive' => $packagesValue['packageIsActive'],
-
                 ];
             }
         }
@@ -1204,7 +1195,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     $groupName = $tmpData[$i]['groupName'];
                     $currentVersion = $moduleVersion['version'];
                 }
-
             }
             //Get the version difference of local modules from repo modules
             $status = $marketplaceService->compareLocalVersionFromRepo($moduleName, $version);
@@ -1221,7 +1211,6 @@ class MelisMarketPlaceController extends AbstractActionController
             if ((int) $status == -1) {
                 $count++;
             }
-
         }
 
         $view = new ViewModel();
@@ -1313,7 +1302,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         return $formDom;
     }
-    
+
     /**
      * @return \Zend\View\Model\JsonModel
      * @throws \ReflectionException
