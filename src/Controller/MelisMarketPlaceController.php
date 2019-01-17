@@ -2,6 +2,7 @@
 
 namespace MelisMarketPlace\Controller;
 
+use Illuminate\View\View;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
@@ -28,6 +29,21 @@ class MelisMarketPlaceController extends AbstractActionController
 
     /** @var string  */
     const MODULE_SETUP_RESULT_FORM = 'setupResultAction';
+
+    /** @var string */
+    const MODULE_SETUP_FORM_SHOW_ON_INSTALL = 'displayFormOnInstallation';
+
+    /** @var string  */
+    const MODULE_SETUP_FORM_SHOW_ON_DOWNLOAD = 'displayFormOnMarketPlaceDownload';
+
+    /** @var string  */
+    const MODULE_SETUP_FORM_SHOW_ON_UPDATE = 'displayFormOnMarketPlaceUpdate';
+
+    /** @var string  */
+    const ACTION_DOWNLOAD = 'download';
+
+    /** @var string  */
+    const ACTION_UPDATE = 'update';
 
     /** @var  \Zend\Db\Adapter\Adapter $adapter */
     protected $adapter;
@@ -1226,5 +1242,104 @@ class MelisMarketPlaceController extends AbstractActionController
         if ($env) {
             return $env;
         }
+    }
+
+    /**
+     * @param $class
+     * @param $prop
+     *
+     * @return mixed|null
+     * @throws \ReflectionException
+     */
+    protected function getClassProperty($class, $prop)
+    {
+        if (class_exists($class)) {
+            $reflection = new \ReflectionClass($class);
+            $property = $reflection->getProperty($prop)->getValue(new $class);
+            return $property;
+        }
+
+        return null;
+    }
+
+    /**
+     * Flag for Marketplace whether to display the setup form or not when downloading
+     * @param $module
+     *
+     * @return bool|mixed|null
+     * @throws \ReflectionException
+     */
+    protected function showSetupFormOnDownload($module)
+    {
+        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_CONTROLLER]);
+
+        if (class_exists($moduleClass)) {
+            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_DOWNLOAD);
+        }
+
+        return false;
+    }
+
+    /**
+     * Flag for Marketplace whether to display the setup form or not when updating
+     * @param $module
+     *
+     * @return bool|mixed|null
+     * @throws \ReflectionException
+     */
+    protected function showSetupFormOnUpdate($module)
+    {
+        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_CONTROLLER]);
+
+        if (class_exists($moduleClass)) {
+            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_UPDATE);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $module
+     *
+     * @return string
+     */
+    protected function getFormDom($module)
+    {
+        $class   = implode('\\', [$module, 'Controller', str_replace('Controller', '',self::MODULE_SETUP_CONTROLLER)]);
+        $form  = $this->forward()->dispatch($class, ['action' => str_replace('Action', '', self::MODULE_SETUP_FORM)]);
+        /** @var \Zend\View\Renderer\RendererInterface $renderer */
+        $renderer = $this->getServiceLocator()->get('Zend\View\Renderer\RendererInterface');
+        $formDom = (new \Zend\Mime\Part($renderer->render($form)))->getContent();
+
+        return $formDom;
+    }
+    
+    /**
+     * @return \Zend\View\Model\JsonModel
+     * @throws \ReflectionException
+     */
+    public function getSetupModuleFormAction()
+    {
+        $module = 'MelisCore';
+        $action = 'update';
+
+        $showForm = false;
+        $namespace  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_CONTROLLER]);
+        $formDom = null;
+
+        if(class_exists($namespace) && method_exists($namespace, self::MODULE_SETUP_FORM)) {
+
+            if ($action === self::ACTION_DOWNLOAD && $this->showSetupFormOnDownload($module)) {
+                $formDom = $this->getFormDom($module);
+            }
+
+            if ($action === self::ACTION_UPDATE && $this->showSetupFormOnUpdate($module)) {
+                $formDom = $this->getFormDom($module);
+            }
+        }
+
+        return new JsonModel([
+            'form' => $formDom
+        ]);
     }
 }
