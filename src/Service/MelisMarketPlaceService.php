@@ -142,6 +142,37 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     }
 
     /**
+     * @return \MelisCore\Service\MelisCoreModulesService
+     */
+    protected function moduleManager()
+    {
+        /** @var \MelisCore\Service\MelisCoreModulesService $service */
+        $service = $this->getServiceLocator()->get('ModulesService');
+
+        return $service;
+    }
+
+    /**
+     * @param $module
+     *
+     * @return bool
+     */
+    public function plugModule($module)
+    {
+        return $this->moduleManager()->loadModule($module);
+    }
+
+    /**
+     * @param $module
+     *
+     * @return bool
+     */
+    public function unplugModule($module)
+    {
+        return $this->moduleManager()->unloadModule($module);
+    }
+
+    /**
      * @description Function to get the local version of a module
      * and compare it from the repository to determine
      * whether the module is up to date or not
