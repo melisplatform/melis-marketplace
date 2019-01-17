@@ -1217,9 +1217,9 @@ class MelisMarketPlaceController extends AbstractActionController
     {
         $module = 'MelisCore';
         $action = 'download';
+        $namespace  = implode('\\', [$module, 'Controller', $this->getMarketPlaceService()::MODULE_SETUP_CONTROLLER]);
 
         $showForm = false;
-        $namespace  = implode('\\', [$module, 'Controller', $this->getMarketPlaceService()::MODULE_SETUP_CONTROLLER]);
         $formDom = null;
 
         if(class_exists($namespace) && method_exists($namespace, $this->getMarketPlaceService()::MODULE_SETUP_FORM)) {
@@ -1235,6 +1235,8 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function validateSetupFormAction()
     {
-
+        $module = 'MelisCore';
+        $action = 'download';
+        $namespace  = implode('\\', [$module, 'Controller', $this->getMarketPlaceService()::MODULE_SETUP_CONTROLLER]);
     }
 }
