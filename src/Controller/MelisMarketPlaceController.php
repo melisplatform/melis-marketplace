@@ -17,15 +17,25 @@ use Zend\Db\Sql\Ddl;
  */
 class MelisMarketPlaceController extends AbstractActionController
 {
-    /**
-     * @var DbAdapter
-     */
+    /** @var string  */
+    const MODULE_SETUP_CONTROLLER = 'MelisSetupController';
+
+    /** @var string */
+    const MODULE_SETUP_FORM = 'setupFormAction';
+
+    /** @var string  */
+    const MODULE_SETUP_VALIDATE_FORM = 'setupValidateDataAction';
+
+    /** @var string  */
+    const MODULE_SETUP_RESULT_FORM = 'setupResultAction';
+
+    /** @var  \Zend\Db\Adapter\Adapter $adapter */
     protected $adapter;
 
     /**
      * Handles the display of the tool
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function toolContainerAction()
     {
@@ -72,7 +82,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Melis Packagist Server URL
      *
-     * @return mixed
+     * @return array
      */
     private function getMelisPackagistServer()
     {
@@ -89,7 +99,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * MelisMarketPlace/src/MelisMarketPlace/Controller/MelisMarketPlaceController.php
      * Returns the melisKey of the view that is being set in app.interface
      *
-     * @return mixed
+     * @return string
      */
     private function getMelisKey()
     {
@@ -120,7 +130,8 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Handles the display of a specific package
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
+     * @throws \Exception
      */
     public function toolContainerProductViewAction()
     {
@@ -198,7 +209,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return null
+     * @return bool|null
      */
     private function checkStatusMarketPlace()
     {
@@ -219,7 +230,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * @param $status
      *
-     * @return mixed
+     * @return string
      */
     private function getVersionStatusText($status)
     {
@@ -239,29 +250,29 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return array|object
+     * @return \MelisMarketPlace\Service\MelisMarketPlaceService
      */
     private function getMarketPlaceService()
     {
-        return $this->getServiceLocator()->get('MelisMarketPlaceService');
+        /** @var \MelisMarketPlace\Service\MelisMarketPlaceService $service */
+        $service = $this->getServiceLocator()->get('MelisMarketPlaceService');
+        return $service;
     }
 
     /**
-     * MelisCoreTool
-     *
-     * @return array|object
+     * @return \MelisCore\Service\MelisCoreToolService
      */
     private function getTool()
     {
+        /** @var \MelisCore\Service\MelisCoreToolService $tool */
         $tool = $this->getServiceLocator()->get('MelisCoreTool');
-
         return $tool;
     }
 
     /**
      * Returns the list of modules that is inside the exceptions array
      *
-     * @return mixed
+     * @return array
      */
     private function getModuleExceptions()
     {
@@ -294,7 +305,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * Translates the retrieved data coming from the Melis Packagist URL
      * and transform's it into a display including the pagination
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function packageListAction()
     {
@@ -404,7 +415,6 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->setVariable('searchForm', $searchForm);
 
         return $view;
-
     }
 
     /**
@@ -963,7 +973,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Returns the instance of DbAdapter
      *
-     * @return DbAdapter
+     * @return \Zend\Db\Adapter\Adapter
      */
     private function getAdapter()
     {
@@ -1028,26 +1038,12 @@ class MelisMarketPlaceController extends AbstractActionController
         ];
 
         return new JsonModel($response);
-
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function testAction()
-    {
-        $test = $this->getServiceLocator()->get('MelisComposerService');
-
-        $test->remove('melisplatform/melis-cms-prospects');
-
-
-        die;
     }
 
     /**
      * dashboard view of market place
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function marketPlaceDashboardAction()
     {
@@ -1119,7 +1115,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function marketPlaceModuleHeaderAction()
     {
@@ -1231,5 +1227,4 @@ class MelisMarketPlaceController extends AbstractActionController
             return $env;
         }
     }
-
 }
