@@ -19,10 +19,10 @@ return array(
     'tr_market_place_not_allowed' => 'This platform is not allowed to download from marketplace. Please check with an admin if you want to do so.',
 
     'tr_market_place_modal_download_title' => 'Download module',
-    'tr_market_place_modal_download_content' => 'Are you sure you want to download module %s',
+    'tr_market_place_modal_download_content' => 'Are you sure you want to download %s',
 
     'tr_market_place_modal_update_title' => 'Update module',
-    'tr_market_place_modal_update_content' => 'Are you sure you want to update module %s',
+    'tr_market_place_modal_update_content' => 'Are you sure you want to update %s',
 
     'tr_market_place_version' => 'Version',
     'tr_market_place_lastest_version' => 'Latest version',

@@ -84,8 +84,8 @@ return [
                  * the "build" configuration compiles all assets into one file to make
                  * lesser requests
                  */
-                'disable_bundle' => true,
                 'build' => [
+                    'disable_bundle' => true,
                     // lists of assets that will be loaded in the layout
                     'css' => [
                         '/MelisMarketPlace/build/css/bundle.css',
