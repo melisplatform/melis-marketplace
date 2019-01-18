@@ -1227,22 +1227,20 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Zend\View\Model\JsonModel|null
      * @throws \ReflectionException
      */
     public function validateSetupFormAction()
     {
         $module = $this->getRequest()->getPost('module', 'MelisCore');
         $action = $this->getRequest()->getPost('action', 'download');
-        $error = null;
+        $result = null;
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
 
-        if ($this->getRequest()->getMethod() != 'POST') {
-            return new JsonModel(get_defined_vars());
-        }
-
-        if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
-            $error = $this->getMarketPlaceService()->validateForm($module, $post);
+        if ($this->getRequest()->getMethod() === 'POST') {
+            if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
+                $result = $this->getMarketPlaceService()->validateForm($module, $post);
+            }
         }
 
         return new JsonModel(get_defined_vars());
@@ -1251,14 +1249,14 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * This will be used to finalize the POST data
      *
-     * @return \Zend\View\Model\JsonModel
+     * @return \Zend\View\Model\JsonModel|null
      * @throws \ReflectionException
      */
     public function submitSetupFormAction()
     {
         $module = $this->getRequest()->getPost('module', 'MelisCore');
         $action = $this->getRequest()->getPost('action', 'download');
-        $error = null;
+        $result = null;
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
 
         if ($this->getRequest()->getMethod() != 'POST') {
@@ -1266,9 +1264,9 @@ class MelisMarketPlaceController extends AbstractActionController
         }
 
         if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
-            $error = $this->getMarketPlaceService()->submitForm($module, $post);
+            $result = $this->getMarketPlaceService()->submitForm($module, $post);
         }
 
-        return new JsonModel(get_defined_vars());
+        return new JsonModel($result);
     }
 }
