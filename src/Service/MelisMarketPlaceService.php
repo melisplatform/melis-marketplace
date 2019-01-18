@@ -12,41 +12,72 @@ use MelisCore\Service\MelisCoreGeneralService;
 
 class MelisMarketPlaceService extends MelisCoreGeneralService
 {
-    /** @var int */
+    /** @var int NEED_UPDATE */
     const NEED_UPDATE = -1;
 
-    /** @var int  */
+    /** @var int UP_TO_DATE */
     const UP_TO_DATE = 1;
 
-    /** @var int  */
+    /** @var int IN_ADVANCE */
     const IN_ADVANCE = 2;
 
-    /** @var string  */
+    /** @var string DEV */
     CONST DEV = 'dev-';
 
-    /** @var string  */
-    const MODULE_SETUP_CONTROLLER = 'MelisSetupController';
+    /** @var string MODULE_SETUP_POST_DOWNLOAD_CONTROLLER */
+    const MODULE_SETUP_POST_DOWNLOAD_CONTROLLER = 'MelisSetupPostDownloadController';
 
-    /** @var string */
-    const MODULE_SETUP_FORM = 'setupFormAction';
+    /** @var string MODULE_SETUP_POST_UPDATE_CONTROLLER */
+    const MODULE_SETUP_POST_UPDATE_CONTROLLER = 'MelisSetupPostUpdateController';
 
-    /** @var string  */
-    const MODULE_SETUP_VALIDATE_FORM = 'setupValidateDataAction';
+    /** @var string MODULE_SETUP_FORM */
+    const MODULE_SETUP_FORM = 'getFormAction';
 
-    /** @var string  */
-    const MODULE_SETUP_RESULT_FORM = 'setupResultAction';
+    /** @var string MODULE_SETUP_VALIDATE_FORM */
+    const MODULE_SETUP_VALIDATE_FORM = 'validateFormAction';
 
-    /** @var string  */
-    const MODULE_SETUP_FORM_SHOW_ON_DOWNLOAD = 'displayFormOnMarketPlaceDownload';
+    /** @var string MODULE_SETUP_RESULT_FORM */
+    const MODULE_SETUP_RESULT_FORM = 'submitAction';
 
-    /** @var string  */
-    const MODULE_SETUP_FORM_SHOW_ON_UPDATE = 'displayFormOnMarketPlaceUpdate';
+    /** @var string MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE */
+    const MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE = 'showOnMarketplacePostSetup';
 
-    /** @var string  */
+    /** @var string ACTION_DOWNLOAD */
     const ACTION_DOWNLOAD = 'download';
 
-    /** @var string  */
+    /** @var string ACTION_UPDATE */
     const ACTION_UPDATE = 'update';
+
+    /** @var string $action */
+    protected $action = 'download';
+
+    /**
+     * @param $action
+     */
+    public function setAction($action)
+    {
+        $this->action = $action;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAction()
+    {
+        return $this->action;
+    }
+
+    public function getActionController()
+    {
+        switch($this->action) {
+            case self::ACTION_DOWNLOAD:
+                return self::MODULE_SETUP_POST_DOWNLOAD_CONTROLLER;
+                break;
+            case self::ACTION_UPDATE:
+                return self::MODULE_SETUP_POST_UPDATE_CONTROLLER;
+                break;
+        }
+    }
 
     /**
      * Get the value of the class' property
@@ -76,10 +107,10 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
      */
     protected function showSetupFormOnDownload($module)
     {
-        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_CONTROLLER]);
+        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_POST_DOWNLOAD_CONTROLLER]);
 
         if (class_exists($moduleClass)) {
-            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_DOWNLOAD);
+            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE);
         }
 
         return false;
@@ -94,10 +125,10 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
      */
     protected function showSetupFormOnUpdate($module)
     {
-        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_CONTROLLER]);
+        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_POST_UPDATE_CONTROLLER]);
 
         if (class_exists($moduleClass)) {
-            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_UPDATE);
+            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE);
         }
 
         return false;
@@ -106,11 +137,11 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     /**
      * @param $module
      *
-     * @return null
+     * @return string|null
      */
-    public function getFormDom($module)
+    public function getForm($module)
     {
-        $class   = implode('\\', [$module, 'Controller', str_replace('Controller', '',self::MODULE_SETUP_CONTROLLER)]);
+        $class   = implode('\\', [$module, 'Controller', str_replace('Controller', '',$this->getActionController())]);
         $forward = $this->getServiceLocator()->get('Application')->getMvcEvent()->getTarget()->forward();
         $form  = $forward->dispatch($class, ['action' => str_replace('Action', '', self::MODULE_SETUP_FORM)]);
 
@@ -118,7 +149,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         $renderer = $this->getServiceLocator()->get('Zend\View\Renderer\RendererInterface');
         $formDom = (new \Zend\Mime\Part($renderer->render($form)))->getContent() ?: null;
 
-        return $formDom;
+        return trim($formDom);
     }
 
     /**
@@ -128,8 +159,16 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
      * @return bool
      * @throws \ReflectionException
      */
-    public function showForm($module, $action)
+    public function hasPostSetupForm($module, $action)
     {
+        $this->setAction($action);
+
+        $namespace  = implode('\\', [$module, 'Controller', $this->getActionController()]);
+
+        if (!class_exists($namespace) && !method_exists($namespace, $this->getActionController())) {
+            return false;
+        }
+
         if ($action === self::ACTION_DOWNLOAD && $this->showSetupFormOnDownload($module)) {
             return true;
         }

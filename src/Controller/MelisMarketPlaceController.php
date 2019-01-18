@@ -1215,18 +1215,17 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function getSetupModuleFormAction()
     {
-        $module = 'MelisCmsProspects';
+        $module = 'MelisCore';
         $action = 'download';
-        $namespace  = implode('\\', [$module, 'Controller', $this->getMarketPlaceService()::MODULE_SETUP_CONTROLLER]);
         $formDom = null;
 
-        if(class_exists($namespace) && method_exists($namespace, $this->getMarketPlaceService()::MODULE_SETUP_FORM)) {
-            if ($this->getMarketPlaceService()->showForm($module, $action)) {
-                $formDom = $this->getMarketPlaceService()->getFormDom($module);
-            }
+        if ($this->getMarketPlaceService()->hasPostSetupForm($module, $action)) {
+            $formDom = $this->getMarketPlaceService()->getForm($module);
         }
 
         return new JsonModel([
+            'module' => $module,
+            'action' => $action,
             'form' => $formDom
         ]);
     }
