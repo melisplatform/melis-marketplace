@@ -1215,25 +1215,60 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function getSetupModuleFormAction()
     {
-        $module = 'MelisCore';
-        $action = 'download';
-        $formDom = null;
+        $module = $this->getRequest()->getPost('module', 'MelisCore');
+        $action = $this->getRequest()->getPost('action', 'download');
+        $form = null;
 
         if ($this->getMarketPlaceService()->hasPostSetupForm($module, $action)) {
-            $formDom = $this->getMarketPlaceService()->getForm($module);
+            $form = $this->getMarketPlaceService()->getForm($module);
         }
 
-        return new JsonModel([
-            'module' => $module,
-            'action' => $action,
-            'form' => $formDom
-        ]);
+        return new JsonModel(get_defined_vars());
     }
 
+    /**
+     * @return \Zend\View\Model\JsonModel
+     * @throws \ReflectionException
+     */
     public function validateSetupFormAction()
     {
-        $module = 'MelisCore';
-        $action = 'download';
-        $namespace  = implode('\\', [$module, 'Controller', $this->getMarketPlaceService()::MODULE_SETUP_CONTROLLER]);
+        $module = $this->getRequest()->getPost('module', 'MelisCore');
+        $action = $this->getRequest()->getPost('action', 'download');
+        $error = null;
+        $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+
+        if ($this->getRequest()->getMethod() != 'POST') {
+            return new JsonModel(get_defined_vars());
+        }
+
+        if ($this->getMarketPlaceService()->hasPostSetupForm($module, $action)) {
+            $error = $this->getMarketPlaceService()->validateForm($module, $post);
+        }
+
+        return new JsonModel(get_defined_vars());
+    }
+
+    /**
+     * This will be used to finalize the POST data
+     *
+     * @return \Zend\View\Model\JsonModel
+     * @throws \ReflectionException
+     */
+    public function submitSetupFormAction()
+    {
+        $module = $this->getRequest()->getPost('module', 'MelisCore');
+        $action = $this->getRequest()->getPost('action', 'download');
+        $error = null;
+        $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+
+        if ($this->getRequest()->getMethod() != 'POST') {
+            return new JsonModel(get_defined_vars());
+        }
+
+        if ($this->getMarketPlaceService()->hasPostSetupForm($module, $action)) {
+            $error = $this->getMarketPlaceService()->submitForm($module, $post);
+        }
+
+        return new JsonModel(get_defined_vars());
     }
 }

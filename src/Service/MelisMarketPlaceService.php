@@ -9,6 +9,7 @@
 namespace MelisMarketPlace\Service;
 
 use MelisCore\Service\MelisCoreGeneralService;
+use Zend\View\Model\JsonModel;
 
 class MelisMarketPlaceService extends MelisCoreGeneralService
 {
@@ -36,8 +37,8 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     /** @var string MODULE_SETUP_VALIDATE_FORM */
     const MODULE_SETUP_VALIDATE_FORM = 'validateFormAction';
 
-    /** @var string MODULE_SETUP_RESULT_FORM */
-    const MODULE_SETUP_RESULT_FORM = 'submitAction';
+    /** @var string MODULE_SETUP_SUBMIT_FORM */
+    const MODULE_SETUP_SUBMIT_FORM = 'submitAction';
 
     /** @var string MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE */
     const MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE = 'showOnMarketplacePostSetup';
@@ -52,86 +53,19 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     protected $action = 'download';
 
     /**
-     * @param $action
-     */
-    public function setAction($action)
-    {
-        $this->action = $action;
-    }
-
-    /**
      * @return string
      */
-    public function getAction()
+    protected function getAction()
     {
         return $this->action;
     }
 
-    public function getActionController()
-    {
-        switch($this->action) {
-            case self::ACTION_DOWNLOAD:
-                return self::MODULE_SETUP_POST_DOWNLOAD_CONTROLLER;
-                break;
-            case self::ACTION_UPDATE:
-                return self::MODULE_SETUP_POST_UPDATE_CONTROLLER;
-                break;
-        }
-    }
-
     /**
-     * Get the value of the class' property
-     * @param $class
-     * @param $prop
-     *
-     * @return mixed|null
-     * @throws \ReflectionException
+     * @param $action
      */
-    protected function getClassProperty($class, $prop)
+    protected function setAction($action)
     {
-        if (class_exists($class)) {
-            $reflection = new \ReflectionClass($class);
-            $property = $reflection->getProperty($prop)->getValue(new $class);
-            return $property;
-        }
-
-        return null;
-    }
-
-    /**
-     * Flag for Marketplace whether to display the setup form or not when downloading
-     * @param $module
-     *
-     * @return bool|mixed|null
-     * @throws \ReflectionException
-     */
-    protected function showSetupFormOnDownload($module)
-    {
-        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_POST_DOWNLOAD_CONTROLLER]);
-
-        if (class_exists($moduleClass)) {
-            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE);
-        }
-
-        return false;
-    }
-
-    /**
-     * Flag for Marketplace whether to display the setup form or not when updating
-     * @param $module
-     *
-     * @return bool|mixed|null
-     * @throws \ReflectionException
-     */
-    protected function showSetupFormOnUpdate($module)
-    {
-        $moduleClass  = implode('\\', [$module, 'Controller', self::MODULE_SETUP_POST_UPDATE_CONTROLLER]);
-
-        if (class_exists($moduleClass)) {
-            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE);
-        }
-
-        return false;
+        $this->action = $action;
     }
 
     /**
@@ -141,15 +75,80 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
      */
     public function getForm($module)
     {
-        $class   = implode('\\', [$module, 'Controller', str_replace('Controller', '',$this->getActionController())]);
-        $forward = $this->getServiceLocator()->get('Application')->getMvcEvent()->getTarget()->forward();
-        $form  = $forward->dispatch($class, ['action' => str_replace('Action', '', self::MODULE_SETUP_FORM)]);
+        $class = implode('\\', [$module, 'Controller', str_replace('Controller', '', $this->getActionController())]);
+        $form = $this->forward()->dispatch($class, ['action' => str_replace('Action', '', self::MODULE_SETUP_FORM)]);
 
         /** @var \Zend\View\Renderer\RendererInterface $renderer */
         $renderer = $this->getServiceLocator()->get('Zend\View\Renderer\RendererInterface');
         $formDom = (new \Zend\Mime\Part($renderer->render($form)))->getContent() ?: null;
 
         return trim($formDom);
+    }
+
+    /**
+     * @param $module
+     * @param $post
+     *
+     * @return array|\ArrayAccess|null|\Traversable
+     */
+    public function validateForm($module, $post)
+    {
+        $class = implode('\\', [$module, 'Controller', str_replace('Controller', '', $this->getActionController())]);
+        $params = array_merge(
+            ['action' => str_replace('Action', '', self::MODULE_SETUP_VALIDATE_FORM)],
+            $post);
+
+        /** @var \Zend\View\Model\JsonModel $result */
+        $result = $this->forward()->dispatch($class, $params);
+
+        if ($result instanceof JsonModel) {
+            return $result->getVariables();
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $module
+     * @param $post
+     *
+     * @return array|\ArrayAccess|null|\Traversable
+     */
+    public function submitForm($module, $post)
+    {
+        $class = implode('\\', [$module, 'Controller', str_replace('Controller', '', $this->getActionController())]);
+        $params = array_merge(
+            ['action' => str_replace('Action', '', self::MODULE_SETUP_SUBMIT_FORM)],
+            $post);
+
+        /** @var \Zend\View\Model\JsonModel $result */
+        $result = $this->forward()->dispatch($class, $params);
+
+        if ($result instanceof JsonModel) {
+            return $result->getVariables();
+        }
+
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getActionController()
+    {
+        switch ($this->action) {
+            case self::ACTION_DOWNLOAD:
+                return self::MODULE_SETUP_POST_DOWNLOAD_CONTROLLER;
+                break;
+            case self::ACTION_UPDATE:
+                return self::MODULE_SETUP_POST_UPDATE_CONTROLLER;
+                break;
+            default:
+                return self::ACTION_DOWNLOAD;
+                break;
+        }
+
+        return self::ACTION_DOWNLOAD;
     }
 
     /**
@@ -163,7 +162,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     {
         $this->setAction($action);
 
-        $namespace  = implode('\\', [$module, 'Controller', $this->getActionController()]);
+        $namespace = implode('\\', [$module, 'Controller', $this->getActionController()]);
 
         if (!class_exists($namespace) && !method_exists($namespace, $this->getActionController())) {
             return false;
@@ -181,14 +180,62 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     }
 
     /**
-     * @return \MelisCore\Service\MelisCoreModulesService
+     * Flag for Marketplace whether to display the setup form or not when downloading
+     *
+     * @param $module
+     *
+     * @return bool|mixed|null
+     * @throws \ReflectionException
      */
-    protected function moduleManager()
+    protected function showSetupFormOnDownload($module)
     {
-        /** @var \MelisCore\Service\MelisCoreModulesService $service */
-        $service = $this->getServiceLocator()->get('ModulesService');
+        $moduleClass = implode('\\', [$module, 'Controller', self::MODULE_SETUP_POST_DOWNLOAD_CONTROLLER]);
 
-        return $service;
+        if (class_exists($moduleClass)) {
+            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE);
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the value of the class' property
+     *
+     * @param $class
+     * @param $prop
+     *
+     * @return mixed|null
+     * @throws \ReflectionException
+     */
+    protected function getClassProperty($class, $prop)
+    {
+        if (class_exists($class)) {
+            $reflection = new \ReflectionClass($class);
+            $property = $reflection->getProperty($prop)->getValue(new $class);
+
+            return $property;
+        }
+
+        return null;
+    }
+
+    /**
+     * Flag for Marketplace whether to display the setup form or not when updating
+     *
+     * @param $module
+     *
+     * @return bool|mixed|null
+     * @throws \ReflectionException
+     */
+    protected function showSetupFormOnUpdate($module)
+    {
+        $moduleClass = implode('\\', [$module, 'Controller', self::MODULE_SETUP_POST_UPDATE_CONTROLLER]);
+
+        if (class_exists($moduleClass)) {
+            return $this->getClassProperty($moduleClass, self::MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE);
+        }
+
+        return false;
     }
 
     /**
@@ -199,6 +246,17 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     public function plugModule($module)
     {
         return $this->moduleManager()->loadModule($module);
+    }
+
+    /**
+     * @return \MelisCore\Service\MelisCoreModulesService
+     */
+    protected function moduleManager()
+    {
+        /** @var \MelisCore\Service\MelisCoreModulesService $service */
+        $service = $this->getServiceLocator()->get('ModulesService');
+
+        return $service;
     }
 
     /**
@@ -258,5 +316,15 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         $arrayParameters = $this->sendEvent('melismarketplace_compare_local_version_from_repo_end', $arrayParameters);
 
         return $arrayParameters['results'];
+    }
+
+    /**
+     * @return \Zend\Mvc\Controller\Plugin\Forward
+     */
+    protected function forward()
+    {
+        /** @var \Zend\Mvc\Controller\Plugin\Forward $forward */
+        $forward = $this->getServiceLocator()->get('Application')->getMvcEvent()->getTarget()->forward();
+        return $forward;
     }
 }
