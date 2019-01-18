@@ -158,7 +158,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
      * @return bool
      * @throws \ReflectionException
      */
-    public function hasPostSetupForm($module, $action)
+    public function hasPostSetup($module, $action)
     {
         $this->setAction($action);
 

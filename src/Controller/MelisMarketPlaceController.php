@@ -1219,7 +1219,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $action = $this->getRequest()->getPost('action', 'download');
         $form = null;
 
-        if ($this->getMarketPlaceService()->hasPostSetupForm($module, $action)) {
+        if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
             $form = $this->getMarketPlaceService()->getForm($module);
         }
 
@@ -1241,7 +1241,7 @@ class MelisMarketPlaceController extends AbstractActionController
             return new JsonModel(get_defined_vars());
         }
 
-        if ($this->getMarketPlaceService()->hasPostSetupForm($module, $action)) {
+        if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
             $error = $this->getMarketPlaceService()->validateForm($module, $post);
         }
 
@@ -1265,7 +1265,7 @@ class MelisMarketPlaceController extends AbstractActionController
             return new JsonModel(get_defined_vars());
         }
 
-        if ($this->getMarketPlaceService()->hasPostSetupForm($module, $action)) {
+        if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
             $error = $this->getMarketPlaceService()->submitForm($module, $post);
         }
 
