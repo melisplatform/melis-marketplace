@@ -1215,7 +1215,7 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function getSetupModuleFormAction()
     {
-        $module = $this->getRequest()->getPost('module', 'MelisCore');
+        $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
         $action = $this->getRequest()->getPost('action', 'download');
         $form = null;
 

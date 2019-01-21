@@ -3,27 +3,28 @@ window.fetchPackages = function (page, search, orderBy, order, itemPerPage, grou
     page = page || 1;
     search = search || $("body").find("input#melis_market_place_search_input").val();
     orderBy = orderBy || 'mp_total_downloads';
+    order = order || 'desc';
+    itemPerPage = itemPerPage || 9;
+
     if (!group) {
-        group = ["1", "2", "3", "4"];
+        group = ["1", "2", "3", "4", '5'];
     }
-    var order = order || 'desc';
-    var itemPerPage = itemPerPage || 9;
+
     $(".market-place-btn-filter-group button").attr("disabled", "disabled");
     $("#btnMarketPlaceSearch").attr("disabled", "disabled");
-    $.ajax(
-        {
-            type: 'POST',
-            url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page=" + page + "&search=" + search + "&orderBy=" + orderBy + "&group=" + group,
-            data: {page: page, search: search, orderBy: orderBy, order: order, itemPerPage: itemPerPage, group: group},
-            dataType: "html",
-            success: function (data) {
+    $.ajax({
+        type: 'POST',
+        url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page=" + page + "&search=" + search + "&orderBy=" + orderBy + "&group=" + group,
+        data: {page: page, search: search, orderBy: orderBy, order: order, itemPerPage: itemPerPage, group: group},
+        dataType: "html",
+        success: function (data) {
 
-                $("body").find("div#melis-market-place-package-list").html(data);
-                $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
-                $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
-            },
-        });
-}
+            $("body").find("div#melis-market-place-package-list").html(data);
+            $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
+            $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
+        },
+    });
+};
 
 function getActiveGroupIdFilter() {
     var groupId = $(".market-place-btn-filter-group").find('.active');
