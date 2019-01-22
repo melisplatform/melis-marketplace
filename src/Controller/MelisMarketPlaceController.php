@@ -461,6 +461,27 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * @return \Zend\View\Model\ViewModel
      */
+    public function toolModuleFormSetupContentAction()
+    {
+        $module = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
+        $action = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
+        $melisKey = $this->params()->fromRoute('melisKey', '');
+        $title = $this->getTool()->getTranslation('tr_melis_marketplace_setup_module_modal_title', [$module]);
+        $form = $this->getMarketPlaceService()->getForm($module);
+
+        $view = new ViewModel();
+        $view->melisKey = $melisKey;
+        $view->title = $title;
+        $view->module = $module;
+        $view->form = $form;
+        $view->action = $action;
+
+        return $view;
+    }
+
+    /**
+     * @return \Zend\View\Model\ViewModel
+     */
     public function melisMarketPlaceProductDoAction()
     {
 
@@ -1007,26 +1028,21 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function execDbDeployAction()
     {
-
-        $success = 0;
+        $success = false;
         $request = $this->getRequest();
 
         if ($request->isPost()) {
-
             $module = $this->getTool()->sanitize($request->getPost('module'));
-
             if ($module) {
                 $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
                 $deployDiscoveryService->processing($module);
-                $success = 1;
+                $success = true;
             }
         }
 
-        $response = [
+        return new JsonModel([
             'success' => $success,
-        ];
-
-        return new JsonModel($response);
+        ]);
     }
 
     /**
@@ -1211,6 +1227,68 @@ class MelisMarketPlaceController extends AbstractActionController
 
     /**
      * @return \Zend\View\Model\JsonModel
+     */
+    public function plugModuleAction()
+    {
+        $success = false;
+        $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
+
+        if ($this->getRequest()->isPost()) {
+            $module = $this->getRequest()->getPost('module');
+            if ($module) {
+                $this->getMarketPlaceService()->plugModule($module);
+                $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ok', [$module]);
+                $success = true;
+            }
+        }
+
+        return new JsonModel([
+            'success' => $success
+        ]);
+    }
+
+    /**
+     * @return \Zend\View\Model\JsonModel
+     */
+    public function isModuleActiveAction()
+    {
+        $active = false;
+
+        if ($this->getRequest()->isPost()) {
+            /**
+             * @todo sanitize module, check if module is Active via MelisModuleService
+             */
+        }
+
+        return new JsonModel([
+            'active' => $active
+        ]);
+    }
+
+    /**
+     * @return \Zend\View\Model\JsonModel
+     */
+    public function unplugModuleAction()
+    {
+        $success = false;
+        $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
+
+        if ($this->getRequest()->isPost()) {
+            $module = $this->getRequest()->getPost('module');
+            if ($module) {
+                $this->getMarketPlaceService()->unplugModule($module);
+                $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ok', [$module]);
+                $success = true;
+            }
+        }
+
+        return new JsonModel([
+            'success' => $success
+        ]);
+    }
+
+    /**
+     * @return \Zend\View\Model\JsonModel
      * @throws \ReflectionException
      */
     public function getSetupModuleFormAction()
@@ -1243,7 +1321,10 @@ class MelisMarketPlaceController extends AbstractActionController
             }
         }
 
-        return new JsonModel(get_defined_vars());
+        $response = get_defined_vars();
+        unset($response['post']);
+
+        return new JsonModel($response);
     }
 
     /**

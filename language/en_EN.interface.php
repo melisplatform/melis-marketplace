@@ -79,5 +79,17 @@ return array(
     'tr_melis_market_place_tool_package_module_outdated' => 'Update available!',
     'tr_melis_market_place_task_done' => 'Task finished',
 
+    'tr_melis_market_place_plug_module_ok' => 'Module %s has been plugged',
+    'tr_melis_market_place_plug_module_ko' => 'Unable to plug module %s, please reload the page and try again',
+
+    'tr_melis_market_place_unplug_module_ok' => 'Module %s has been unplugged',
+    'tr_melis_market_place_unplug_module_ko' => 'Unable to unplug module %s, please reload the page and try again',
+
+    'tr_melis_market_place_setup_title' => 'Setup for %s',
+    'tr_melis_market_place_has_setup_form' => 'An additional setup has been found, would you like to set up %s?',
+    'tr_melis_marketplace_setup_module_modal_title' => 'Setup for %s',
+
+    'tr_melis_marketplace_common_no_skip' => 'No, skip',
+
 
 );

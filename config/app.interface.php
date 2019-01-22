@@ -160,6 +160,20 @@ return [
                                 'jsdatas' => [],
                             ],
                         ],
+                        'melis_market_place_module_setup_form_content' => [
+                            'conf' => [
+                                'id' => 'id_melis_market_place_module_setup_form_content',
+                                'melisKey' => 'melis_market_place_module_setup_form_content',
+                                'name' => 'tr_melis_market_place_tool_package_modal_content',
+                            ],
+                            'forward' => [
+                                'module' => 'MelisMarketPlace',
+                                'controller' => 'MelisMarketPlace',
+                                'action' => 'tool-module-form-setup-content',
+                                'jscallback' => '',
+                                'jsdatas' => [],
+                            ],
+                        ],
                     ],
                 ],
             ],
