@@ -286,8 +286,6 @@ $(function () {
                                 doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {action: payload.action, module: payload.module}, function (response) {
                                     if (response.form !== '' || response.form != null) {
                                         hasSetupForm = true;
-                                        form = response.form;
-
                                         return Object.assign(payload, {hasSetupForm, form});
                                     }
                                 })
@@ -314,6 +312,11 @@ $(function () {
                                                 // if user proceed
 
                                                 // open a new modal with the setup form
+                                                melisHelper.createModal('id_melis_market_place_module_setup_form_content_ajax',
+                                                    'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
+                                                    melisCoreTool.done("button");
+                                                });
+
                                             } else {
                                                 console.log('form is empty, skipping...');
                                             }
