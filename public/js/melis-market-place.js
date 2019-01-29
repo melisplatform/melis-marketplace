@@ -126,6 +126,8 @@ $(function () {
                     if (response.result.success) {
                         alert('successful');
                         melisCoreTool.highlightErrors(response.result.success, response.result.errors, form.prop('id'));
+                        // if everything went well, call the submitAction to process the data
+
                     } else {
                         console.log(response.result.errors, response.result.success, form.prop('id'));
                         melisHelper.melisKoNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message, response.result.errors);

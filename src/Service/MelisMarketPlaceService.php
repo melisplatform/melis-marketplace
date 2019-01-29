@@ -13,43 +13,69 @@ use Zend\View\Model\JsonModel;
 
 class MelisMarketPlaceService extends MelisCoreGeneralService
 {
-    /** @var int NEED_UPDATE */
+    /**
+     * @var int NEED_UPDATE
+     */
     const NEED_UPDATE = -1;
 
-    /** @var int UP_TO_DATE */
+    /**
+     * @var int UP_TO_DATE
+     */
     const UP_TO_DATE = 1;
 
-    /** @var int IN_ADVANCE */
+    /**
+     * @var int IN_ADVANCE
+     */
     const IN_ADVANCE = 2;
 
-    /** @var string DEV */
+    /**
+     * @var string DEV
+     */
     CONST DEV = 'dev-';
 
-    /** @var string MODULE_SETUP_POST_DOWNLOAD_CONTROLLER */
+    /**
+     * @var string MODULE_SETUP_POST_DOWNLOAD_CONTROLLER
+     */
     const MODULE_SETUP_POST_DOWNLOAD_CONTROLLER = 'MelisSetupPostDownloadController';
 
-    /** @var string MODULE_SETUP_POST_UPDATE_CONTROLLER */
+    /**
+     * @var string MODULE_SETUP_POST_UPDATE_CONTROLLER
+     */
     const MODULE_SETUP_POST_UPDATE_CONTROLLER = 'MelisSetupPostUpdateController';
 
-    /** @var string MODULE_SETUP_FORM */
+    /**
+     * @var string MODULE_SETUP_FORM
+     */
     const MODULE_SETUP_FORM = 'getFormAction';
 
-    /** @var string MODULE_SETUP_VALIDATE_FORM */
+    /**
+     * @var string MODULE_SETUP_VALIDATE_FORM
+     */
     const MODULE_SETUP_VALIDATE_FORM = 'validateFormAction';
 
-    /** @var string MODULE_SETUP_SUBMIT_FORM */
+    /**
+     * @var string MODULE_SETUP_SUBMIT_FORM
+     */
     const MODULE_SETUP_SUBMIT_FORM = 'submitAction';
 
-    /** @var string MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE */
+    /**
+     * @var string MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE
+     */
     const MODULE_SETUP_FORM_SHOW_ON_MARKETPLACE = 'showOnMarketplacePostSetup';
 
-    /** @var string ACTION_DOWNLOAD */
+    /**
+     * @var string ACTION_DOWNLOAD
+     */
     const ACTION_DOWNLOAD = 'download';
 
-    /** @var string ACTION_UPDATE */
+    /**
+     * @var string ACTION_UPDATE
+     */
     const ACTION_UPDATE = 'update';
 
-    /** @var string $action */
+    /**
+     * @var string $action
+     */
     protected $action = 'download';
 
     /**
@@ -136,7 +162,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
      */
     public function getActionController()
     {
-        switch ($this->action) {
+        switch ($this->getAction()) {
             case self::ACTION_DOWNLOAD:
                 return self::MODULE_SETUP_POST_DOWNLOAD_CONTROLLER;
                 break;
