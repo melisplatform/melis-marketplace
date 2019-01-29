@@ -118,14 +118,22 @@ $(function () {
             var data = form.serializeArray(); //new FormData(form[0]);
             data.push({name: 'module', value: modal.data().module});
             data.push({name: 'action', value: modal.data().action});
+            melisCoreTool.pending("#melis-marketplace-setup-modal-submit");
 
             doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/validateSetupForm', $.param(data), function (response) {
                 // display errors if it has
                 if (response.result.errors != null || typeof response.result.errors != 'undefined') {
-                    console.log(response.result.errors, response.result.success, form.prop('id'));
-                    melisHelper.melisKoNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message, response.result.errors);
-                    melisCoreTool.highlightErrors(response.result.success, response.result.errors, form.prop('id'));
+                    if (response.result.success) {
+                        alert('successful');
+                        melisCoreTool.highlightErrors(response.result.success, response.result.errors, form.prop('id'));
+                    } else {
+                        console.log(response.result.errors, response.result.success, form.prop('id'));
+                        melisHelper.melisKoNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message, response.result.errors);
+                        melisCoreTool.highlightErrors(response.result.success, response.result.errors, form.prop('id'));
+                    }
+
                 }
+                melisCoreTool.done("#melis-marketplace-setup-modal-submit");
             });
         }
     });
