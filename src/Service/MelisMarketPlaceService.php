@@ -296,7 +296,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     }
 
     /**
-     * @description Function to get the local version of a module
+     * Function to get the local version of a module
      * and compare it from the repository to determine
      * whether the module is up to date or not
      *
