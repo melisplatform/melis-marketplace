@@ -96,7 +96,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         $class = implode('\\', [$module, 'Controller', str_replace('Controller', '', $this->getActionController())]);
         $params = array_merge(
             ['action' => str_replace('Action', '', self::MODULE_SETUP_VALIDATE_FORM)],
-            $post);
+            ['post' => $post]);
 
         /** @var \Zend\View\Model\JsonModel $result */
         $result = $this->forward()->dispatch($class, $params);
@@ -119,7 +119,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         $class = implode('\\', [$module, 'Controller', str_replace('Controller', '', $this->getActionController())]);
         $params = array_merge(
             ['action' => str_replace('Action', '', self::MODULE_SETUP_SUBMIT_FORM)],
-            $post);
+            ['post' => $post]);
 
         /** @var \Zend\View\Model\JsonModel $result */
         $result = $this->forward()->dispatch($class, $params);
