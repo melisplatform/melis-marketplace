@@ -1260,6 +1260,10 @@ class MelisMarketPlaceController extends AbstractActionController
             /**
              * @todo sanitize module, check if module is Active via MelisModuleService
              */
+            $module = $this->getTool()->sanitize($request->getPost('module'));
+            /** @var \MelisCore\Service\MelisCoreModulesService $mm */
+            $mm = $this->getServiceLocator()->get('ModulesService');
+            $active = $mm->isModuleLoaded($module);
         }
 
         return new JsonModel([
