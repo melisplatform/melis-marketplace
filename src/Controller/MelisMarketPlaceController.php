@@ -1235,7 +1235,8 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if ($this->getRequest()->isPost()) {
             $module = $this->getRequest()->getPost('module');
-            if ($module) {
+            if ($module && isset($module['module'])) {
+                $module = $module['module'];
                 $this->getMarketPlaceService()->plugModule($module);
                 $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ok', [$module]);
                 $success = true;
@@ -1243,7 +1244,8 @@ class MelisMarketPlaceController extends AbstractActionController
         }
 
         return new JsonModel([
-            'success' => $success
+            'success' => $success,
+            'message' => $message
         ]);
     }
 
