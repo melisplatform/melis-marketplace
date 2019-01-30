@@ -110,26 +110,56 @@ $(function () {
         initSlick(activeTabId);
     });
 
-    $('body').on('click', '#melis-marketplace-setup-modal-submit', function () {
+    $('body').on('click', '#melis-marketplace-setup-modal-submit', function () { // @status: currently working
         var form = $('#melis-marketplace-setup-modal-submit').parents().find('form');
 
         if (form.length) {
             var modal = $('#id_melis_market_place_module_setup_form_content');
             var data = form.serializeArray(); //new FormData(form[0]);
-            data.push({name: 'module', value: modal.data().module});
-            data.push({name: 'action', value: modal.data().action});
+            var action = modal.data().action;
+            var module = modal.data().module
+
+            data.push({name: 'module', value: module});
+            data.push({name: 'action', value: action});
             melisCoreTool.pending("#melis-marketplace-setup-modal-submit");
 
             doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/validateSetupForm', $.param(data), function (response) {
                 // display errors if it has
-                if (response.result.errors != null || typeof response.result.errors != 'undefined') {
+                if (response.result.errors != null || typeof response.result.errors !== 'undefined') {
                     if (response.result.success) {
                         alert('successful');
-                        melisCoreTool.highlightErrors(response.result.success, response.result.errors, form.prop('id'));
                         // if everything went well, call the submitAction to process the data
+                        doAjax('POST' ,'/melis/MelisMarketPlace/MelisMarketPlace/submitSetupForm', $.param(data), function (response) {
+                            if (response.result.success) {
+                                // unplug module
+                                doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module}, function (response) {
+                                    if (response.success === true) {
+                                        preventModalClose = false;
+                                        $('#id_melis_market_place_module_setup_form_content_ajax_container').modal('hide');
 
+                                        // inform the user that everything is good
+                                        melisHelper.melisOkNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message);
+                                        
+                                        // ask the user if they want to activate the module, this will only happen if the action is "download"
+                                        if (action === 'download') {
+                                            $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+                                        }
+
+                                        // ask the user if they want to reload the page
+                                        $("button.melis-marketplace-modal-reload").removeClass("hidden");
+                                    } else {
+                                        throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                                    }
+                                });
+
+                            } else {
+                                melisHelper.melisKoNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message, response.result.errors);
+                                melisCoreTool.highlightErrors(response.result.success, response.result.errors, form.prop('id'));
+                            }
+                        });
+
+                        // end of execution
                     } else {
-                        console.log(response.result.errors, response.result.success, form.prop('id'));
                         melisHelper.melisKoNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message, response.result.errors);
                         melisCoreTool.highlightErrors(response.result.success, response.result.errors, form.prop('id'));
                     }
@@ -171,7 +201,6 @@ $(function () {
 
                 $.each(data.modules, function (i, v) {
                     moduleList += "<li>" + v + "</li>";
-
                 });
 
                 modules = modules.replace("%s", moduleList);
@@ -340,34 +369,27 @@ $(function () {
                             return Object.assign(payload, {skip});
                         })
                         .then(function (payload) {
+                            // if user has skipped the setup form
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
 
-                            // USER HAS SKIPPED SETUP
-                            // skip: true
-                            // ask the user if they want to activate the module, this will only happen if the action is "download"
-                            if (payload.action === 'download') {
-                                $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
-                            }
+                            if (skip) {
+                                // unplug module
+                                var module = payload.module;
+                                doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module}, function (response) {
+                                    if (response.success === false) {
+                                        throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                                    }
+                                });
 
-                            return payload;
-                        })
-                        .then(function (payload) {
-                            if (typeof payload === 'undefined' || typeof payload == null) {
-                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                            }
-                            // since it's already plugged this time, we can just check if the module exists, if it does, show reload button
-                            // if user doesn't want to activate the module, unplug the module
+                                // ask the user if they want to activate the module, this will only happen if the action is "download"
+                                if (payload.action === 'download' || payload.form === '' || payload.form === null) {
+                                    $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+                                }
 
-                            return payload;
-                        })
-                        .then(function (payload) {
-                            if (typeof payload === 'undefined' || typeof payload == null) {
-                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                $("button.melis-marketplace-modal-reload").removeClass("hidden");
                             }
-                            // show reload button
-                            $("button.melis-marketplace-modal-reload").removeClass("hidden");
 
                             return payload;
                         })
