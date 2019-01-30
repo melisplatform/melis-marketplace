@@ -139,7 +139,7 @@ $(function () {
 
                                         // inform the user that everything is good
                                         melisHelper.melisOkNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message);
-                                        
+
                                         // ask the user if they want to activate the module, this will only happen if the action is "download"
                                         if (action === 'download') {
                                             $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
