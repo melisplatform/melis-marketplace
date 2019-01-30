@@ -296,13 +296,16 @@ $(function () {
                             var module = payload.module;
                             doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/plugModule', {module : module}, function (response) {
                                 if (response.success === true) {
+                                    console.log('went here', response);
                                     return payload;
                                 } else {
+                                    console.log('error went here', response);
                                     throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
                                 }
                             });
                     })
                         .then(function (payload) { // @status done | tested
+                            console.log('called');
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
