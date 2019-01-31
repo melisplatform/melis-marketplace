@@ -282,7 +282,7 @@ $(function () {
                                                             // replace this text with "Checking additional setup..."
                                                             updateCmdText(translations.tr_melis_market_place_task_done);
                                                             // stored to an object, since native Promise object doesn't pass multiple args
-                                                            var payload = Object.assign({action: action}, {data: repsonse.data}, {module: module});
+                                                            var payload = Object.assign({action: action}, {data: response.data}, {module: module});
                                                             resolve(payload);
                                                         } else {
                                                             reject(data);

@@ -1234,7 +1234,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
 
         if ($this->getRequest()->isPost()) {
-            $module = $this->getRequest()->getPost('module');
+            $module = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+
             if ($module && isset($module['module'])) {
                 $module = $module['module'];
                 $this->getMarketPlaceService()->plugModule($module);
