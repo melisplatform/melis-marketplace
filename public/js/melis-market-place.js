@@ -266,31 +266,34 @@ $(function () {
                 modalTitle,
                 modalContent,
                 function () {
-                    var actionPromise = new Promise(function (resolve, reject) {
-                        melisHelper.createModal(zoneId, melisKey, false, objData, modalUrl, function () {
-                            melisCoreTool.done("button");
-                            doEvent(objData, function () {
-                                // check if the module exists
-                                doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function (module) {
-                                    if (module.isExist || module.isExist === true) {
-                                        // show reload and activate module buttons
-                                        doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module: module.module}, function (data) {
-                                            if (data.success === true) {
-                                                // replace this text with "Checking additional setup..."
-                                                updateCmdText(translations.tr_melis_market_place_task_done);
-                                                // stored to an object, since native Promise object doesn't pass multiple args
-                                                resolve({action, data, module});
-                                            } else {
-                                                reject(data);
-                                            }
-                                        });
-                                    }
+                    function processWorkFlow() {
+                        return new Promise(function (resolve, reject) {
+                            melisHelper.createModal(zoneId, melisKey, false, objData, modalUrl, function () {
+                                melisCoreTool.done("button");
+                                doEvent(objData, function () {
+                                    // check if the module exists
+                                    doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function (module) {
+                                        if (module.isExist || module.isExist === true) {
+                                            // show reload and activate module buttons
+                                            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module: module.module}, function (data) {
+                                                if (data.success === true) {
+                                                    // replace this text with "Checking additional setup..."
+                                                    updateCmdText(translations.tr_melis_market_place_task_done);
+                                                    // stored to an object, since native Promise object doesn't pass multiple args
+                                                    resolve({action, data, module});
+                                                } else {
+                                                    reject(data);
+                                                }
+                                            });
+                                        }
+                                    });
                                 });
                             });
                         });
-                    });
+                    }
 
-                    actionPromise
+
+                    processWorkFlow()
                         .then(function (payload) { // @status done | tested
                             // plug module
                             var module = payload.module;
