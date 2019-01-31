@@ -1258,9 +1258,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $active = false;
 
         if ($this->getRequest()->isPost()) {
-            /**
-             * @todo sanitize module, check if module is Active via MelisModuleService
-             */
+            /** @var  Zend\Http\Request $request */
+            $request = $this->getRequest();
             $module = $this->getTool()->sanitize($request->getPost('module'));
             /** @var \MelisCore\Service\MelisCoreModulesService $mm */
             $mm = $this->getServiceLocator()->get('ModulesService');

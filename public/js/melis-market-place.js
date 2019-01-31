@@ -300,7 +300,6 @@ $(function () {
                         .then(function (payload) { // @status done | tested
                             // plug module
                             var module = payload.module;
-                            console.log(payload);
                             axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/plugModule', {module : module})
                                 .then(function (response) {
                                     if (response.data.success === true) {
