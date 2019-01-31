@@ -280,7 +280,8 @@ $(function () {
                                                     // replace this text with "Checking additional setup..."
                                                     updateCmdText(translations.tr_melis_market_place_task_done);
                                                     // stored to an object, since native Promise object doesn't pass multiple args
-                                                    resolve({action, data, module});
+                                                    var payload = Object.assign({action: action}, {data}, {module: module});
+                                                    resolve(payload);
                                                 } else {
                                                     reject(data);
                                                 }
@@ -297,6 +298,7 @@ $(function () {
                         .then(function (payload) { // @status done | tested
                             // plug module
                             var module = payload.module;
+                            console.log(payload);
                             doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/plugModule', {module : module}, function (response) {
                                 if (response.success === true) {
                                     console.log('went here', response);

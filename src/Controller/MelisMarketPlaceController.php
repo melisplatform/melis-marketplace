@@ -801,19 +801,19 @@ class MelisMarketPlaceController extends AbstractActionController
             $setupFile = null;
 
             // look for setup_structure SQL file
-            $dbDeployFiles = array_diff(scandir($dbDeployPath), ['.', '..', '.gitignore']);
-
-
-            if ($dbDeployFiles) {
-                foreach ($dbDeployFiles as $file) {
-                    $files[] = $file;
-                    if (strrpos($file, $tableInstall) !== false) {
-                        $setupFile = $file;
-                    }
-                }
-            }
 
             if (file_exists($dbDeployPath . $setupFile)) {
+                $dbDeployFiles = array_diff(scandir($dbDeployPath), ['.', '..', '.gitignore']);
+                
+                if ($dbDeployFiles) {
+                    foreach ($dbDeployFiles as $file) {
+                        $files[] = $file;
+                        if (strrpos($file, $tableInstall) !== false) {
+                            $setupFile = $file;
+                        }
+                    }
+                }
+
                 $setupFile = $dbDeployPath . $setupFile;
 
                 set_time_limit(0);
