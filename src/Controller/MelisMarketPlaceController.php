@@ -769,7 +769,8 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if ($request->isPost()) {
 
-            $module = $this->getTool()->sanitize($request->getPost('module'));
+            $module = $request->getPost('module');
+            dd($request->getPost()->module);
             if ($module) {
                 $isExist = (bool) $this->isModuleInstalled($module);
             }

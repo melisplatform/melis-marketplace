@@ -77,6 +77,7 @@ return [
                     '/MelisMarketPlace/css/melis-market-place.css',
                 ],
                 'js' => [
+                    '/MelisMarketPlace/js/axios.min.js',
                     '/MelisMarketPlace/js/slick.min.js',
                     '/MelisMarketPlace/js/melis-market-place.js',
                 ],

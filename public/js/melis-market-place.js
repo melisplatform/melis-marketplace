@@ -272,22 +272,24 @@ $(function () {
                                 melisCoreTool.done("button");
                                 doEvent(objData, function () {
                                     // check if the module exists
-                                    doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function (module) {
-                                        if (module.isExist || module.isExist === true) {
-                                            // show reload and activate module buttons
-                                            doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy", {module: module.module}, function (data) {
-                                                if (data.success === true) {
-                                                    // replace this text with "Checking additional setup..."
-                                                    updateCmdText(translations.tr_melis_market_place_task_done);
-                                                    // stored to an object, since native Promise object doesn't pass multiple args
-                                                    var payload = Object.assign({action: action}, {data}, {module: module});
-                                                    resolve(payload);
-                                                } else {
-                                                    reject(data);
-                                                }
-                                            });
-                                        }
-                                    });
+                                    axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists', {module: module})
+                                        .then(function (module) {
+                                            if (module.isExist || module.isExist === true) {
+                                                // show reload and activate module buttons
+                                                axios.post('/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy', {module: module.module})
+                                                    .then(function (data) {
+                                                        if (data.success === true) {
+                                                            // replace this text with "Checking additional setup..."
+                                                            updateCmdText(translations.tr_melis_market_place_task_done);
+                                                            // stored to an object, since native Promise object doesn't pass multiple args
+                                                            var payload = Object.assign({action: action}, {data}, {module: module});
+                                                            resolve(payload);
+                                                        } else {
+                                                            reject(data);
+                                                        }
+                                                    });
+                                            }
+                                        });
                                 });
                             });
                         });
@@ -299,15 +301,16 @@ $(function () {
                             // plug module
                             var module = payload.module;
                             console.log(payload);
-                            doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/plugModule', {module : module}, function (response) {
-                                if (response.success === true) {
-                                    console.log('went here', response);
-                                    return payload;
-                                } else {
-                                    console.log('error went here', response);
-                                    throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                                }
-                            });
+                            axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/plugModule', {module : module})
+                                .then(function (response) {
+                                    if (response.success === true) {
+                                        console.log('went here', response);
+                                        return payload;
+                                    } else {
+                                        console.log('error went here', response);
+                                        throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                                    }
+                                });
                     })
                         .then(function (payload) { // @status done | tested
                             console.log('called');
@@ -535,6 +538,26 @@ $(function () {
                     callbackOnFail(data);
                 }
             }
+        });
+    }
+
+    function axiosPost(url, data)
+    {
+        return axiosXhr('POST', url, data);
+    }
+
+    function axiosGet(url, data)
+    {
+        return axiosXhr('GET', url, data);
+    }
+
+    function axiosXhr(method, url, data)
+    {
+        return axios({
+            method: method,
+            url: url,
+            data: data,
+            config: { headers: {'Content-Type': 'multipart/form-data' }}
         });
     }
 
