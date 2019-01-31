@@ -558,7 +558,6 @@ $(function () {
             for (var obj in jsonData) {
                 formData.append(obj, data[obj]);
             }
-
             data = formData;
         }
         return axios({
