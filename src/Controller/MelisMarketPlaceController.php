@@ -804,7 +804,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             if (file_exists($dbDeployPath . $setupFile)) {
                 $dbDeployFiles = array_diff(scandir($dbDeployPath), ['.', '..', '.gitignore']);
-                
+
                 if ($dbDeployFiles) {
                     foreach ($dbDeployFiles as $file) {
                         $files[] = $file;
