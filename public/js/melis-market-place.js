@@ -273,16 +273,16 @@ $(function () {
                                 doEvent(objData, function () {
                                     // check if the module exists
                                     axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists', {module: module})
-                                        .then(function (module) {
-                                            if (module.isExist || module.isExist === true) {
+                                        .then(function (response) {
+                                            if (response.data.isExist || response.data.isExist === true) {
                                                 // show reload and activate module buttons
-                                                axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy', {module: module.module})
-                                                    .then(function (data) {
-                                                        if (data.success === true) {
+                                                axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy', {module: response.data.module})
+                                                    .then(function (response) {
+                                                        if (response.data.success === true) {
                                                             // replace this text with "Checking additional setup..."
                                                             updateCmdText(translations.tr_melis_market_place_task_done);
                                                             // stored to an object, since native Promise object doesn't pass multiple args
-                                                            var payload = Object.assign({action: action}, {data}, {module: module});
+                                                            var payload = Object.assign({action: action}, {data: repsonse.data}, {module: module});
                                                             resolve(payload);
                                                         } else {
                                                             reject(data);
@@ -303,7 +303,7 @@ $(function () {
                             console.log(payload);
                             axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/plugModule', {module : module})
                                 .then(function (response) {
-                                    if (response.success === true) {
+                                    if (response.data.success === true) {
                                         console.log('went here', response);
                                         return payload;
                                     } else {
@@ -321,7 +321,7 @@ $(function () {
                             var module = payload.module;
                             axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/isModuleActive', {module : module})
                                 .then(function (response) {
-                                    if (response.success === true) {
+                                    if (response.data.success === true) {
                                         return payload;
                                     } else {
                                         throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
@@ -341,9 +341,9 @@ $(function () {
 
                             axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {action: payload.action, module: payload.module})
                                 .then(function (response) {
-                                    if (response.form !== '' || response.form != null) {
+                                    if (response.data.form !== '' || response.data.form != null) {
                                         hasSetupForm = true;
-                                        return Object.assign(payload, {hasSetupForm, form});
+                                        return Object.assign(payload, {hasSetupForm});
                                     }
                                 });
                         })
@@ -391,7 +391,7 @@ $(function () {
                                 var module = payload.module;
                                 axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module})
                                     .then(function (response) {
-                                        if (response.success === false) {
+                                        if (response.data.success === false) {
                                             throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
                                         }
                                     });
