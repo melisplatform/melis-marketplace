@@ -312,27 +312,28 @@ $(function () {
                             return payload;
 
                     })
-                        .then(function (payload) { // @status done | tested
-                            if (typeof payload === 'undefined' || typeof payload == null) {
-                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                            }
-
-                            console.log('test', payload);
-
-                            // check if the module exists in the module loader
-                            var module = payload.module;
-                            axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/isModuleActive', {module : module})
-                                .then(function (response) {
-                                    if (response.data.success === true) {
-                                        return payload;
-                                    } else {
-                                        throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                                    }
-                                });
-
-                            return payload;
-                        })
+                        // .then(function (payload) { // @status done | tested
+                        //     if (typeof payload === 'undefined' || typeof payload == null) {
+                        //         melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                        //         return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                        //     }
+                        //
+                        //     console.log('test', payload);
+                        //
+                        //     // check if the module exists in the module loader
+                        //     var module = payload.module;
+                        //     axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/isModuleActive', {module : module})
+                        //         .then(function (response) {
+                        //             if (response.data.success === true) {
+                        //                 return payload;
+                        //             } else {
+                        //                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                        //                 throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                        //             }
+                        //         });
+                        //
+                        //     return payload;
+                        // })
                         .then(function (payload) {
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
