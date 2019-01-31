@@ -313,20 +313,20 @@ $(function () {
                                 });
                     })
                         .then(function (payload) { // @status done | tested
-                            console.log('called');
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
 
                             // check if the module exists in the module loader
                             var module = payload.module;
-                            doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/isModuleActive', {module : module}, function (response) {
-                                if (response.success === true) {
-                                    return payload;
-                                } else {
-                                    throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                                }
-                            });
+                            axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/isModuleActive', {module : module})
+                                .then(function (response) {
+                                    if (response.success === true) {
+                                        return payload;
+                                    } else {
+                                        throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                                    }
+                                });
 
                             return payload;
                         })
@@ -339,12 +339,13 @@ $(function () {
                             var hasSetupForm = false;
                             var form = null;
 
-                            doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {action: payload.action, module: payload.module}, function (response) {
-                                if (response.form !== '' || response.form != null) {
-                                    hasSetupForm = true;
-                                    return Object.assign(payload, {hasSetupForm, form});
-                                }
-                            });
+                            axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {action: payload.action, module: payload.module})
+                                .then(function (response) {
+                                    if (response.form !== '' || response.form != null) {
+                                        hasSetupForm = true;
+                                        return Object.assign(payload, {hasSetupForm, form});
+                                    }
+                                });
                         })
                         .then(function (payload) { // @status currently working on this
                             if (typeof payload === 'undefined' || typeof payload == null) {
@@ -388,11 +389,12 @@ $(function () {
                             if (skip) {
                                 // unplug module
                                 var module = payload.module;
-                                doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module}, function (response) {
-                                    if (response.success === false) {
-                                        throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                                    }
-                                });
+                                axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module})
+                                    .then(function (response) {
+                                        if (response.success === false) {
+                                            throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                                        }
+                                    });
 
                                 // ask the user if they want to activate the module, this will only happen if the action is "download"
                                 if (payload.action === 'download' || payload.form === '' || payload.form === null) {
