@@ -555,7 +555,7 @@ $(function () {
     {
         if (typeof data === 'object') {
             var formData = new FormData();
-            for (var obj in jsonData) {
+            for (var obj in data) {
                 formData.append(obj, data[obj]);
             }
             data = formData;
