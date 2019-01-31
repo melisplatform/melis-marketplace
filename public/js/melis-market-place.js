@@ -553,6 +553,14 @@ $(function () {
 
     function axiosXhr(method, url, data)
     {
+        if (typeof data === 'object') {
+            var formData = new FormData();
+            for (var obj in jsonData) {
+                formData.append(obj, data[obj]);
+            }
+
+            data = formData;
+        }
         return axios({
             method: method,
             url: url,
