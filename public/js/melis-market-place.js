@@ -309,10 +309,14 @@ $(function () {
                                         throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
                                     }
                                 });
+
+                            return payload;
+
                     })
                         .then(function (payload) { // @status done | tested
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
 
                             console.log('test', payload);
@@ -333,6 +337,7 @@ $(function () {
                         .then(function (payload) {
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
 
                             // check if the module has a form setup
@@ -350,6 +355,7 @@ $(function () {
                         .then(function (payload) { // @status currently working on this
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
 
                             if (payload.hasSetupForm) {
@@ -384,6 +390,7 @@ $(function () {
                             // if user has skipped the setup form
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
 
                             if (skip) {
