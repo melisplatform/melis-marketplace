@@ -21,6 +21,9 @@ class MelisMarketPlaceController extends AbstractActionController
     /** @var  \Zend\Db\Adapter\Adapter $adapter */
     protected $adapter;
 
+    const ACTION_REQUIRE = 'require';
+    const ACTION_DOWNLOAD = 'download';
+
     /**
      * Handles the display of the tool
      *
@@ -1300,7 +1303,7 @@ class MelisMarketPlaceController extends AbstractActionController
     public function getSetupModuleFormAction()
     {
         $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
-        $action = $this->getRequest()->getPost('action', 'download');
+        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
         $form = null;
 
         if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
