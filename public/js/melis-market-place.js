@@ -304,10 +304,8 @@ $(function () {
                             axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/plugModule', {module : module})
                                 .then(function (response) {
                                     if (response.data.success === true) {
-                                        console.log('went here', response);
                                         return payload;
                                     } else {
-                                        console.log('error went here', response);
                                         throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
                                     }
                                 });
@@ -316,6 +314,8 @@ $(function () {
                             if (typeof payload === 'undefined' || typeof payload == null) {
                                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                             }
+
+                            console.log('test', payload);
 
                             // check if the module exists in the module loader
                             var module = payload.module;
