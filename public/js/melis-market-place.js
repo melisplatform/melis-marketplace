@@ -276,7 +276,7 @@ $(function () {
                                         .then(function (module) {
                                             if (module.isExist || module.isExist === true) {
                                                 // show reload and activate module buttons
-                                                axios.post('/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy', {module: module.module})
+                                                axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/execDbDeploy', {module: module.module})
                                                     .then(function (data) {
                                                         if (data.success === true) {
                                                             // replace this text with "Checking additional setup..."
