@@ -307,6 +307,85 @@ $(function () {
                                     } else {
                                         throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
                                     }
+                                })
+                                .then(function (payload) {
+                                    if (typeof payload === 'undefined' || typeof payload == null) {
+                                        melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                        return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                    }
+
+                                    // check if the module has a form setup
+                                    var hasSetupForm = false;
+                                    var form = null;
+
+                                    axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {action: payload.action, module: payload.module})
+                                        .then(function (response) {
+                                            if (response.data.form !== '' || response.data.form != null) {
+                                                hasSetupForm = true;
+                                                return Object.assign(payload, {hasSetupForm});
+                                            }
+                                        })
+                                        .then(function (payload) {
+                                            if (typeof payload === 'undefined' || typeof payload == null) {
+                                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                            }
+
+                                            if (payload.hasSetupForm) {
+                                                // ask the user to proceed or skip setup
+                                                var skip = true;
+                                                melisCoreTool.confirm(
+                                                    translations.tr_meliscore_common_yes,
+                                                    translations.tr_melis_marketplace_common_no_skip,
+                                                    translations.tr_melis_market_place_setup_title.replace('%s', payload.module),
+                                                    translations.tr_melis_market_place_has_setup_form.replace('%s', payload.module),
+                                                    function () {
+                                                        // show the setup form, but verify if the form has a content
+                                                        if (payload.form) {
+                                                            skip = false;
+
+                                                            // open a new modal with the setup form
+                                                            melisHelper.createModal('id_melis_market_place_module_setup_form_content_ajax',
+                                                                'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
+                                                                    melisCoreTool.done("button");
+                                                                });
+
+                                                        } else {
+                                                            console.log('form is empty, skipping...');
+                                                        }
+                                                    }
+                                                );
+                                            }
+
+                                            return Object.assign(payload, {skip});
+                                        })
+                                        .then(function (payload) {
+                                            // if user has skipped the setup form
+                                            if (typeof payload === 'undefined' || typeof payload == null) {
+                                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                            }
+
+                                            if (skip) {
+                                                // unplug module
+                                                var module = payload.module;
+                                                axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module})
+                                                    .then(function (response) {
+                                                        if (response.data.success === false) {
+                                                            throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
+                                                        }
+                                                    });
+
+                                                // ask the user if they want to activate the module, this will only happen if the action is "download"
+                                                if (payload.action === 'download' || payload.form === '' || payload.form === null) {
+                                                    $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+                                                }
+
+                                                $("button.melis-marketplace-modal-reload").removeClass("hidden");
+                                            }
+
+                                            return payload;
+                                        });
                                 });
 
                             return payload;
@@ -334,85 +413,6 @@ $(function () {
                         //
                         //     return payload;
                         // })
-                        .then(function (payload) {
-                            if (typeof payload === 'undefined' || typeof payload == null) {
-                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                            }
-
-                            // check if the module has a form setup
-                            var hasSetupForm = false;
-                            var form = null;
-
-                            axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {action: payload.action, module: payload.module})
-                                .then(function (response) {
-                                    if (response.data.form !== '' || response.data.form != null) {
-                                        hasSetupForm = true;
-                                        return Object.assign(payload, {hasSetupForm});
-                                    }
-                                });
-                        })
-                        .then(function (payload) { // @status currently working on this
-                            if (typeof payload === 'undefined' || typeof payload == null) {
-                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                            }
-
-                            if (payload.hasSetupForm) {
-                                // ask the user to proceed or skip setup
-                                var skip = true;
-                                melisCoreTool.confirm(
-                                    translations.tr_meliscore_common_yes,
-                                    translations.tr_melis_marketplace_common_no_skip,
-                                    translations.tr_melis_market_place_setup_title.replace('%s', payload.module),
-                                    translations.tr_melis_market_place_has_setup_form.replace('%s', payload.module),
-                                    function () {
-                                        // show the setup form, but verify if the form has a content
-                                        if (payload.form) {
-                                            skip = false;
-
-                                            // open a new modal with the setup form
-                                            melisHelper.createModal('id_melis_market_place_module_setup_form_content_ajax',
-                                                'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
-                                                melisCoreTool.done("button");
-                                            });
-
-                                        } else {
-                                            console.log('form is empty, skipping...');
-                                        }
-                                    }
-                                );
-                            }
-
-                            return Object.assign(payload, {skip});
-                        })
-                        .then(function (payload) {
-                            // if user has skipped the setup form
-                            if (typeof payload === 'undefined' || typeof payload == null) {
-                                melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                            }
-
-                            if (skip) {
-                                // unplug module
-                                var module = payload.module;
-                                axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module})
-                                    .then(function (response) {
-                                        if (response.data.success === false) {
-                                            throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                                        }
-                                    });
-
-                                // ask the user if they want to activate the module, this will only happen if the action is "download"
-                                if (payload.action === 'download' || payload.form === '' || payload.form === null) {
-                                    $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
-                                }
-
-                                $("button.melis-marketplace-modal-reload").removeClass("hidden");
-                            }
-
-                            return payload;
-                        })
                         .catch(function (err) {
                         console.log(err);
                     })
