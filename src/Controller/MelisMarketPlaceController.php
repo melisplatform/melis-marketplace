@@ -469,6 +469,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $module = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
         $action = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
         $melisKey = $this->params()->fromRoute('melisKey', '');
+
         $title = $this->getTool()->getTranslation('tr_melis_marketplace_setup_module_modal_title', [$module]);
         $form = $this->getMarketPlaceService()->getForm($module);
 
