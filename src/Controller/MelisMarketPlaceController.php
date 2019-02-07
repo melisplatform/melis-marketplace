@@ -1326,7 +1326,6 @@ class MelisMarketPlaceController extends AbstractActionController
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
 
         if ($this->getRequest()->getMethod() === 'POST') {
-            d($action);
             if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
                 $result = $this->getMarketPlaceService()->validateForm($module, $post);
 

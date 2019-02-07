@@ -104,7 +104,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         if (!$this->moduleManager()->isModuleLoaded($module)) {
             $this->moduleManager()->loadModule($module);
         }
-        
+
         $class = implode('\\', [$module, 'Controller', str_replace('Controller', '', $this->getActionController())]);
         $form = $this->forward()->dispatch($class, ['action' => str_replace('Action', '', self::MODULE_SETUP_FORM)]);
 
