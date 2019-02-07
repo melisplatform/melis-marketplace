@@ -295,7 +295,6 @@ $(function () {
                         });
                     }
 
-
                     processWorkFlow()
                         .then(function (payload) { // @status done | tested
                             // plug module
