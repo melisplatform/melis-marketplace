@@ -129,7 +129,7 @@ $(function () {
                     if (response.result.success) {
                         // if everything went well, call the submitAction to process the data
                         doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/submitSetupForm', $.param(data), function (response) {
-                            if (response.result.success) {
+                            if (response.success) {
                                 melisHelper.melisOkNotification(response.module, response.result.message);
                                 // unplug module
                                 doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module: module}, function (response) {
@@ -560,6 +560,7 @@ $(function () {
                 }
             } catch (err) {
                 addErrorCmdText('<i class="fa fa-close"></i> ' + err.toString());
+                melisHelper.melisKoNotification(err.toString());
             }
         }).error(function (e) {
             if (callbackOnFail !== undefined || callbackOnFail !== null) {
@@ -769,7 +770,7 @@ $(function () {
 
 
     function addLazyCmdText(id, message) {
-        updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i>' + message + '</span> <br/>');
+        updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i> ' + message + '</span> <br/>');
     }
 
     function clearLazyCmdText(id, message) {
