@@ -324,8 +324,8 @@ $(function () {
                                         module: payload.module
                                     })
                                         .then(function (response) {
+                                            clearLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup_ok);
                                             if (response.data.form !== '' || response.data.form != null) {
-                                                clearLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup_ok);
                                                 hasSetupForm = true;
                                                 return Object.assign(payload, {hasSetupForm});
                                             }
@@ -352,8 +352,19 @@ $(function () {
                                                             'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
                                                                 melisCoreTool.done("button");
                                                             });
+                                                    },
+                                                    function () {
+                                                        // ask the user if they want to activate the module, this will only happen if the action is "download"
+                                                        updateCmdText(translations.tr_melis_marketplace_check_addtl_setup_skipped);
+                                                        if (payload.action === 'download' || payload.form === '' || payload.form === null) {
+                                                            $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
+                                                        }
+
+                                                        $("button.melis-marketplace-modal-reload").removeClass("hidden");
                                                     }
                                                 );
+
+
                                             }
 
                                             return Object.assign(payload, {skip});

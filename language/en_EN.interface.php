@@ -95,6 +95,7 @@ return array(
     'tr_melis_marketplace_check_addtl_setup' => 'Checking additional setup...',
     'tr_melis_marketplace_check_addtl_setup_ok' => 'Addtional setup retreived',
     'tr_melis_marketplace_check_addtl_setup_ko' => 'Something went wrong on retreving additional setup',
+    'tr_melis_marketplace_check_addtl_setup_skipped' => 'Skipped additional setup.',
 
 
 );
