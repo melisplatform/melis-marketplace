@@ -127,10 +127,10 @@ $(function () {
                 // display errors if it has
                 if (response.result.errors != null || typeof response.result.errors !== 'undefined') {
                     if (response.result.success) {
-                        alert('successful');
                         // if everything went well, call the submitAction to process the data
                         doAjax('POST' ,'/melis/MelisMarketPlace/MelisMarketPlace/submitSetupForm', $.param(data), function (response) {
                             if (response.result.success) {
+                                melisHelper.melisOkNotification(response.module, response.result.message);
                                 // unplug module
                                 doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module}, function (response) {
                                     if (response.success === true) {

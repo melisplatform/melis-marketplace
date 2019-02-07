@@ -154,7 +154,10 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         /** @var \Zend\View\Model\JsonModel $result */
         $result = $this->forward()->dispatch($class, $params);
 
+
+
         if ($result instanceof JsonModel) {
+            d($class, self::MODULE_SETUP_SUBMIT_FORM, $result->getVariables());
             return $result->getVariables();
         }
 
