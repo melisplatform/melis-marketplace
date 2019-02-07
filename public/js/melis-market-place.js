@@ -340,18 +340,12 @@ $(function () {
                                                     translations.tr_melis_market_place_has_setup_form.replace('%s', payload.module),
                                                     function () {
                                                         // show the setup form, but verify if the form has a content
-                                                        if (payload.form) {
-                                                            skip = false;
-
-                                                            // open a new modal with the setup form
-                                                            melisHelper.createModal('id_melis_market_place_module_setup_form_content_ajax',
-                                                                'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
-                                                                    melisCoreTool.done("button");
-                                                                });
-
-                                                        } else {
-                                                            console.log('form is empty, skipping...');
-                                                        }
+                                                        skip = false;
+                                                        // open a new modal with the setup form
+                                                        melisHelper.createModal('id_melis_market_place_module_setup_form_content_ajax',
+                                                        'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
+                                                            melisCoreTool.done("button");
+                                                        });
                                                     }
                                                 );
                                             }
@@ -365,7 +359,7 @@ $(function () {
                                                 return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                                             }
 
-                                            if (skip) {
+                                            if (payload.skip) {
                                                 // unplug module
                                                 var module = payload.module;
                                                 axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module})
