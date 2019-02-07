@@ -1321,13 +1321,15 @@ class MelisMarketPlaceController extends AbstractActionController
     public function validateSetupFormAction()
     {
         $module = $this->getRequest()->getPost('module', 'MelisCore');
-        $action = $this->getRequest()->getPost('action', 'download');
+        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
         $result = null;
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
 
         if ($this->getRequest()->getMethod() === 'POST') {
+            d($action);
             if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
                 $result = $this->getMarketPlaceService()->validateForm($module, $post);
+
             }
         }
 
@@ -1346,7 +1348,7 @@ class MelisMarketPlaceController extends AbstractActionController
     public function submitSetupFormAction()
     {
         $module = $this->getRequest()->getPost('module', 'MelisCore');
-        $action = $this->getRequest()->getPost('action', 'download');
+        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
         $result = null;
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
 
