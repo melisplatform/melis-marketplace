@@ -1357,7 +1357,6 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
             $result = $this->getMarketPlaceService()->submitForm($module, $post);
-            dd($result);
         }
 
         return new JsonModel($result);
