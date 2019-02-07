@@ -356,7 +356,10 @@ $(function () {
                                                     function () {
                                                         // ask the user if they want to activate the module, this will only happen if the action is "download"
                                                         updateCmdText(translations.tr_melis_marketplace_check_addtl_setup_skipped);
-                                                        if (payload.action === 'download' || payload.form === '' || payload.form === null) {
+                                                        console.log(payload);
+                                                        // make sure to unplug module
+                                                        axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module});
+                                                        if (payload.action === 'require' || payload.form === '' || payload.form === null) {
                                                             $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
                                                         }
 
@@ -370,7 +373,7 @@ $(function () {
                                             return Object.assign(payload, {skip});
                                         })
                                         .catch(function (error) {
-                                            updateCmdText(translations.tr_melis_marketplace_check_addtl_setup_ko);
+                                            updateCmdText('<span style="color: #ff190d;">' + translations.tr_melis_marketplace_check_addtl_setup_ko + "</span>");
                                         });
                                     // .then(function (payload) {
                                     //     // if user has skipped the setup form
@@ -746,7 +749,7 @@ $(function () {
     }
 
     function addLazyCmdText(id, message) {
-        updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i></span> ' + message + '<br/>');
+        updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i>' + message + '</span> <br/>');
     }
 
     function clearLazyCmdText(id, message) {

@@ -93,7 +93,7 @@ return array(
     'tr_melis_marketplace_common_no_skip' => 'No, skip',
 
     'tr_melis_marketplace_check_addtl_setup' => 'Checking additional setup...',
-    'tr_melis_marketplace_check_addtl_setup_ok' => 'Addtional setup retreived',
+    'tr_melis_marketplace_check_addtl_setup_ok' => 'Additional setup retreived',
     'tr_melis_marketplace_check_addtl_setup_ko' => 'Something went wrong on retreving additional setup',
     'tr_melis_marketplace_check_addtl_setup_skipped' => 'Skipped additional setup.',
 
