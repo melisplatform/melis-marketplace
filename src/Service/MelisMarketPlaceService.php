@@ -158,6 +158,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
             return $result->getVariables();
         }
 
+
         return null;
     }
 

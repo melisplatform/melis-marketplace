@@ -115,7 +115,7 @@ $(function () {
 
         if (form.length) {
             var modal = $('#id_melis_market_place_module_setup_form_content');
-            var data = form.serializeArray(); //new FormData(form[0]);
+            var data = form.serializeArray();
             var action = modal.data().action;
             var module = modal.data().module
 
@@ -141,7 +141,7 @@ $(function () {
                                         melisHelper.melisOkNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message);
 
                                         // ask the user if they want to activate the module, this will only happen if the action is "download"
-                                        if (action === 'download') {
+                                        if (action === 'download' || action === 'require') {
                                             $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
                                         }
 
@@ -552,10 +552,14 @@ $(function () {
             encode: true,
             // processData: false
         }).success(function (data) {
-            if (callbackOnSuccess !== undefined || callbackOnSuccess !== null) {
-                if (callbackOnSuccess) {
-                    callbackOnSuccess(data);
+            try {
+                if (callbackOnSuccess !== undefined || callbackOnSuccess !== null) {
+                    if (callbackOnSuccess) {
+                        callbackOnSuccess(data);
+                    }
                 }
+            } catch (err) {
+                addErrorCmdText('<i class="fa fa-close"></i> ' + err.toString());
             }
         }).error(function (e) {
             if (callbackOnFail !== undefined || callbackOnFail !== null) {
@@ -747,6 +751,22 @@ $(function () {
             scrollTop: vConsole.prop("scrollHeight")
         }, 1115);
     }
+
+    function addSuccessCmdText(message)
+    {
+        updateCmdText('<span style="color: #02de02;">' + message + '</span>');
+    }
+
+    function addWarningCmdText(message)
+    {
+        updateCmdText('<span style="color: #fbff0f;">' + message + '</span>');
+    }
+
+    function addErrorCmdText(message)
+    {
+        updateCmdText('<span style="color: #ff190d;">' + message + '</span>');
+    }
+
 
     function addLazyCmdText(id, message) {
         updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i>' + message + '</span> <br/>');
