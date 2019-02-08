@@ -801,30 +801,30 @@ class MelisMarketPlaceController extends AbstractActionController
             $svc = $this->getServiceLocator()->get('ModulesService');
             $path = $svc->getModulePath($module, true);
             $dbDeployPath = $path . '/install/dbdeploy/';
-            $tableInstall = '_install.sql';
-            $setupFile = null;
+            $tableInstall = '.sql';
+            $dbDeployFile = null;
 
             // look for setup_structure SQL file
 
-            if (file_exists($dbDeployPath . $setupFile)) {
+            if (file_exists($dbDeployPath . $dbDeployFile)) {
                 $dbDeployFiles = array_diff(scandir($dbDeployPath), ['.', '..', '.gitignore']);
 
                 if ($dbDeployFiles) {
                     foreach ($dbDeployFiles as $file) {
                         $files[] = $file;
                         if (strrpos($file, $tableInstall) !== false) {
-                            $setupFile = $file;
+                            $dbDeployFile = $file;
                         }
                     }
                 }
 
-                $setupFile = $dbDeployPath . $setupFile;
+                $dbDeployFile = $dbDeployPath . $dbDeployFile;
 
                 set_time_limit(0);
                 ini_set('memory_limit', '-1');
 
-                $setupFile = @file_get_contents($setupFile);
-                if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
+                $dbDeployFile = @file_get_contents($dbDeployFile);
+                if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $dbDeployFile, $matches)) {
                     $tables = isset($matches[0]) ? $matches[0] : null;
                     $tables = array_map(function ($a) {
                         $n = str_replace(['CREATE TABLE IF NOT EXISTS', '`'], '', $a);
@@ -832,9 +832,10 @@ class MelisMarketPlaceController extends AbstractActionController
 
                         return $n;
                     }, $tables);
-                    if (is_array($tables)) {
-                        $tables = (array) $tables;
-                    }
+
+                    sort($tables);
+                    sort($files);
+
                 }
             }
         }
@@ -885,21 +886,6 @@ class MelisMarketPlaceController extends AbstractActionController
                 $adapter = $this->getAdapter();
 
                 if ($this->getAdapter()) {
-                    // remove data on dbDeploy
-                    if ($files) {
-                        $dbDeployQuery = "";
-                        foreach ($files as $file) {
-                            $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
-                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/' . $file;
-                            if (file_exists($dbDeployFileCache)) {
-                                unlink($dbDeployFileCache);
-                            }
-                        }
-
-                        if ($dbDeployQuery) {
-                            $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
-                        }
-                    }
 
                     $dropQueryTable = "";
                     foreach ($tables as $table) {
@@ -941,6 +927,24 @@ class MelisMarketPlaceController extends AbstractActionController
                     }
 
                     if ($dropQueryTable) {
+                        // execute drop table
+                        $adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
+                    }
+
+                    // delete the dbdeploy file in the changelog table
+                    if ($files) {
+                        $dbDeployQuery = "";
+                        foreach ($files as $file) {
+                            $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
+                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/' . $file;
+                            if (file_exists($dbDeployFileCache)) {
+                                unlink($dbDeployFileCache);
+                            }
+                        }
+
+                        if ($dbDeployQuery) {
+                            $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
+                        }
                     }
 
                     if ($sql) {
