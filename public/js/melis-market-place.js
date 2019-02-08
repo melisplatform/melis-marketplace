@@ -138,7 +138,7 @@ $(function () {
                                         $('#id_melis_market_place_module_setup_form_content_ajax_container').modal('hide');
 
                                         // inform the user that everything is good
-                                        melisHelper.melisOkNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.message);
+                                        melisHelper.melisOkNotification(translations.tr_melis_market_place_setup_title.replace('%s', module), translations.tr_melis_marketplace_setup_config_ok);
 
                                         // ask the user if they want to activate the module, this will only happen if the action is "download"
                                         if (action === 'download' || action === 'require') {
