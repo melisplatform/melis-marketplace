@@ -130,7 +130,7 @@ $(function () {
                         // if everything went well, call the submitAction to process the data
                         doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/submitSetupForm', $.param(data), function (response) {
                             if (response.success) {
-                                melisHelper.melisOkNotification(response.module, response.result.message);
+                                melisHelper.melisOkNotification(response.module, response.message);
                                 // unplug module
                                 doAjax('POST', '/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module: module}, function (response) {
                                     if (response.success === true) {
@@ -138,7 +138,7 @@ $(function () {
                                         $('#id_melis_market_place_module_setup_form_content_ajax_container').modal('hide');
 
                                         // inform the user that everything is good
-                                        melisHelper.melisOkNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.result.message);
+                                        melisHelper.melisOkNotification(translations.tr_melis_market_place_setup_title.replace('%s', response.module), response.message);
 
                                         // ask the user if they want to activate the module, this will only happen if the action is "download"
                                         if (action === 'download' || action === 'require') {
@@ -561,6 +561,7 @@ $(function () {
             } catch (err) {
                 addErrorCmdText('<i class="fa fa-close"></i> ' + err.toString());
                 melisHelper.melisKoNotification(err.toString());
+                console.error(err);
             }
         }).error(function (e) {
             if (callbackOnFail !== undefined || callbackOnFail !== null) {
