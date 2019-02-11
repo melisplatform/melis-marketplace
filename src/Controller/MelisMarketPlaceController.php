@@ -1042,6 +1042,7 @@ class MelisMarketPlaceController extends AbstractActionController
         if ($request->isPost()) {
             $module = $this->getTool()->sanitize($request->getPost('module'));
             if ($module) {
+                /** @var \MelisDbDeploy\Service\MelisDbDeployDiscoveryService $deployDiscoveryService */
                 $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
                 $deployDiscoveryService->processing($module);
                 $success = true;
@@ -1364,5 +1365,17 @@ class MelisMarketPlaceController extends AbstractActionController
         }
 
         return new JsonModel($result);
+    }
+
+    public function siteInstallAction()
+    {
+        $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
+        $action = $this->getRequest()->getPost('action', 'download');
+
+        /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
+        $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
+        $test = $service->invokeSetup($module, $action);
+
+        die('here');
     }
 }
