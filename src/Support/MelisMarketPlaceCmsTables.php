@@ -5,7 +5,7 @@ namespace MelisMarketPlace\Support;
 use MelisCore\Support\MelisTables;
 
 /**
- * This is a list of known Melis Platform tables
+ * This is a list of known Melis CMS tables
  *
  * Class MelisMarketPlaceTables
  * @package MelisMarketPlace\Support
@@ -38,4 +38,19 @@ class MelisMarketPlaceCmsTables extends MelisTables
     const CMS_SLIDER_DETAILS = 'melis_cms_slider_details';
     const CMS_STYLE = 'melis_cms_style';
     const CMS_TEMPLATE = 'melis_cms_template';
+
+    /**
+     * @const CMS_TOTAL_PAGE holds the string value of "melis_cms_total_page" in configuration
+     */
+    const CMS_TOTAL_PAGE = 'melis_cms_total_page';
+
+    /**
+     * @const CMS_SITE_DEFAULT_PARENT_ID default parent value of Site ID
+     */
+    const CMS_SITE_DEFAULT_PARENT_ID = '-1';
+
+    /**
+     * @const CMS_SITE_ID string value to swap
+     */
+    const CMS_SITE_ID = '%site_id%';
 }

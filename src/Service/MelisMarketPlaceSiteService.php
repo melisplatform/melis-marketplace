@@ -3,14 +3,14 @@
 namespace MelisMarketPlace\Service;
 
 use MelisCore\Service\MelisCoreGeneralService;
-use MelisMarketPlace\Exception\FileNotFoundException;
 use MelisMarketPlace\Exception\ArrayKeyNotFoundException;
-use MelisMarketPlace\Support\MelisMarketPlaceSiteInstall as Site;
+use MelisMarketPlace\Exception\EmptySiteException;
+use MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException;
 use MelisMarketPlace\Support\MelisMarketPlaceCmsTables as Melis;
+use MelisMarketPlace\Support\MelisMarketPlaceSiteInstall as Site;
 use PDO;
-use Zend\Db\Sql\Sql;
 use Zend\Db\Adapter\Adapter as DbAdapter;
-use Zend\Db\Sql\Ddl;
+use Zend\Http\PhpEnvironment\Request;
 
 class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 {
@@ -35,68 +35,145 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     protected $action;
 
     /**
-     * @var array $config - used to store the setup configuration
-     */
-    protected $config;
-
-    /**
-     * @param $module
-     * @param $action
+     * @param \Zend\Http\PhpEnvironment\Request $request
      *
      * @return $this
-     * @throws \MelisMarketPlace\Exception\FileNotFoundException
+     * @throws \MelisMarketPlace\Exception\EmptySiteException
+     * @throws \MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException
      */
-    public function invokeSetup($module, $action)
+    public function installSite(Request $request)
     {
-        $this->setModule($module)->setAction($action);
+        $name = $request->getPost('name');
+        $scheme = $request->getPost('scheme');
+        $domain = $request->getPost('domain');
+        $module = $request->getPost('module');
+        $action = $request->getPost('action');
 
-        $path = $this->moduleManager()->getComposerModulePath($this->getModule()) ?:
-            $this->moduleManager()->getModulePath($this->getModule());
+        if ($scheme && $name && $domain && $module && $action) {
 
-        $this->setupFile("$path/config/setup/{$this->getAction()}.config.php")->setDbAdapter();
+            $this->setModule($module)->setAction($action);
 
-        if (!file_exists($this->getSetupFile())) {
-            throw new FileNotFoundException("Setup config file does not exists. File {$this->getSetupFile()}");
-        }
+            $siteId = 1;
+            $platformIds = $this->getCurrentPlatformId();
+            $totalPage = $this->getConfig(Site::CONFIG)[Melis::CMS_TOTAL_PAGE];
+            $platformName = $this->getPlatform()->plf_name;
+            $platformId = $this->getPlatformId();
 
-        $this->setConfig(require $this->getSetupFile());
+            if (!$platformIds) {
+                $startId = $platformId;
+                $endId = $platformId * 1000;
 
-        if (is_array($this->getConfig()) && isset($this->getConfig()['setup'])) {
-            $config = $this->getConfig()['setup'];
+                $platformIdPayload = [
+                    'pids_id' => $platformId,
+                    'pids_page_id_start' => $startId,
+                    'pids_page_id_current' => $startId,
+                    'pids_page_id_end' => $endId,
+                    'pids_tpl_id_start' => $startId,
+                    'pids_tpl_id_current' => 1,
+                    'pids_tpl_id_end' => $endId,
+                ];
 
-            if (!isset($config[Site::DATA])) {
-                throw new ArrayKeyNotFoundException(Site::DATA . ' key not found in ' . $this->getSetupFile());
+                $this->platformIdTable()->save($platformIdPayload);
+            } else {
+                // update the platform IDs
+                $siteId = $platformIds->pids_page_id_current + 1;
+                if ($siteId > $platformIds->pids_page_id_end) {
+                    throw new PlatformIdMaxRangeReachedException(
+                        "Maximum of {$siteId}/{$platformIds->pids_page_id_end} site ID for {$platformName} platform has been reached.",
+                        500);
+                }
             }
 
-            if (!isset($config[Site::DATA][Site::DATA_INSERT])) {
-                throw new ArrayKeyNotFoundException(Site::DATA_INSERT . ' key not found in ' . $this->getSetupFile());
+            $siteTable = $this->siteTable()->save([
+                'site_name' => $module,
+                'site_label' => $name,
+                'site_main_page_id' => $siteId,
+            ]);
+
+            $siteDomain = $this->siteDomainTable()->save([
+                'sdom_site_id' => $siteId,
+                'sdom_env' => $platformName,
+                'sdom_scheme' => $scheme,
+                'sdom_domain' => $domain,
+            ]);
+
+            if ($siteTable && $siteDomain) {
+                $this->incrementCurrentPlatformId();
             }
 
-            $dataConfig = $config[Site::DATA][Site::DATA_INSERT];
-            $queries = $this->createInsertSql($dataConfig);
-
-            // remove this
-//            $this->clearTable();
-            // end
-
-            $this->processTransactions($queries);
-//            dd($queries);
         } else {
-            throw new ArrayKeyNotFoundException('`setup` key not found in ' . $this->getSetupFile());
+            throw new EmptySiteException('Site data is empty', 500);
         }
 
         return $this;
     }
 
     /**
-     * @return \MelisCore\Service\MelisCoreModulesService
+     * @return array|\ArrayObject|null
      */
-    protected function moduleManager()
+    private function getCurrentPlatformId()
     {
-        /** @var \MelisCore\Service\MelisCoreModulesService $service */
-        $service = $this->getServiceLocator()->get('ModulesService');
+        $platformIds = $this->platformIdTable()->getEntryById($this->getPlatformId())->current();
 
-        return $service;
+        return $platformIds;
+    }
+
+    /**
+     * @return \MelisEngine\Model\Tables\MelisPlatformIdsTable
+     */
+    private function platformIdTable()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisPlatformIdsTable $table */
+        $table = $this->getServiceLocator()->get('MelisEngineTablePlatformIds');
+
+        return $table;
+    }
+
+    /**
+     * @return int
+     */
+    private function getPlatformId()
+    {
+        $platformId = (int) $this->getPlatform()->plf_id ?: 1;
+
+        return $platformId;
+    }
+
+    /**
+     * @param string $env
+     *
+     * @return array|\ArrayObject|\Zend\Db\ResultSet\ResultSet|null
+     */
+    protected function getPlatform($env = null)
+    {
+        $env = $env ?: getenv('MELIS_PLATFORM');
+
+        /** @var \MelisCore\Model\Tables\MelisPlatformTable $platformTable */
+        $platformTable = $this->getServiceLocator()->get('MelisPlatformTable');
+        $platform = $platformTable->getEntryByField('plf_name', $env)->current();
+
+        return $platform;
+    }
+
+    /**
+     * @param null|string $path
+     *
+     * @return array
+     */
+    public function getConfig($path = null)
+    {
+        return $this->config()->getItem($path ? $this->getModule() . "/{$this->getAction()}/$path" : "{$this->getModule()}/{$this->getAction()}");
+    }
+
+    /**
+     * @return \MelisCore\Service\MelisCoreConfigService
+     */
+    private function config()
+    {
+        /** @var \MelisCore\Service\MelisCoreConfigService $config */
+        $config = $this->getServiceLocator()->get('MelisCoreConfig');
+
+        return $config;
     }
 
     /**
@@ -115,18 +192,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     public function setModule($module)
     {
         $this->module = $module;
-
-        return $this;
-    }
-
-    /**
-     * @param $setupFileDownload
-     *
-     * @return $this
-     */
-    protected function setupFile($setupFile)
-    {
-        $this->setupFile = $setupFile;
 
         return $this;
     }
@@ -152,67 +217,91 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @return string
+     * @return \MelisEngine\Model\Tables\MelisSiteTable
      */
-    protected function getSetupFile()
+    private function siteTable()
     {
-        return $this->setupFile;
+        /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
+        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+
+        return $siteTable;
     }
 
     /**
-     * @return array
+     * @return \MelisEngine\Model\Tables\MelisSiteDomainTable
      */
-    public function getConfig()
+    public function siteDomainTable()
     {
-        return $this->config;
+        /** @var \MelisEngine\Model\Tables\MelisSiteDomainTable $siteDomain */
+        $siteDomain = $this->getServiceLocator()->get('MelisEngineTableSiteDomain');
+
+        return $siteDomain;
     }
 
     /**
-     * @param $config
-     *
      * @return $this
      */
-    public function setConfig($config)
+    private function incrementCurrentPlatformId()
     {
-        $this->config = $config;
+        $this->platformIdTable()->save([
+            'pids_page_id_current' => ((int) $this->getCurrentPlatformId()->pids_page_id_current) + 1,
+        ], $this->getPlatformId());
 
         return $this;
     }
 
     /**
-     * @return array
+     * @return $this
      */
-    public function getArrayCopy()
+    private function incrementCurrentTemplateId()
     {
-        return get_object_vars($this);
+        $this->platformIdTable()->save([
+            'pids_tpl_id_current' => ((int) $this->getCurrentPlatformId()->pids_tpl_id_current) + 1,
+        ], $this->getPlatformId());
+
+        return $this;
     }
 
     /**
-     * @param string $env
-     *
-     * @return array|\ArrayObject|\Zend\Db\ResultSet\ResultSet|null
+     * @return $this
+     * @throws \MelisMarketPlace\Exception\ArrayKeyNotFoundException
      */
-    protected function getPlatform($env = null)
+    public function invokeSetup()
     {
-        $env = $env ?: getenv('MELIS_PLATFORM');
+        $path = $this->moduleManager()->getComposerModulePath($this->getModule()) ?:
+            $this->moduleManager()->getModulePath($this->getModule());
 
-        /** @var \MelisCore\Model\Tables\MelisPlatformTable $platformTable */
-        $platformTable = $this->getServiceLocator()->get('MelisPlatformTable');
-        $platform = $platformTable->getEntryByField($platformTable::NAME, $env)->current();
-
-        return $platform;
-    }
-
-    /**
-     * Returns the instance of DbAdapter
-     *
-     * @return \Zend\Db\Adapter\Adapter
-     */
-    private function getAdapter()
-    {
         $this->setDbAdapter();
 
-        return $this->adapter;
+        if (is_array($this->getConfig()) && $this->getConfig()) {
+            $config = $this->getConfig();
+
+            if (!isset($config[Site::DATA])) {
+                throw new ArrayKeyNotFoundException(Site::DATA . " key not found in {$this->getAction()} configuration");
+            }
+
+            $dataConfig = $config[Site::DATA];
+
+            $queries = $this->createInsertSql($dataConfig);
+
+            $this->processTransactions($queries);
+
+        } else {
+            throw new ArrayKeyNotFoundException("{$this->getAction()} key not found in {$this->getAction()} configuration");
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return \MelisCore\Service\MelisCoreModulesService
+     */
+    protected function moduleManager()
+    {
+        /** @var \MelisCore\Service\MelisCoreModulesService $service */
+        $service = $this->getServiceLocator()->get('ModulesService');
+
+        return $service;
     }
 
     /**
@@ -220,10 +309,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * Sets the Database adapter that will be used when querying
      * the database, this will use the configuration set
      * on the database config file
+     *
+     * @return $this
      */
     private function setDbAdapter()
     {
-        // access the database configuration
+        /** @var \Zend\Config\Config $config */
         $config = $this->getServiceLocator()->get('config');
         $db = $config['db'];
 
@@ -271,15 +362,17 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                         // loop through all the fields and values in the data
                         foreach ($payload as $field => $value) {
                             $recursionSql = '';
-                            if ($field != Melis::RELATION) {
+                            if (! in_array($field, [Melis::RELATION, Site::THEN])) {
                                 $fields .= "`$field`, ";
                                 $fieldValues .= "'$value', ";
+                            } else if ($field === Site::THEN) {
+                                $queries[$table][$idx][Site::THEN] = $value;
                             } else {
                                 $queries[$table][$idx][Melis::RELATION] = $this->createInsertSql($value, $table);
                             }
                         }
 
-                        $sql = "INSERT INTO `$table`(" . substr($fields, 0, strlen($fields) - 2) . ") VALUES(" .  substr($fieldValues, 0, strlen($fieldValues) - 2) . ');' . PHP_EOL;
+                        $sql = "INSERT INTO `$table`(" . substr($fields, 0, strlen($fields) - 2) . ") VALUES(" . substr($fieldValues, 0, strlen($fieldValues) - 2) . ');' . PHP_EOL;
                         $queries[$table][$idx][Melis::SQL] = $sql;
                     }
                 }
@@ -301,20 +394,29 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $foreignKey = Melis::FOREIGN_KEY;
 
         foreach ($queries as $table => $transaction) {
-            foreach ($transaction as $idx => $transact) {
+            foreach ($transaction as $key => $transact) {
 
                 if (strpos($transact[Melis::SQL], Melis::ROOT_FOREIGN_KEY) !== false) {
+                    // for root foreign key, use the last insertedId in the preserved foreign keys
                     $insertedId = end($preservedForeignKeys) ?? -1;
                     $foreignKey = Melis::ROOT_FOREIGN_KEY;
                 }
 
                 if ($insertedId) {
+                    // avoid insertedId collision, solution: make insertedId as its own key with the same value
                     $preservedForeignKeys = array_merge($preservedForeignKeys, [$insertedId => $insertedId]);
                 }
 
-                $sql = str_replace($foreignKey, $insertedId, $transact[Melis::SQL]);
+                $sql = str_replace([$foreignKey, Melis::CMS_SITE_ID], [$insertedId, $this->getSiteId()], $transact[Melis::SQL]);
 
                 if ($insertedId = $this->insert($sql)) {
+
+                    if (isset($transact[Site::THEN])) {
+                        foreach ($transact[Site::THEN] as $fn) {
+                            $this->$fn();
+                        }
+                    }
+
                     if (isset($transact[Melis::RELATION]) && count($transact[Melis::RELATION])) {
                         $this->processTransactions($transact[Melis::RELATION], $insertedId, $preservedForeignKeys);
                     }
@@ -343,12 +445,56 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @todo remove this
+     * Returns the instance of DbAdapter
+     *
+     * @return \Zend\Db\Adapter\Adapter
      */
-    private function clearTable()
+    private function getAdapter()
     {
-        $this->getAdapter()->createStatement('
-        truncate table melis_cms_prospects;truncate table melis_cms_prospects_themes;truncate table melis_cms_prospects_theme_items;truncate table melis_cms_prospects_theme_items_trans;
-        ')->execute();
+        $this->setDbAdapter();
+
+        return $this->adapter;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArrayCopy()
+    {
+        return get_object_vars($this);
+    }
+
+    /**
+     * Returns the main page ID of the selected site module
+     *
+     * @return null|int
+     */
+    public function getSiteId()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
+        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+
+        $select = $siteTable->getTableGateway()->getSql()->select();
+
+        $select->where->equalTo('site_name', $this->getModule());
+
+        $resultSet = $siteTable->getTableGateway()->selectWith($select)->toArray();
+
+        if ($resultSet) {
+            return end($resultSet)['site_main_page_id'];
+        }
+
+        return null;
+    }
+
+    /**
+     * @return \MelisEngine\Model\Tables\MelisSite404Table
+     */
+    private function site404Table()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisSite404Table $site404 */
+        $site404 = $this->getServiceLocator()->get('MelisEngineTableSite404');
+
+        return $site404;
     }
 }

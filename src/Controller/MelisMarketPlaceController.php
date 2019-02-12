@@ -1362,6 +1362,13 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
             $result = $this->getMarketPlaceService()->submitForm($module, $post);
+
+            /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
+            $moduleService = $this->getServiceLocator()->get('ModulesService');
+
+            if ($moduleService->isSiteModule()) {
+                // do site install here by passing $this->getRequest()
+            }
         }
 
         return new JsonModel($result);
@@ -1372,9 +1379,16 @@ class MelisMarketPlaceController extends AbstractActionController
         $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
         $action = $this->getRequest()->getPost('action', 'download');
 
+
         /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
         $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
-        $test = $service->invokeSetup($module, $action);
+        $test = $service->installSite($this->getRequest())->invokeSetup();
+
+        /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
+//        $moduleService = $this->getServiceLocator()->get('ModulesService');
+//
+//        $data = $moduleService->isSiteModule($module);
+//        dd($data);
 
         die('here');
     }
