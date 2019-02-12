@@ -76,7 +76,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 $this->platformIdTable()->save($platformIdPayload);
             } else {
                 // update the platform IDs
-                $siteId = $platformIds->pids_page_id_current + 1;
+                $siteId = $platformIds->pids_page_id_current;
                 if ($siteId > $platformIds->pids_page_id_end) {
                     throw new PlatformIdMaxRangeReachedException(
                         "Maximum of {$siteId}/{$platformIds->pids_page_id_end} site ID for {$platformName} platform has been reached.",
@@ -98,7 +98,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             ]);
 
             if ($siteTable && $siteDomain) {
-                $this->incrementCurrentPlatformId();
+                $this->incrementCurrentPageId();
             }
 
         } else {
@@ -241,7 +241,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     /**
      * @return $this
      */
-    private function incrementCurrentPlatformId()
+    private function incrementCurrentPageId()
     {
         $this->platformIdTable()->save([
             'pids_page_id_current' => ((int) $this->getCurrentPlatformId()->pids_page_id_current) + 1,

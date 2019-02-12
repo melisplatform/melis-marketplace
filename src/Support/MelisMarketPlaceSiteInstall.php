@@ -47,7 +47,7 @@ class MelisMarketPlaceSiteInstall
     /**
      * @const UPDATE_CURRENT_SITE_ID callback function to trigger on a successful query transaction
      */
-    const UPDATE_CURRENT_SITE_ID = 'incrementCurrentPlatformId';
+    const UPDATE_CURRENT_SITE_ID = 'incrementCurrentPageId';
 
     /**
      * @const UPDATE_CURRENT_TEMPLATE_ID callback function to trigger on a successful query transaction
