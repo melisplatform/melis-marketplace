@@ -67,7 +67,7 @@ return [
         /**
          * this is the configuration of the tool
          */
-        'melis_market_place_tool_config' => [
+        'melismarketplace_toolstree_section' => [
             'conf' => [
                 'name' => 'tr_market_place',
             ],
