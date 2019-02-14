@@ -27,20 +27,12 @@ return [
                     'interface' => [
                         'melismarketplace_toolstree_section' => [
                             'conf' => [
-                                'id' => 'melismarketplace_toolstree_section',
-                                'name' => 'tr_market_place',
-                                'melisKey' => 'melismarketplace_toolstree_section',
-                                'icon' => 'fa fa-shopping-cart',
-                                'rights_checkbox_disable' => true,
-                            ],
-//                            'interface' => [
-//                                // this will be the configuration of the tool.
-//                                'melis_market_place_tool_config' => [
-//                                    'conf' => [
-//                                        'type' => '/melis_market_place_tool_config/interface/melis_market_place_tool_display',
-//                                    ],
-//                                ],
-//                            ],
+                                'is_parent_tool' => true,
+                                'target_id' => 'id_melis_market_place_tool_display',
+                                'target_meliskey' => 'melis_market_place_tool_display',
+                                'tab_icon' => 'fa fa-shopping-cart',
+                                'tab_name' => 'tr_market_place',
+                            ]
                         ],
                     ],
                 ],
@@ -75,7 +67,7 @@ return [
         /**
          * this is the configuration of the tool
          */
-        'melis_market_place_tool_config' => [
+        'melismarketplace_toolstree_section' => [
             'conf' => [
                 'name' => 'tr_market_place',
             ],

@@ -1,7 +1,7 @@
 <?php
 return [
     'plugins' => [
-        'melis_market_place_tool_config' => [
+        'melismarketplace_toolstree_section' => [
             'forms' => [
                 'melis_market_place_search' => [
                     'attributes' => [

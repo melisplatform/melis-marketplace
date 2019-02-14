@@ -32,7 +32,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $url = $this->getMelisPackagistServer();
         $melisKey = $this->getMelisKey();
         $config = $this->getServiceLocator()->get('MelisCoreConfig');
-        $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
+        $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
         $packageGroupData = @file_get_contents($url . '/get-package-group', true);
 
@@ -78,7 +78,7 @@ class MelisMarketPlaceController extends AbstractActionController
     {
         $env = getenv('MELIS_PLATFORM') ?: 'default';
         $config = $this->getServiceLocator()->get('MelisCoreConfig');
-        $server = $config->getItem('melis_market_place_tool_config/datas/')['melis_packagist_server'];
+        $server = $config->getItem('melismarketplace_toolstree_section/datas/')['melis_packagist_server'];
 
         if ($server) {
             return $server;
@@ -267,7 +267,7 @@ class MelisMarketPlaceController extends AbstractActionController
     {
         $env = getenv('MELIS_PLATFORM') ?: 'default';
         $config = $this->getServiceLocator()->get('MelisCoreConfig');
-        $modules = $config->getItem('melis_market_place_tool_config/datas/')['exceptions'];
+        $modules = $config->getItem('melismarketplace_toolstree_section/datas/')['exceptions'];
 
         if ($modules) {
             return $modules;
@@ -310,7 +310,7 @@ class MelisMarketPlaceController extends AbstractActionController
              *  For verifying the moduleList
              */
             $config = $this->getServiceLocator()->get('MelisCoreConfig');
-            $searchForm = $config->getItem('melis_market_place_tool_config/forms/melis_market_place_search');
+            $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
 
             //end verifying modules
