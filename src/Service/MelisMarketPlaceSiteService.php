@@ -423,7 +423,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                             }
                         }
 
-                        $sql = "INSERT INTO `$table`(" . substr($fields, 0, strlen($fields) - 2) . ") VALUES(" . substr($fieldValues, 0, strlen($fieldValues) - 2) . ');' . PHP_EOL;
+                        $sql = "INSERT INTO `$table`(" . substr($fields, 0, strlen($fields) - 2) . ") VALUES("
+                            . substr($fieldValues, 0, strlen($fieldValues) - 2) . ');' . PHP_EOL;
                         $queries[$table][$idx][Melis::SQL] = $sql;
                     }
                 }
@@ -460,6 +461,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                     $preservedForeignKeys = array_merge($preservedForeignKeys, [$insertedId => $insertedId]);
                 }
 
+                // process of swapping temporary values into real values
                 $sql = str_replace([
                     $foreignKey,
                     Melis::CMS_SITE_ID,
