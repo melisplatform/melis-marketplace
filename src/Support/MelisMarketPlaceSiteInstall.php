@@ -47,10 +47,23 @@ class MelisMarketPlaceSiteInstall
     /**
      * @const UPDATE_CURRENT_SITE_ID callback function to trigger on a successful query transaction
      */
-    const UPDATE_CURRENT_SITE_ID = 'incrementCurrentPageId';
+    const UPDATE_CURRENT_PAGE_ID = 'incrementCurrentPageId';
 
     /**
      * @const UPDATE_CURRENT_TEMPLATE_ID callback function to trigger on a successful query transaction
      */
     const UPDATE_CURRENT_TEMPLATE_ID = 'incrementCurrentTemplateId';
+
+    /**
+     * @const GET_FIELD_VALUE callback function to trigger on a successful query transaction, this requires a parameter
+     * this returns the defined field
+     *
+     * @var string $table
+     * @var string $field
+     * @var string|int $value
+     * @var string $returnField
+     *
+     * @return null|string|int
+     */
+    const GET_FIELD_VALUE = 'getFieldValue';
 }
