@@ -69,17 +69,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 'sdom_scheme' => $scheme,
                 'sdom_domain' => $domain,
             ]);
-
-            $pageTree = $this->pageTreeTable()->save([
-                'tree_page_id' => $siteId,
-                'tree_father_page_id' => Melis::CMS_SITE_DEFAULT_PARENT_ID,
-                'tree_page_order' => 1,
-            ]);
-
-            if ($siteTable && $siteDomain) {
-                $this->incrementCurrentPageId();
-            }
-
+            
         } else {
             throw new EmptySiteException('Site data is empty', 500);
         }
@@ -475,7 +465,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                             $this->$fn();
                         }
                     }
-                    
+
                     if (isset($transact[Melis::RELATION]) && count($transact[Melis::RELATION])) {
                         $this->processTransactions($transact[Melis::RELATION], $insertedId);
                     }
