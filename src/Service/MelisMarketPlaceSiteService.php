@@ -35,6 +35,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      */
     protected $action;
 
+    const ACTION_REQUIRE = 'require';
+
     /**
      * @param \Zend\Http\PhpEnvironment\Request $request
      *
@@ -48,7 +50,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $scheme = $request->getPost('scheme');
         $domain = $request->getPost('domain');
         $module = $request->getPost('module');
-        $action = $request->getPost('action');
+        $action = $request->getPost('action', 'download') === self::ACTION_REQUIRE ? Site::DOWNLOAD : Site::DOWNLOAD;
 
         $this->setDbAdapter();
 
