@@ -1383,6 +1383,7 @@ class MelisMarketPlaceController extends AbstractActionController
         /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
         $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
         $test = $service->installSite($this->getRequest())->invokeSetup();
+//        $test = $service->installSite($this->getRequest());
 
         /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
 //        $moduleService = $this->getServiceLocator()->get('ModulesService');

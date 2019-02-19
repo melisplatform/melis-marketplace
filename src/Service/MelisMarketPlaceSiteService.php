@@ -14,30 +14,26 @@ use Zend\Http\PhpEnvironment\Request;
 
 class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 {
-    /**
-     * @var \Zend\Db\Adapter\Adapter $adapter
-     */
-    protected $adapter;
-
-    /**
-     * @var string $setupFile - setup config file to lookup
-     */
-    protected $setupFile;
-
-    /**
-     * @var string $module - name of the module to process
-     */
-    protected $module;
-
-    /**
-     * @var string $action - set what type of action is being done
-     */
-    protected $action;
-
     const VAL_TABLE = 0;
     const VAL_FIELD = 1;
     const VAL_VALUE = 2;
     const VAL_RETURN_FIELD = 3;
+    /**
+     * @var \Zend\Db\Adapter\Adapter $adapter
+     */
+    protected $adapter;
+    /**
+     * @var string $setupFile - setup config file to lookup
+     */
+    protected $setupFile;
+    /**
+     * @var string $module - name of the module to process
+     */
+    protected $module;
+    /**
+     * @var string $action - set what type of action is being done
+     */
+    protected $action;
 
     /**
      * @param \Zend\Http\PhpEnvironment\Request $request
@@ -77,7 +73,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             $pageTree = $this->pageTreeTable()->save([
                 'tree_page_id' => $siteId,
                 'tree_father_page_id' => Melis::CMS_SITE_DEFAULT_PARENT_ID,
-                'tree_page_order' => 1
+                'tree_page_order' => 1,
             ]);
 
             if ($siteTable && $siteDomain) {
@@ -89,6 +85,47 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         }
 
         return $this;
+    }
+
+    /**
+     * Returns the current available page ID
+     *
+     * @return int
+     * @throws \MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException
+     */
+    private function getCurrentPageId()
+    {
+        $pageId = 1;
+        $platformIds = $this->getCurrentPlatformId();
+
+        if ($platformIds) {
+            $pageId = $platformIds->pids_page_id_current;
+            if ($pageId > $platformIds->pids_page_id_end) {
+                throw new PlatformIdMaxRangeReachedException(
+                    "Maximum of {$pageId}/{$platformIds->pids_page_id_end} site ID for {$platformName} platform has been reached.",
+                    500);
+            }
+        } else {
+            // create a set of Platform IDs
+            $platformId = $this->getPlatformId();
+
+            $startId = $platformId;
+            $endId = $platformId * 1000;
+
+            $platformIdPayload = [
+                'pids_id' => $platformId,
+                'pids_page_id_start' => $startId,
+                'pids_page_id_current' => $startId,
+                'pids_page_id_end' => $endId,
+                'pids_tpl_id_start' => $startId,
+                'pids_tpl_id_current' => 1,
+                'pids_tpl_id_end' => $endId,
+            ];
+
+            $this->platformIdTable()->save($platformIdPayload);
+        }
+
+        return $pageId;
     }
 
     /**
@@ -139,67 +176,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @param null|string $path
-     *
-     * @return array
-     */
-    public function getConfig($path = null)
-    {
-        return $this->config()->getItem($path ? $this->getModule() . "/{$this->getAction()}/$path" : "{$this->getModule()}/{$this->getAction()}");
-    }
-
-    /**
-     * @return \MelisCore\Service\MelisCoreConfigService
-     */
-    private function config()
-    {
-        /** @var \MelisCore\Service\MelisCoreConfigService $config */
-        $config = $this->getServiceLocator()->get('MelisCoreConfig');
-
-        return $config;
-    }
-
-    /**
-     * @return string
-     */
-    public function getModule()
-    {
-        return $this->module;
-    }
-
-    /**
-     * @param $module
-     *
-     * @return $this
-     */
-    public function setModule($module)
-    {
-        $this->module = $module;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getAction()
-    {
-        return $this->action;
-    }
-
-    /**
-     * @param $action
-     *
-     * @return $this
-     */
-    public function setAction($action)
-    {
-        $this->action = $action;
-
-        return $this;
-    }
-
-    /**
      * @return \MelisEngine\Model\Tables\MelisSiteTable
      */
     private function siteTable()
@@ -222,68 +198,28 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @return $this
+     * @return \MelisEngine\Model\Tables\MelisPageTreeTable
      */
-    private function incrementCurrentPageId()
+    private function pageTreeTable()
     {
-        $this->platformIdTable()->save([
-            'pids_page_id_current' => ((int) $this->getCurrentPlatformId()->pids_page_id_current) + 1,
-        ], $this->getPlatformId());
+        /** @var \MelisEngine\Model\Tables\MelisPageTreeTable $pageTreeTable */
+        $pageTreeTable = $this->getServiceLocator()->get('MelisEngineTablePageTree');
 
-        return $this;
+        return $pageTreeTable;
     }
 
     /**
-     * @return $this
-     */
-    private function incrementCurrentTemplateId()
-    {
-        $this->platformIdTable()->save([
-            'pids_tpl_id_current' => ((int) $this->getCurrentPlatformId()->pids_tpl_id_current) + 1,
-        ], $this->getPlatformId());
-
-        return $this;
-    }
-
-    /**
-     * Returns the current available page ID
+     * @param int $incremental
      *
-     * @return int
-     * @throws \MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException
+     * @return $this
      */
-    private function getCurrentPageId()
+    private function incrementCurrentPageId($incremental = 0)
     {
-        $pageId = 1;
-        $platformIds = $this->getCurrentPlatformId();
+        $this->platformIdTable()->save([
+            'pids_page_id_current' => ((int) $this->getCurrentPlatformId()->pids_page_id_current) + 1 + $incremental,
+        ], $this->getPlatformId());
 
-        if ($platformIds) {
-            $pageId = $platformIds->pids_page_id_current;
-            if ($pageId > $platformIds->pids_page_id_end) {
-                throw new PlatformIdMaxRangeReachedException(
-                    "Maximum of {$pageId}/{$platformIds->pids_page_id_end} site ID for {$platformName} platform has been reached.",
-                    500);
-            }
-        } else {
-            // create a set of Platform IDs
-            $platformId = $this->getPlatformId();
-
-            $startId = $platformId;
-            $endId = $platformId * 1000;
-
-            $platformIdPayload = [
-                'pids_id' => $platformId,
-                'pids_page_id_start' => $startId,
-                'pids_page_id_current' => $startId,
-                'pids_page_id_end' => $endId,
-                'pids_tpl_id_start' => $startId,
-                'pids_tpl_id_current' => 1,
-                'pids_tpl_id_end' => $endId,
-            ];
-
-            $this->platformIdTable()->save($platformIdPayload);
-        }
-
-        return $pageId;
+        return $this;
     }
 
     /**
@@ -316,9 +252,9 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
             $queries = $this->createInsertSql($dataConfig);
             $this->processTransactions($queries);
+//            dd($queries);
 
-            dd($queries);
-
+            $this->incrementCurrentPageId();
         } else {
             throw new ArrayKeyNotFoundException("{$this->getAction()} key not found in {$this->getAction()} configuration");
         }
@@ -335,6 +271,26 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $service = $this->getServiceLocator()->get('ModulesService');
 
         return $service;
+    }
+
+    /**
+     * @return string
+     */
+    public function getModule()
+    {
+        return $this->module;
+    }
+
+    /**
+     * @param $module
+     *
+     * @return $this
+     */
+    public function setModule($module)
+    {
+        $this->module = $module;
+
+        return $this;
     }
 
     /**
@@ -373,6 +329,47 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
+     * @param null|string $path
+     *
+     * @return array
+     */
+    public function getConfig($path = null)
+    {
+        return $this->config()->getItem($path ? $this->getModule() . "/{$this->getAction()}/$path" : "{$this->getModule()}/{$this->getAction()}");
+    }
+
+    /**
+     * @return \MelisCore\Service\MelisCoreConfigService
+     */
+    private function config()
+    {
+        /** @var \MelisCore\Service\MelisCoreConfigService $config */
+        $config = $this->getServiceLocator()->get('MelisCoreConfig');
+
+        return $config;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAction()
+    {
+        return $this->action;
+    }
+
+    /**
+     * @param $action
+     *
+     * @return $this
+     */
+    public function setAction($action)
+    {
+        $this->action = $action;
+
+        return $this;
+    }
+
+    /**
      * Converts data map configuration into an array of SQL statements recursively
      *
      * @param $tables
@@ -398,7 +395,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                             // escape
                             $value = str_replace(["'", '"'], ["\'", '\"'], $value);
 
-                            if (! in_array($field, [Melis::RELATION, Site::THEN, Melis::PRIMARY_KEY])) {
+                            if (!in_array($field, [Melis::RELATION, Site::THEN, Melis::PRIMARY_KEY])) {
                                 if (is_array($value)) {
                                     $fn = current(array_keys($value));
                                     $args = array_values($value[$fn]);
@@ -438,55 +435,76 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * Reads and executes the SQL array recursively
      *
      * @param $queries
-     * @param null|int $insertedId
-     * @param array $preservedForeignKeys
+     * @param null $insertedId
+     *
+     * @throws \MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException
      */
-    protected function processTransactions($queries, $insertedId = null, $preservedForeignKeys = [])
+    protected function processTransactions($queries, $insertedId = null)
     {
+
         $foreignKey = Melis::FOREIGN_KEY;
+        $lastInsertedId = $insertedId;
 
         foreach ($queries as $table => $transaction) {
+
             foreach ($transaction as $key => $transact) {
 
                 $primaryKey = $transact[Melis::PRIMARY_KEY] ?? null;
 
                 if (strpos($transact[Melis::SQL], Melis::ROOT_FOREIGN_KEY) !== false) {
                     // for root foreign key, use the last insertedId in the preserved foreign keys
-                    $insertedId = end($preservedForeignKeys) ?? -1;
                     $foreignKey = Melis::ROOT_FOREIGN_KEY;
                 }
 
-                if ($insertedId) {
-                    // avoid insertedId collision, solution: make insertedId as its own key with the same value
-                    $preservedForeignKeys = array_merge($preservedForeignKeys, [$insertedId => $insertedId]);
-                }
-
-                // process of swapping temporary values into real values
+                // swap temporary values into real values
                 $sql = str_replace([
                     $foreignKey,
                     Melis::CMS_SITE_ID,
                     Melis::CURRENT_PAGE_ID,
                 ], [
-                    $insertedId,
+                    $lastInsertedId,
                     $this->getSiteId(),
-                    $this->getCurrentPageId()
+                    $this->getCurrentPageId(),
                 ], $transact[Melis::SQL]);
 
                 if ($insertedId = $this->insert($sql, $primaryKey)) {
 
+                    // Execute set callbacks in the configuration array table
                     if (isset($transact[Site::THEN])) {
                         foreach ($transact[Site::THEN] as $fnOrKey => $fn) {
                             $this->$fn();
                         }
                     }
-
+                    
                     if (isset($transact[Melis::RELATION]) && count($transact[Melis::RELATION])) {
-                        $this->processTransactions($transact[Melis::RELATION], $insertedId, $preservedForeignKeys);
+                        $this->processTransactions($transact[Melis::RELATION], $insertedId);
                     }
                 }
             }
         }
+    }
 
+    /**
+     * Returns the main page ID of the selected site module
+     *
+     * @return null|int
+     */
+    public function getSiteId()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
+        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+
+        $select = $siteTable->getTableGateway()->getSql()->select();
+
+        $select->where->equalTo('site_name', $this->getModule());
+
+        $resultSet = $siteTable->getTableGateway()->selectWith($select)->toArray();
+
+        if ($resultSet) {
+            return end($resultSet)['site_main_page_id'];
+        }
+
+        return null;
     }
 
     /**
@@ -509,12 +527,27 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
             if (is_null($id) || !$id && !is_null($primaryKey)) {
                 // create a SELECT query
-                $result = $this->getAdapter()->query($this->createSelectSql($sql, $primaryKey), DbAdapter::QUERY_MODE_EXECUTE)->toArray();
-                $id = current($result)[$primaryKey] ?? null;
+                $selectQuery = $this->createSelectSql($sql, $primaryKey);
+                $result = $this->getAdapter()->query($selectQuery, DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+                $id = (int) current($result)[$primaryKey] ?? null;
             }
         }
 
+//        d("FK: $id, $sql");
+
         return $id;
+    }
+
+    /**
+     * Returns the instance of DbAdapter
+     *
+     * @return \Zend\Db\Adapter\Adapter
+     */
+    private function getAdapter()
+    {
+        $this->setDbAdapter();
+
+        return $this->adapter;
     }
 
     /**
@@ -530,6 +563,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $queryFields = preg_match('/\(\`+(.?)+\`\)/', $sql, $queryFieldMatches);
         $queryFieldMatches = array_map(function ($a) {
             $a = str_replace(['(', ')'], '', trim($a));
+
             return $a;
         }, $queryFieldMatches);
 
@@ -544,6 +578,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $queryValues = preg_match('/VALUES\(+(.?)+\)/', $sql, $queryValueMatches);
         $queryValueMatches = array_map(function ($a) {
             $a = str_replace(['(', ')', 'VALUES'], '', trim($a));
+
             return $a;
         }, $queryValueMatches);
 
@@ -593,18 +628,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * Returns the instance of DbAdapter
-     *
-     * @return \Zend\Db\Adapter\Adapter
-     */
-    private function getAdapter()
-    {
-        $this->setDbAdapter();
-
-        return $this->adapter;
-    }
-
-    /**
      * @return array
      */
     public function getArrayCopy()
@@ -613,26 +636,15 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * Returns the main page ID of the selected site module
-     *
-     * @return null|int
+     * @return $this
      */
-    public function getSiteId()
+    private function incrementCurrentTemplateId()
     {
-        /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
-        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+        $this->platformIdTable()->save([
+            'pids_tpl_id_current' => ((int) $this->getCurrentPlatformId()->pids_tpl_id_current) + 1,
+        ], $this->getPlatformId());
 
-        $select = $siteTable->getTableGateway()->getSql()->select();
-
-        $select->where->equalTo('site_name', $this->getModule());
-
-        $resultSet = $siteTable->getTableGateway()->selectWith($select)->toArray();
-
-        if ($resultSet) {
-            return end($resultSet)['site_main_page_id'];
-        }
-
-        return null;
+        return $this;
     }
 
     /**
@@ -644,17 +656,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $site404 = $this->getServiceLocator()->get('MelisEngineTableSite404');
 
         return $site404;
-    }
-
-    /**
-     * @return \MelisEngine\Model\Tables\MelisPageTreeTable
-     */
-    private function pageTreeTable()
-    {
-        /** @var \MelisEngine\Model\Tables\MelisPageTreeTable $pageTreeTable */
-        $pageTreeTable = $this->getServiceLocator()->get('MelisEngineTablePageTree');
-
-        return $pageTreeTable;
     }
 
     /**
@@ -678,5 +679,22 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         }
 
         return null;
+    }
+
+    /**
+     * Used to flatten a multi-dimensional array
+     * @param $array
+     *
+     * @return array
+     */
+    private function flattenArray($array)
+    {
+         $flat = [];
+
+         array_walk_recursive($array, function ($a) use (&$flat) {
+             $flat[] = $a;
+         });
+
+         return $flat;
     }
 }
