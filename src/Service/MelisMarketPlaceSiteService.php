@@ -69,7 +69,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 'sdom_scheme' => $scheme,
                 'sdom_domain' => $domain,
             ]);
-            
+
         } else {
             throw new EmptySiteException('Site data is empty', 500);
         }
