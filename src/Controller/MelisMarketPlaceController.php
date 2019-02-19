@@ -2,6 +2,7 @@
 
 namespace MelisMarketPlace\Controller;
 
+use Illuminate\View\View;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
@@ -17,15 +18,16 @@ use Zend\Db\Sql\Ddl;
  */
 class MelisMarketPlaceController extends AbstractActionController
 {
-    /**
-     * @var DbAdapter
-     */
+    /** @var  \Zend\Db\Adapter\Adapter $adapter */
     protected $adapter;
+
+    const ACTION_REQUIRE = 'require';
+    const ACTION_DOWNLOAD = 'download';
 
     /**
      * Handles the display of the tool
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function toolContainerAction()
     {
@@ -72,7 +74,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Melis Packagist Server URL
      *
-     * @return mixed
+     * @return array
      */
     private function getMelisPackagistServer()
     {
@@ -89,7 +91,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * MelisMarketPlace/src/MelisMarketPlace/Controller/MelisMarketPlaceController.php
      * Returns the melisKey of the view that is being set in app.interface
      *
-     * @return mixed
+     * @return string
      */
     private function getMelisKey()
     {
@@ -120,7 +122,8 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Handles the display of a specific package
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
+     * @throws \Exception
      */
     public function toolContainerProductViewAction()
     {
@@ -198,7 +201,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return null
+     * @return bool|null
      */
     private function checkStatusMarketPlace()
     {
@@ -219,7 +222,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * @param $status
      *
-     * @return mixed
+     * @return string
      */
     private function getVersionStatusText($status)
     {
@@ -239,29 +242,29 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return array|object
+     * @return \MelisMarketPlace\Service\MelisMarketPlaceService
      */
     private function getMarketPlaceService()
     {
-        return $this->getServiceLocator()->get('MelisMarketPlaceService');
+        /** @var \MelisMarketPlace\Service\MelisMarketPlaceService $service */
+        $service = $this->getServiceLocator()->get('MelisMarketPlaceService');
+        return $service;
     }
 
     /**
-     * MelisCoreTool
-     *
-     * @return array|object
+     * @return \MelisCore\Service\MelisCoreToolService
      */
     private function getTool()
     {
+        /** @var \MelisCore\Service\MelisCoreToolService $tool */
         $tool = $this->getServiceLocator()->get('MelisCoreTool');
-
         return $tool;
     }
 
     /**
      * Returns the list of modules that is inside the exceptions array
      *
-     * @return mixed
+     * @return array
      */
     private function getModuleExceptions()
     {
@@ -294,7 +297,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * Translates the retrieved data coming from the Melis Packagist URL
      * and transform's it into a display including the pagination
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function packageListAction()
     {
@@ -404,7 +407,6 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->setVariable('searchForm', $searchForm);
 
         return $view;
-
     }
 
     /**
@@ -462,6 +464,28 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * @return \Zend\View\Model\ViewModel
      */
+    public function toolModuleFormSetupContentAction()
+    {
+        $module = $this->getTool()->sanitize($this->params()->fromQuery('module', ''));
+        $action = $this->getTool()->sanitize($this->params()->fromQuery('action', ''));
+        $melisKey = $this->params()->fromRoute('melisKey', '');
+
+        $title = $this->getTool()->getTranslation('tr_melis_marketplace_setup_module_modal_title', [$module]);
+        $form = $this->getMarketPlaceService()->getForm($module);
+
+        $view = new ViewModel();
+        $view->melisKey = $melisKey;
+        $view->title = $title;
+        $view->module = $module;
+        $view->form = $form;
+        $view->action = $action;
+
+        return $view;
+    }
+
+    /**
+     * @return \Zend\View\Model\ViewModel
+     */
     public function melisMarketPlaceProductDoAction()
     {
 
@@ -491,6 +515,11 @@ class MelisMarketPlaceController extends AbstractActionController
                 switch ($action) {
                     case $composerSvc::DOWNLOAD:
                         if (!in_array($module, $this->getModuleExceptions())) {
+                            /**
+                             * @todo if the package has a type of "melisplatform-site"
+                             * then it should use the \MelisMarketPlace\Service\MelisMarketPlaceSiteInstallService
+                             * else, then use the regular composer download
+                             */
                             $composerSvc->download($package);
                         }
                         break;
@@ -499,12 +528,6 @@ class MelisMarketPlaceController extends AbstractActionController
                         break;
                     case $composerSvc::REMOVE:
                         if (!in_array($module, $this->getModuleExceptions())) {
-                            /**
-                             * Remove module
-                             * $composerSvc->remove($package);
-                             * the command above remove's the package and then updates the entire composer.json entries
-                             * which is not likely, we just need to remove the module and its' autoloaded classes
-                             */
 
                             // read the composer.json file
                             $composerJsonFile = $_SERVER['DOCUMENT_ROOT'] . '/../composer.json';
@@ -749,8 +772,8 @@ class MelisMarketPlaceController extends AbstractActionController
         $request = $this->getRequest();
 
         if ($request->isPost()) {
+            $module = $request->getPost('module');
 
-            $module = $this->getTool()->sanitize($request->getPost('module'));
             if ($module) {
                 $isExist = (bool) $this->isModuleInstalled($module);
             }
@@ -778,30 +801,30 @@ class MelisMarketPlaceController extends AbstractActionController
             $svc = $this->getServiceLocator()->get('ModulesService');
             $path = $svc->getModulePath($module, true);
             $dbDeployPath = $path . '/install/dbdeploy/';
-            $tableInstall = '_install.sql';
-            $setupFile = null;
+            $tableInstall = '.sql';
+            $dbDeployFile = null;
 
             // look for setup_structure SQL file
-            $dbDeployFiles = array_diff(scandir($dbDeployPath), ['.', '..', '.gitignore']);
 
+            if (file_exists($dbDeployPath . $dbDeployFile)) {
+                $dbDeployFiles = array_diff(scandir($dbDeployPath), ['.', '..', '.gitignore']);
 
-            if ($dbDeployFiles) {
-                foreach ($dbDeployFiles as $file) {
-                    $files[] = $file;
-                    if (strrpos($file, $tableInstall) !== false) {
-                        $setupFile = $file;
+                if ($dbDeployFiles) {
+                    foreach ($dbDeployFiles as $file) {
+                        $files[] = $file;
+                        if (strrpos($file, $tableInstall) !== false) {
+                            $dbDeployFile = $file;
+                        }
                     }
                 }
-            }
 
-            if (file_exists($dbDeployPath . $setupFile)) {
-                $setupFile = $dbDeployPath . $setupFile;
+                $dbDeployFile = $dbDeployPath . $dbDeployFile;
 
                 set_time_limit(0);
                 ini_set('memory_limit', '-1');
 
-                $setupFile = @file_get_contents($setupFile);
-                if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $setupFile, $matches)) {
+                $dbDeployFile = @file_get_contents($dbDeployFile);
+                if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $dbDeployFile, $matches)) {
                     $tables = isset($matches[0]) ? $matches[0] : null;
                     $tables = array_map(function ($a) {
                         $n = str_replace(['CREATE TABLE IF NOT EXISTS', '`'], '', $a);
@@ -809,9 +832,10 @@ class MelisMarketPlaceController extends AbstractActionController
 
                         return $n;
                     }, $tables);
-                    if (is_array($tables)) {
-                        $tables = (array) $tables;
-                    }
+
+                    sort($tables);
+                    sort($files);
+
                 }
             }
         }
@@ -862,21 +886,6 @@ class MelisMarketPlaceController extends AbstractActionController
                 $adapter = $this->getAdapter();
 
                 if ($this->getAdapter()) {
-                    // remove data on dbDeploy
-                    if ($files) {
-                        $dbDeployQuery = "";
-                        foreach ($files as $file) {
-                            $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
-                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/' . $file;
-                            if (file_exists($dbDeployFileCache)) {
-                                unlink($dbDeployFileCache);
-                            }
-                        }
-
-                        if ($dbDeployQuery) {
-                            $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
-                        }
-                    }
 
                     $dropQueryTable = "";
                     foreach ($tables as $table) {
@@ -918,6 +927,24 @@ class MelisMarketPlaceController extends AbstractActionController
                     }
 
                     if ($dropQueryTable) {
+                        // execute drop table
+                        $adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
+                    }
+
+                    // delete the dbdeploy file in the changelog table
+                    if ($files) {
+                        $dbDeployQuery = "";
+                        foreach ($files as $file) {
+                            $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
+                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/' . $file;
+                            if (file_exists($dbDeployFileCache)) {
+                                unlink($dbDeployFileCache);
+                            }
+                        }
+
+                        if ($dbDeployQuery) {
+                            $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
+                        }
                     }
 
                     if ($sql) {
@@ -964,7 +991,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Returns the instance of DbAdapter
      *
-     * @return DbAdapter
+     * @return \Zend\Db\Adapter\Adapter
      */
     private function getAdapter()
     {
@@ -1009,46 +1036,28 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function execDbDeployAction()
     {
-
-        $success = 0;
+        $success = false;
         $request = $this->getRequest();
 
         if ($request->isPost()) {
-
             $module = $this->getTool()->sanitize($request->getPost('module'));
-
             if ($module) {
+                /** @var \MelisDbDeploy\Service\MelisDbDeployDiscoveryService $deployDiscoveryService */
                 $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
                 $deployDiscoveryService->processing($module);
-                $success = 1;
+                $success = true;
             }
         }
 
-        $response = [
+        return new JsonModel([
             'success' => $success,
-        ];
-
-        return new JsonModel($response);
-
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function testAction()
-    {
-        $test = $this->getServiceLocator()->get('MelisComposerService');
-
-        $test->remove('melisplatform/melis-cms-prospects');
-
-
-        die;
+        ]);
     }
 
     /**
      * dashboard view of market place
      *
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function marketPlaceDashboardAction()
     {
@@ -1075,11 +1084,6 @@ class MelisMarketPlaceController extends AbstractActionController
         $domain = $uri->getHost();
         $scheme = $uri->getScheme();
 
-        /*
-         * verify list of modules
-         */
-        //End verifying modules
-
         if (isset($packages['packages'])) {
             foreach ($packages['packages'] as $packagesData => $packagesValue) {
                 $data[] = [
@@ -1102,7 +1106,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     'packageGroupId' => $packagesValue['packageGroupId'],
                     'packageGroupName' => $packagesValue['packageGroupName'],
                     'packageIsActive' => $packagesValue['packageIsActive'],
-
                 ];
             }
         }
@@ -1120,12 +1123,11 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return ViewModel
+     * @return \Zend\View\Model\ViewModel
      */
     public function marketPlaceModuleHeaderAction()
     {
         $melisKey = $this->getMelisKey();
-
 
         $moduleService = $this->getServiceLocator()->get('ModulesService');
         $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
@@ -1194,7 +1196,6 @@ class MelisMarketPlaceController extends AbstractActionController
                     $groupName = $tmpData[$i]['groupName'];
                     $currentVersion = $moduleVersion['version'];
                 }
-
             }
             //Get the version difference of local modules from repo modules
             $status = $marketplaceService->compareLocalVersionFromRepo($moduleName, $version);
@@ -1211,7 +1212,6 @@ class MelisMarketPlaceController extends AbstractActionController
             if ((int) $status == -1) {
                 $count++;
             }
-
         }
 
         $view = new ViewModel();
@@ -1234,4 +1234,165 @@ class MelisMarketPlaceController extends AbstractActionController
         }
     }
 
+    /**
+     * @return \Zend\View\Model\JsonModel
+     */
+    public function plugModuleAction()
+    {
+        $success = false;
+        $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
+
+        if ($this->getRequest()->isPost()) {
+            $module = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+
+            if ($module && isset($module['module'])) {
+                $module = $module['module'];
+                $this->getMarketPlaceService()->plugModule($module);
+                $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ok', [$module]);
+                $success = true;
+            }
+        }
+
+        return new JsonModel([
+            'success' => $success,
+            'message' => $message
+        ]);
+    }
+
+    /**
+     * @return \Zend\View\Model\JsonModel
+     */
+    public function isModuleActiveAction()
+    {
+        $active = false;
+
+        if ($this->getRequest()->isPost()) {
+            /** @var  Zend\Http\Request $request */
+            $request = $this->getRequest();
+            $module = $this->getTool()->sanitize($request->getPost('module'));
+            /** @var \MelisCore\Service\MelisCoreModulesService $mm */
+            $mm = $this->getServiceLocator()->get('ModulesService');
+            $active = $mm->isModuleLoaded($module);
+        }
+
+        return new JsonModel([
+            'active' => $active
+        ]);
+    }
+
+    /**
+     * @return \Zend\View\Model\JsonModel
+     */
+    public function unplugModuleAction()
+    {
+        $success = false;
+        $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
+
+        if ($this->getRequest()->isPost()) {
+            $module = $this->getRequest()->getPost('module');
+            if ($module) {
+                $this->getMarketPlaceService()->unplugModule($module);
+                $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ok', [$module]);
+                $success = true;
+            }
+        }
+
+        return new JsonModel([
+            'success' => $success
+        ]);
+    }
+
+    /**
+     * @return \Zend\View\Model\JsonModel
+     * @throws \ReflectionException
+     */
+    public function getSetupModuleFormAction()
+    {
+        $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
+        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+        $form = null;
+
+        if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
+            $form = $this->getMarketPlaceService()->getForm($module);
+        }
+
+        return new JsonModel(get_defined_vars());
+    }
+
+    /**
+     * @return \Zend\View\Model\JsonModel|null
+     * @throws \ReflectionException
+     */
+    public function validateSetupFormAction()
+    {
+        $module = $this->getRequest()->getPost('module', 'MelisCore');
+        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+        $result = null;
+        $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+
+        if ($this->getRequest()->getMethod() === 'POST') {
+            if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
+                $result = $this->getMarketPlaceService()->validateForm($module, $post);
+
+            }
+        }
+
+        $response = get_defined_vars();
+        unset($response['post']);
+
+        return new JsonModel($response);
+    }
+
+    /**
+     * This will be used to finalize the POST data
+     *
+     * @return \Zend\View\Model\JsonModel|null
+     * @throws \ReflectionException
+     */
+    public function submitSetupFormAction()
+    {
+        $module = $this->getRequest()->getPost('module', 'MelisCore');
+        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+        $result = null;
+        $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+
+        if ($this->getRequest()->getMethod() != 'POST') {
+            return new JsonModel(get_defined_vars());
+        }
+
+        if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
+            $result = $this->getMarketPlaceService()->submitForm($module, $post);
+
+            /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
+            $moduleService = $this->getServiceLocator()->get('ModulesService');
+
+            if ($moduleService->isSiteModule($module)) {
+                $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
+                $test = $service->installSite($this->getRequest())->invokeSetup();
+            }
+        }
+
+        return new JsonModel($result);
+    }
+
+    public function siteInstallAction()
+    {
+        $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
+        $action = $this->getRequest()->getPost('action', 'download');
+
+        $start = microtime(true);
+        /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
+        $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
+        $test = $service->installSite($this->getRequest())->invokeSetup();
+        $timeElapsed = microtime(true) - $start;
+//        $test = $service->installSite($this->getRequest());
+
+        /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
+//        $moduleService = $this->getServiceLocator()->get('ModulesService');
+//
+//        $data = $moduleService->isSiteModule($module);
+//        dd($data);
+
+        dd("$timeElapsed sec");
+    }
 }

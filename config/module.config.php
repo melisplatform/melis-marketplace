@@ -95,7 +95,8 @@ return [
             'translator' => 'MvcTranslator',
         ],
         'factories' => [
-            'MelisMarketPlaceService' => 'MelisMarketPlace\Service\Factory\MelisMarketPlaceServiceFactory',
+            'MelisMarketPlaceService' => \MelisMarketPlace\Service\Factory\MelisMarketPlaceServiceFactory::class,
+            'MelisMarketPlaceSiteService' => \MelisMarketPlace\Service\Factory\MelisMarketPlaceSiteServiceFactory::class,
         ],
     ],
 
