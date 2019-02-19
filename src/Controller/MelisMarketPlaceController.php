@@ -1366,8 +1366,9 @@ class MelisMarketPlaceController extends AbstractActionController
             /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
             $moduleService = $this->getServiceLocator()->get('ModulesService');
 
-            if ($moduleService->isSiteModule()) {
-                // do site install here by passing $this->getRequest()
+            if ($moduleService->isSiteModule($module)) {
+                $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
+                $test = $service->installSite($this->getRequest())->invokeSetup();
             }
         }
 
@@ -1379,10 +1380,11 @@ class MelisMarketPlaceController extends AbstractActionController
         $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
         $action = $this->getRequest()->getPost('action', 'download');
 
-
+        $start = microtime(true);
         /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
         $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
         $test = $service->installSite($this->getRequest())->invokeSetup();
+        $timeElapsed = microtime(true) - $start;
 //        $test = $service->installSite($this->getRequest());
 
         /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
@@ -1391,6 +1393,6 @@ class MelisMarketPlaceController extends AbstractActionController
 //        $data = $moduleService->isSiteModule($module);
 //        dd($data);
 
-        die('here');
+        dd("$timeElapsed sec");
     }
 }

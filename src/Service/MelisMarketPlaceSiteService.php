@@ -50,6 +50,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $module = $request->getPost('module');
         $action = $request->getPost('action');
 
+        $this->setDbAdapter();
+
         if ($scheme && $name && $domain && $module && $action) {
 
             $this->setModule($module)->setAction($action);
@@ -237,12 +239,17 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             $templateQuery = $this->createInsertSql([Melis::CMS_TEMPLATE => $templates]);
             $this->processTransactions($templateQuery);
 
-            // to avoid duplicates on CMS Template
+            // Next is to process the Page Tree where we build and save the structure and the contents of the pages
+            $pageTree = $dataConfig[Melis::CMS_PAGE_TREE];
+            $pageTreeQuery = $this->createInsertSql([Melis::CMS_PAGE_TREE => $pageTree]);
+            $this->processTransactions($pageTreeQuery);
+
+            // to avoid duplicates
             unset($dataConfig[Melis::CMS_TEMPLATE]);
+            unset($dataConfig[Melis::CMS_PAGE_TREE]);
 
             $queries = $this->createInsertSql($dataConfig);
             $this->processTransactions($queries);
-//            dd($queries);
 
             $this->incrementCurrentPageId();
         } else {
@@ -508,6 +515,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $id = null;
 
         if ($this->getAdapter()) {
+
             $statement = $this->getAdapter()->createStatement($sql);
             $result = $statement->execute();
 
@@ -521,9 +529,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 $result = $this->getAdapter()->query($selectQuery, DbAdapter::QUERY_MODE_EXECUTE)->toArray();
                 $id = (int) current($result)[$primaryKey] ?? null;
             }
-        }
 
-//        d("FK: $id, $sql");
+        }
 
         return $id;
     }
@@ -535,8 +542,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      */
     private function getAdapter()
     {
-        $this->setDbAdapter();
-
         return $this->adapter;
     }
 
@@ -662,10 +667,10 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
         if ($table && $field && $value && $returnField) {
             $sql = "SELECT $returnField FROM `$table` WHERE `$field` = '$value' LIMIT 1;";
-
             $result = $this->getAdapter()->query($sql, DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+            $value = current($result)[$returnField] ?? null;
 
-            return current($result)[$returnField] ?? null;
+            return $value;
         }
 
         return null;
