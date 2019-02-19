@@ -86,7 +86,7 @@ return [
                  * lesser requests
                  */
                 'build' => [
-                    'disable_bundle' => true,
+                    'disable_bundle' => false,
                     // lists of assets that will be loaded in the layout
                     'css' => [
                         '/MelisMarketPlace/build/css/bundle.css',
