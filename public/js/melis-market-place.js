@@ -285,7 +285,7 @@ $(function () {
                                                             var payload = Object.assign({action: action}, {data: response.data}, {module: module});
                                                             resolve(payload);
                                                         } else {
-                                                            reject(data);
+                                                            reject(response);
                                                         }
                                                     });
                                             }
