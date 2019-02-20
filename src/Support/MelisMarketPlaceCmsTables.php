@@ -70,5 +70,4 @@ class MelisMarketPlaceCmsTables extends MelisTables
      */
     const CURRENT_TEMPLATE_ID = '%current_template_id%';
 
-    const TEMPLATE_NAME = '';
 }

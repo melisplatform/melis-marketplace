@@ -15,12 +15,6 @@ use Zend\Http\PhpEnvironment\Request;
 
 class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 {
-    const VAL_TABLE = 0;
-    const VAL_FIELD = 1;
-    const VAL_VALUE = 2;
-    const VAL_RETURN_FIELD = 3;
-    const ACTION_REQUIRE = 'require';
-
     /**
      * @var \Zend\Db\Adapter\Adapter $adapter
      */
@@ -37,6 +31,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * @var string $action - set what type of action is being done
      */
     protected $action;
+
+    const VAL_TABLE = 'table';
+    const VAL_FIELD = 'field';
+    const VAL_VALUE = 'value';
+    const VAL_RETURN_FIELD = 'return';
+    const ACTION_REQUIRE = 'require';
 
     /**
      * @param \Zend\Http\PhpEnvironment\Request $request
@@ -374,7 +374,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                             if (!in_array($field, [Melis::RELATION, Site::THEN, Melis::PRIMARY_KEY])) {
                                 if (is_array($value)) {
                                     $fn = current(array_keys($value));
-                                    $args = array_values($value[$fn]);
+                                    $args = $value[$fn];
                                     $fields .= "`$field`, ";
                                     $fieldValues .= "'" . $this->$fn($args) . "', ";
                                 } else {
@@ -450,7 +450,15 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                     // Execute set callbacks in the configuration array table
                     if (isset($transact[Site::THEN])) {
                         foreach ($transact[Site::THEN] as $fnOrKey => $fn) {
-                            $this->$fn();
+                            if (is_string($fn)) {
+                                $this->$fn();
+                            }
+
+                            if (is_array($fn)) {
+                                $fnName = array_keys($fn)[0];
+                                $args = array_values($fnName);
+                                $this->$fnName($args);
+                            }
                         }
                     }
 
@@ -715,5 +723,95 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         });
 
         return $flat;
+    }
+
+    /**
+     * Retrieves the corresponding Page ID
+     *
+     * @param $args
+     * @param-suggest int $site_id
+     * @param-suggest string $page_name
+     * @param-suggest mixed $return
+     *
+     * @return null|int|string
+     */
+    private function getPageId($args)
+    {
+        $siteId = (int) $args['site_id'] ?? null;
+        $pageName = $args['page_name'] ?? null;
+        $return = $args['return'] ?? null;
+
+        $melisCmsPageTree = Melis::CMS_PAGE_TREE;
+        $melisCmsPagePublished = Melis::CMS_PAGE_PUBLISHED;
+        $pageId = null;
+
+        if ($siteId && $pageName && $return) {
+
+            $transaction = "SELECT $return FROM `$melisCmsPageTree` " .
+                "LEFT JOIN `$melisCmsPagePublished` ON `tree_page_id` = `page_id` WHERE " .
+                "`tree_page_id` = $siteId AND `page_name` = '$pageTitle'";
+
+            if ($result = $this->getAdapter()->query($selectQuery, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
+                $pageId = current($result)[$return] ?? null;
+            }
+        }
+
+        return $pageId;
+    }
+
+    /**
+     * Retrieves the corresponding Template ID of the Site
+     *
+     * @param $args
+     * @param-suggest int $site_id
+     * @param-suggest string $template_name
+     * @param-suggest mixed $return
+     *
+     * @return null|int|string
+     */
+    private function getTemplateId($args)
+    {
+        $siteId = (int) $args['site_id'] ?? null;
+        $templateName = $args['template_name'] ?? null;
+        $return = $args['return'] ?? null;
+
+        $melisCmsTemplates = Melis::CMS_TEMPLATE;
+        $templateId = null;
+
+        if ($siteId && $templateName && $return) {
+            $transaction = "SELECT $return FROM `$melisCmsTemplates` WHERE `tpl_site_id` = $siteId AND `tpl_name` = '$templateName'";
+
+            if ($result = $this->getAdapter()->query($selectQuery, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
+                $templateId = current($result)[$return] ?? null;
+            }
+        }
+
+        return  $templateId;
+    }
+
+    /**
+     * Triggers an event with arguments merging the Site configuration and the $args paramater
+     *
+     * @param $args
+     * @param-suggest string $event_name
+     * @param-suggest mixed $params
+     *
+     * @return array|null
+     */
+    protected function triggerEvent($args)
+    {
+        $eventName = $args['event_name'] ?? null;
+        $params = $args['params'] ?? null;
+
+        if ($eventName && $params) {
+            $config = $this->getConfig();
+            $dataConfig = $config[Site::DATA];
+            $params = array_merge($dataConfig, ['params' => $args]);
+
+            return $this->sendEvent($eventName, $args);
+        }
+
+        return null;
+
     }
 }

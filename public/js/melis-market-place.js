@@ -375,60 +375,11 @@ $(function () {
                                         .catch(function (error) {
                                             updateCmdText('<span style="color: #ff190d;">' + translations.tr_melis_marketplace_check_addtl_setup_ko + "</span>");
                                         });
-                                    // .then(function (payload) {
-                                    //     // if user has skipped the setup form
-                                    //     if (typeof payload === 'undefined' || typeof payload == null) {
-                                    //         melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                    //         return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                    //     }
-                                    //
-                                    //     if (payload.skip) {
-                                    //         // unplug module
-                                    //         var module = payload.module;
-                                    //         axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module})
-                                    //             .then(function (response) {
-                                    //                 if (response.data.success === false) {
-                                    //                     throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                                    //                 }
-                                    //             });
-                                    //
-                                    //         // ask the user if they want to activate the module, this will only happen if the action is "download"
-                                    //         if (payload.action === 'download' || payload.form === '' || payload.form === null) {
-                                    //             $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
-                                    //         }
-                                    //
-                                    //         $("button.melis-marketplace-modal-reload").removeClass("hidden");
-                                    //     }
-                                    //
-                                    //     return payload;
-                                    // });
                                 });
 
                             return payload;
 
                         })
-                        // .then(function (payload) { // @status done | tested
-                        //     if (typeof payload === 'undefined' || typeof payload == null) {
-                        //         melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                        //         return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                        //     }
-                        //
-                        //     console.log('test', payload);
-                        //
-                        //     // check if the module exists in the module loader
-                        //     var module = payload.module;
-                        //     axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/isModuleActive', {module : module})
-                        //         .then(function (response) {
-                        //             if (response.data.success === true) {
-                        //                 return payload;
-                        //             } else {
-                        //                 melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                        //                 throw new Error(translations.tr_melis_market_place_plug_module_ko.replace('%s', module));
-                        //             }
-                        //         });
-                        //
-                        //     return payload;
-                        // })
                         .catch(function (err) {
                             console.log(err);
                         })
