@@ -1308,9 +1308,10 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function getSetupModuleFormAction()
     {
-        $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
+        $module = $this->getRequest()->getPost('module');
         $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
         $form = null;
+        $moduleSite = $this->getServiceLocator()->get('ModulesService')->isSiteModule($module);
 
         if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
             $form = $this->getMarketPlaceService()->getForm($module);
@@ -1355,6 +1356,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
         $result = null;
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+        $moduleSite = false;
 
         if ($this->getRequest()->getMethod() != 'POST') {
             return new JsonModel(get_defined_vars());
@@ -1366,19 +1368,22 @@ class MelisMarketPlaceController extends AbstractActionController
             /** @var \MelisCore\Service\MelisCoreModulesService $moduleService */
             $moduleService = $this->getServiceLocator()->get('ModulesService');
 
-            if ($moduleService->isSiteModule($module)) {
+            if ($moduleSite = $moduleService->isSiteModule($module)) {
                 /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
                 $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
                 try {
                     $service->installSite($this->getRequest())->invokeSetup();
+                    if ($result['success'] === true) {
+                        $result['message'] = $this->getTool()->getTranslation('tr_melis_marketplace_setup_config_ok');
+                    }
                 } catch (\Exception $e) {
-                    dd($e);
+                    $result['message'] = $e->getMessage();
                 }
 
             }
         }
 
-        return new JsonModel($result);
+        return new JsonModel(array_merge($result, ['moduleSite' => $moduleSite]));
     }
 
     public function siteInstallAction()

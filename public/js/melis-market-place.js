@@ -141,7 +141,7 @@ $(function () {
                                         addSuccessCmdText(translations.tr_melis_marketplace_setup_config_ok);
 
                                         // ask the user if they want to activate the module, this will only happen if the action is "download"
-                                        if (action === 'download' || action === 'require') {
+                                        if (action === 'download' || action === 'require' && response.moduleSite === false) {
                                             $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
                                         }
 
@@ -356,10 +356,10 @@ $(function () {
                                                     function () {
                                                         // ask the user if they want to activate the module, this will only happen if the action is "download"
                                                         updateCmdText(translations.tr_melis_marketplace_check_addtl_setup_skipped);
-                                                        console.log(payload);
+
                                                         // make sure to unplug module
                                                         axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/unplugModule', {module : module});
-                                                        if (payload.action === 'require' || payload.form === '' || payload.form === null) {
+                                                        if (payload.action === 'require' || payload.form === '' || payload.form === null && payload.moduleSite === false) {
                                                             $("button.melis-marketplace-modal-activate-module").removeClass("hidden");
                                                         }
 
