@@ -6,6 +6,7 @@ use MelisCore\Service\MelisCoreGeneralService;
 use MelisMarketPlace\Exception\ArrayKeyNotFoundException;
 use MelisMarketPlace\Exception\EmptySiteException;
 use MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException;
+use MelisMarketPlace\Exception\TemplateIdMaxRangeReachedException;
 use MelisMarketPlace\Support\MelisMarketPlaceCmsTables as Melis;
 use MelisMarketPlace\Support\MelisMarketPlaceSiteInstall as Site;
 use PDO;
@@ -18,6 +19,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     const VAL_FIELD = 1;
     const VAL_VALUE = 2;
     const VAL_RETURN_FIELD = 3;
+    const ACTION_REQUIRE = 'require';
+
     /**
      * @var \Zend\Db\Adapter\Adapter $adapter
      */
@@ -34,8 +37,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * @var string $action - set what type of action is being done
      */
     protected $action;
-
-    const ACTION_REQUIRE = 'require';
 
     /**
      * @param \Zend\Http\PhpEnvironment\Request $request
@@ -76,6 +77,41 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
         } else {
             throw new EmptySiteException('Site data is empty', 500);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     * Sets the Database adapter that will be used when querying
+     * the database, this will use the configuration set
+     * on the database config file
+     *
+     * @return $this
+     */
+    private function setDbAdapter()
+    {
+        /** @var \Zend\Config\Config $config */
+        $config = $this->getServiceLocator()->get('config');
+        $db = $config['db'];
+
+        if ($db) {
+
+            $driver = $db['driver'];
+            $dsn = $db['dsn'];
+            $username = $db['username'];
+            $password = $db['password'];
+
+            $this->adapter = new DbAdapter([
+                'driver' => $driver,
+                'dsn' => $dsn,
+                'username' => $username,
+                'password' => $password,
+                'driver_options' => [
+                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
+                ],
+            ]);
         }
 
         return $this;
@@ -192,31 +228,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @return \MelisEngine\Model\Tables\MelisPageTreeTable
-     */
-    private function pageTreeTable()
-    {
-        /** @var \MelisEngine\Model\Tables\MelisPageTreeTable $pageTreeTable */
-        $pageTreeTable = $this->getServiceLocator()->get('MelisEngineTablePageTree');
-
-        return $pageTreeTable;
-    }
-
-    /**
-     * @param int $incremental
-     *
-     * @return $this
-     */
-    private function incrementCurrentPageId($incremental = 0)
-    {
-        $this->platformIdTable()->save([
-            'pids_page_id_current' => ((int) $this->getCurrentPlatformId()->pids_page_id_current) + 1 + $incremental,
-        ], $this->getPlatformId());
-
-        return $this;
-    }
-
-    /**
      * @return $this
      * @throws \MelisMarketPlace\Exception\ArrayKeyNotFoundException
      */
@@ -253,7 +264,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             $queries = $this->createInsertSql($dataConfig);
             $this->processTransactions($queries);
 
-            $this->incrementCurrentPageId();
         } else {
             throw new ArrayKeyNotFoundException("{$this->getAction()} key not found in {$this->getAction()} configuration");
         }
@@ -288,41 +298,6 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     public function setModule($module)
     {
         $this->module = $module;
-
-        return $this;
-    }
-
-    /**
-     * @inheritdoc
-     * Sets the Database adapter that will be used when querying
-     * the database, this will use the configuration set
-     * on the database config file
-     *
-     * @return $this
-     */
-    private function setDbAdapter()
-    {
-        /** @var \Zend\Config\Config $config */
-        $config = $this->getServiceLocator()->get('config');
-        $db = $config['db'];
-
-        if ($db) {
-
-            $driver = $db['driver'];
-            $dsn = $db['dsn'];
-            $username = $db['username'];
-            $password = $db['password'];
-
-            $this->adapter = new DbAdapter([
-                'driver' => $driver,
-                'dsn' => $dsn,
-                'username' => $username,
-                'password' => $password,
-                'driver_options' => [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
-                ],
-            ]);
-        }
 
         return $this;
     }
@@ -372,7 +347,9 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * Converts data map configuration into an array of SQL statements recursively
      *
      * @param $tables
-     * @param null $parentTable
+     * @param null|string $parentTable
+     *
+     * @return array
      */
     protected function createInsertSql($tables, $parentTable = null)
     {
@@ -407,14 +384,14 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                             }
 
                             switch ($field) {
-                                case Site::THEN:
-                                    $queries[$table][$idx][Site::THEN] = $value;
-                                    break;
                                 case Melis::PRIMARY_KEY:
                                     $queries[$table][$idx][Melis::PRIMARY_KEY] = $value;
                                     break;
                                 case Melis::RELATION:
                                     $queries[$table][$idx][Melis::RELATION] = $this->createInsertSql($value, $table);
+                                    break;
+                                case Site::THEN:
+                                    $queries[$table][$idx][Site::THEN] = $value;
                                     break;
                             }
                         }
@@ -460,10 +437,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                     $foreignKey,
                     Melis::CMS_SITE_ID,
                     Melis::CURRENT_PAGE_ID,
+                    Melis::CURRENT_TEMPLATE_ID,
                 ], [
                     $lastInsertedId,
                     $this->getSiteId(),
                     $this->getCurrentPageId(),
+                    $this->getCurrentTemplateId(),
                 ], $transact[Melis::SQL]);
 
                 if ($insertedId = $this->insert($sql, $primaryKey)) {
@@ -507,6 +486,29 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
+     * Returns the current available template ID
+     *
+     * @return int
+     * @throws \MelisMarketPlace\Exception\TemplateIdMaxRangeReachedException
+     */
+    private function getCurrentTemplateId()
+    {
+        $templateId = 1;
+        $platformIds = $this->getCurrentPlatformId();
+
+        if ($platformIds) {
+            $templateId = $platformIds->pids_tpl_id_current;
+            if ($templateId > $platformIds->pids_tpl_id_end) {
+                throw new TemplateIdMaxRangeReachedException(
+                    "Maximum of {$templateId}/{$platformIds->pids_tpl_id_end} template ID for {$platformName} platform has been reached.",
+                    500);
+            }
+        }
+
+        return $templateId;
+    }
+
+    /**
      * @param string $sql
      * @param null|int $primaryKey - will be used to query the inserted data if no primary key is set in the table
      *
@@ -527,11 +529,10 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
             if (is_null($id) || !$id && !is_null($primaryKey)) {
                 // create a SELECT query
-                $selectQuery = $this->createSelectSql($sql, $primaryKey);
+                $selectQuery = $this->createSelectSql($sql, [$primaryKey]);
                 $result = $this->getAdapter()->query($selectQuery, DbAdapter::QUERY_MODE_EXECUTE)->toArray();
                 $id = (int) current($result)[$primaryKey] ?? null;
             }
-
         }
 
         return $id;
@@ -594,14 +595,9 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             }
         }
 
-        $fields = '';
-        if ($table) {
+        $fields = ! is_array($selection) ? $selection : implode(', ', $selection);
 
-            if (is_array($selection) && count($selection) > 1) {
-                $fields = implode(', ', $selection);
-            } else {
-                $fields = current($selection) ?: $selection;
-            }
+        if ($table) {
 
             $transaction .= " $fields FROM `$table`";
 
@@ -625,6 +621,20 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
+     * @param int $incremental
+     *
+     * @return $this
+     */
+    private function incrementCurrentPageId($incremental = 0)
+    {
+        $this->platformIdTable()->save([
+            'pids_page_id_current' => ((int) $this->getCurrentPlatformId()->pids_page_id_current) + 1 + $incremental,
+        ], $this->getPlatformId());
+
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function getArrayCopy()
@@ -633,12 +643,23 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
+     * @return \MelisEngine\Model\Tables\MelisPageTreeTable
+     */
+    private function pageTreeTable()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisPageTreeTable $pageTreeTable */
+        $pageTreeTable = $this->getServiceLocator()->get('MelisEngineTablePageTree');
+
+        return $pageTreeTable;
+    }
+
+    /**
      * @return $this
      */
     private function incrementCurrentTemplateId()
     {
         $this->platformIdTable()->save([
-            'pids_tpl_id_current' => ((int) $this->getCurrentPlatformId()->pids_tpl_id_current) + 1,
+            'pids_tpl_id_current' => ((int) $this->getCurrentTemplateId()) + 1,
         ], $this->getPlatformId());
 
         return $this;
@@ -680,18 +701,19 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
     /**
      * Used to flatten a multi-dimensional array
+     *
      * @param $array
      *
      * @return array
      */
     private function flattenArray($array)
     {
-         $flat = [];
+        $flat = [];
 
-         array_walk_recursive($array, function ($a) use (&$flat) {
-             $flat[] = $a;
-         });
+        array_walk_recursive($array, function ($a) use (&$flat) {
+            $flat[] = $a;
+        });
 
-         return $flat;
+        return $flat;
     }
 }
