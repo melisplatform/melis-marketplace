@@ -280,12 +280,12 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     }
 
     /**
-     * @return \MelisCore\Service\MelisCoreModulesService
+     * @return \MelisAssetManager\Service\MelisCoreModulesService
      */
     protected function moduleManager()
     {
-        /** @var \MelisCore\Service\MelisCoreModulesService $service */
-        $service = $this->getServiceLocator()->get('ModulesService');
+        /** @var \MelisAssetManager\Service\MelisCoreModulesService $service */
+        $service = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
 
         return $service;
     }
@@ -319,7 +319,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         $arrayParameters = $this->sendEvent('melismarketplace_compare_local_version_from_repo_start', $arrayParameters);
 
         $status = null;
-        $moduleSvc = $this->getServiceLocator()->get('ModulesService');
+        $moduleSvc = $this->moduleManager();
         $tmpModName = ($arrayParameters['moduleName'] == "MelisMarketplace") ? "MelisMarketPlace" : $arrayParameters['moduleName'];
         $modulesInfo = $moduleSvc->getModulesAndVersions($tmpModName);
         $localVersion = $modulesInfo['version'];

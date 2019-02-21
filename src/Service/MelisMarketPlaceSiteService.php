@@ -272,12 +272,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @return \MelisCore\Service\MelisCoreModulesService
+     * @return \MelisAssetManager\Service\MelisCoreModulesService
      */
     protected function moduleManager()
     {
-        /** @var \MelisCore\Service\MelisCoreModulesService $service */
-        $service = $this->getServiceLocator()->get('ModulesService');
+        /** @var \MelisAssetManager\Service\MelisCoreModulesService $service */
+        $service = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
 
         return $service;
     }
@@ -313,12 +313,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @return \MelisCore\Service\MelisCoreConfigService
+     * @return \MelisAssetManager\Service\MelisCoreConfigService
      */
     private function config()
     {
-        /** @var \MelisCore\Service\MelisCoreConfigService $config */
-        $config = $this->getServiceLocator()->get('MelisCoreConfig');
+        /** @var \MelisAssetManager\Service\MelisCoreConfigService $config */
+        $config = $this->getServiceLocator()->get('MelisConfig');
 
         return $config;
     }
