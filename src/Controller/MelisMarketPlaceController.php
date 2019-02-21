@@ -1308,8 +1308,10 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function getSetupModuleFormAction()
     {
-        $module = $this->getRequest()->getPost('module');
-        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+        $module = $this->getRequest()->getPost('module', $this->params()->fromRoute('module'));
+        $action = $this->getRequest()->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+            ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+
         $form = null;
         $moduleSite = $this->getServiceLocator()->get('ModulesService')->isSiteModule($module);
 
@@ -1326,8 +1328,10 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function validateSetupFormAction()
     {
-        $module = $this->getRequest()->getPost('module', 'MelisCore');
-        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+        $module = $this->getRequest()->getPost('module', $this->params()->fromRoute('module'));
+        $action = $this->getRequest()->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+            ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+
         $result = null;
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
 
@@ -1352,8 +1356,10 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function submitSetupFormAction()
     {
-        $module = $this->getRequest()->getPost('module', 'MelisCore');
-        $action = $this->getRequest()->getPost('action', 'download') === self::ACTION_REQUIRE ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+        $module = $this->getRequest()->getPost('module', $this->params()->fromRoute('module'));
+        $action = $this->getRequest()->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+            ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
+
         $result = null;
         $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
         $moduleSite = false;

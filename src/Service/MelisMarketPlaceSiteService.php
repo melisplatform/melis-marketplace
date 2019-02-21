@@ -373,6 +373,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
                             if (!in_array($field, [Melis::RELATION, Site::THEN, Melis::PRIMARY_KEY])) {
                                 if (is_array($value)) {
+
                                     $fn = current(array_keys($value));
                                     $args = $value[$fn];
                                     $fields .= "`$field`, ";
@@ -455,9 +456,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                             }
 
                             if (is_array($fn)) {
-                                $fnName = array_keys($fn)[0];
-                                $args = array_values($fnName);
-                                $this->$fnName($args);
+                                $this->$fnOrKey($fn);
                             }
                         }
                     }
@@ -729,17 +728,15 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * Retrieves the corresponding Page ID
      *
      * @param $args
-     * @param-suggest int $site_id
      * @param-suggest string $page_name
-     * @param-suggest mixed $return
      *
      * @return null|int|string
      */
     private function getPageId($args)
     {
-        $siteId = (int) $args['site_id'] ?? null;
+        $siteId = $this->getSiteId();
         $pageName = $args['page_name'] ?? null;
-        $return = $args['return'] ?? null;
+        $return = 'tree_page_id';
 
         $melisCmsPageTree = Melis::CMS_PAGE_TREE;
         $melisCmsPagePublished = Melis::CMS_PAGE_PUBLISHED;
@@ -749,9 +746,9 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
             $transaction = "SELECT $return FROM `$melisCmsPageTree` " .
                 "LEFT JOIN `$melisCmsPagePublished` ON `tree_page_id` = `page_id` WHERE " .
-                "`tree_page_id` = $siteId AND `page_name` = '$pageTitle'";
+                "`tree_father_page_id` = $siteId AND `page_name` = '$pageName';";
 
-            if ($result = $this->getAdapter()->query($selectQuery, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
+            if ($result = $this->getAdapter()->query($transaction, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
                 $pageId = current($result)[$return] ?? null;
             }
         }
@@ -763,17 +760,15 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * Retrieves the corresponding Template ID of the Site
      *
      * @param $args
-     * @param-suggest int $site_id
      * @param-suggest string $template_name
-     * @param-suggest mixed $return
      *
      * @return null|int|string
      */
     private function getTemplateId($args)
     {
-        $siteId = (int) $args['site_id'] ?? null;
+        $siteId = $this->getSiteId();
         $templateName = $args['template_name'] ?? null;
-        $return = $args['return'] ?? null;
+        $return = 'tpl_id';
 
         $melisCmsTemplates = Melis::CMS_TEMPLATE;
         $templateId = null;
@@ -781,7 +776,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         if ($siteId && $templateName && $return) {
             $transaction = "SELECT $return FROM `$melisCmsTemplates` WHERE `tpl_site_id` = $siteId AND `tpl_name` = '$templateName'";
 
-            if ($result = $this->getAdapter()->query($selectQuery, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
+            if ($result = $this->getAdapter()->query($transaction, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
                 $templateId = current($result)[$return] ?? null;
             }
         }
@@ -806,9 +801,9 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         if ($eventName && $params) {
             $config = $this->getConfig();
             $dataConfig = $config[Site::DATA];
-            $params = array_merge($dataConfig, ['params' => $args]);
+            $params = array_merge($dataConfig, ['params' => $params]);
 
-            return $this->sendEvent($eventName, $args);
+            return $this->sendEvent($eventName, $params);
         }
 
         return null;

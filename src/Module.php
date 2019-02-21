@@ -20,6 +20,7 @@ class Module
         $moduleRouteListener->attach($eventManager);
 
         $this->createTranslations($e);
+        $eventManager->attach(new \MelisMarketPlace\Listener\MelisMarketPlaceTestListener());
     }
 
     public function getConfig()

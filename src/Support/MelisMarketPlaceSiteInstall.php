@@ -82,9 +82,7 @@ class MelisMarketPlaceSiteInstall
      * @const GET_PAGE_ID Retrieves the corresponding Page ID
      *
      * @param $args
-     * @param-suggest int $site_id | key: "site_id"
      * @param-suggest string $page_name | key: "page_name"
-     * @param-suggest mixed $return | key: "return"
      *
      * @return null|int|string
      */
@@ -94,11 +92,9 @@ class MelisMarketPlaceSiteInstall
      * @const GET_TEMPLATE_ID Retrieves the corresponding Template ID of the Site
      *
      * @param $args
-     * @param-suggest int $site_id | key: "site_id"
      * @param-suggest string $template_name | key: "template_name"
-     * @param-suggest mixed $return | key: "return"
      *
      * @return null|int|string
      */
-    const GET_TEMPLATE_ID = 'getPageId';
+    const GET_TEMPLATE_ID = 'getTemplateId';
 }
