@@ -5,4 +5,5 @@ All notable changes to this project will be documented in this file.
 
 * Added support class that will serve as constants in configurations
 * Fixes on download, updating and deleting module
+* Added possibility to install a Site.
 
