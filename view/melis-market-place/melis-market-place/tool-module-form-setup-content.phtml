@@ -1,0 +1,43 @@
+<?php
+$name = '';
+$id = '';
+if (!empty($this->zoneconfig['conf']['name'])) {
+    $name = $this->zoneconfig['conf']['name'];
+}
+if (!empty($this->zoneconfig['conf']['id'])) {
+    $id = $this->zoneconfig['conf']['id'];
+}
+?>
+<div class="modal-content" id="<?= $id; ?>" data-melisKey="<?= $this->melisKey; ?>" data-module="<?= $this->module ?>" data-action="<?= $this->action ?>">
+    <div class="modal-body padding-none">
+        <div class="wizard">
+            <div class="widget widget-tabs widget-tabs-double widget-tabs-responsive margin-none border-none">
+                <div class="widget-head">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="#<?php echo $this->zoneconfig['conf']['id'] ?>" class="glyphicons package" data-toggle="tab" aria-expanded="true">
+                                <i></i><?= $this->title ?>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="widget-body innerAll inner-2x">
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="<?php echo $id ?>">
+
+                            <?= $this->form ?>
+
+                            <div class="pull-right">
+                                <button type="button" class="btn btn-success" id="melis-marketplace-setup-modal-submit">
+                                    <?= $this->translate('tr_meliscore_common_submit'); ?>
+                                </button>
+                            </div>
+
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -76,6 +76,7 @@ return [
                     '/MelisMarketPlace/css/melis-market-place.css',
                 ],
                 'js' => [
+                    '/MelisMarketPlace/js/axios.min.js',
                     '/MelisMarketPlace/js/slick.min.js',
                     '/MelisMarketPlace/js/melis-market-place.js',
                 ],
@@ -84,6 +85,7 @@ return [
                  * lesser requests
                  */
                 'build' => [
+                    'disable_bundle' => false,
                     // lists of assets that will be loaded in the layout
                     'css' => [
                         '/MelisMarketPlace/build/css/bundle.css',
@@ -154,6 +156,20 @@ return [
                                 'module' => 'MelisMarketPlace',
                                 'controller' => 'MelisMarketPlace',
                                 'action' => 'tool-product-modal-content',
+                                'jscallback' => '',
+                                'jsdatas' => [],
+                            ],
+                        ],
+                        'melis_market_place_module_setup_form_content' => [
+                            'conf' => [
+                                'id' => 'id_melis_market_place_module_setup_form_content',
+                                'melisKey' => 'melis_market_place_module_setup_form_content',
+                                'name' => 'tr_melis_market_place_tool_package_modal_content',
+                            ],
+                            'forward' => [
+                                'module' => 'MelisMarketPlace',
+                                'controller' => 'MelisMarketPlace',
+                                'action' => 'tool-module-form-setup-content',
                                 'jscallback' => '',
                                 'jsdatas' => [],
                             ],

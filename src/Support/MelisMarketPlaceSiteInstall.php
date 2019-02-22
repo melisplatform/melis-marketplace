@@ -10,9 +10,9 @@ class MelisMarketPlaceSiteInstall
     const CONFIG = 'config';
 
     /**
-     * @const DATA holds the string value of "data"
+     * @const DATA holds the string value of "_DATA"
      */
-    const DATA = 'data';
+    const DATA = '_DATA';
 
     /**
      * @const DATA_INSERT holds the string value of "insert"
@@ -40,9 +40,9 @@ class MelisMarketPlaceSiteInstall
     const UPDATE = 'update';
 
     /**
-     * const THEN holds the string value of "then"
+     * const THEN holds the string value of "_THEN"
      */
-    const THEN = 'then';
+    const THEN = '_THEN';
 
     /**
      * @const UPDATE_CURRENT_SITE_ID callback function to trigger on a successful query transaction
@@ -55,8 +55,19 @@ class MelisMarketPlaceSiteInstall
     const UPDATE_CURRENT_TEMPLATE_ID = 'incrementCurrentTemplateId';
 
     /**
+     * @const TRIGGER_EVENT Triggers an event with arguments merging the Site configuration and the $args paramater
+     *
+     * @param $args
+     * @param-suggest string $event_name
+     * @param-suggest mixed $params
+     *
+     * @return array|null
+     */
+     const TRIGGER_EVENT = 'triggerEvent';
+
+    /**
      * @const GET_FIELD_VALUE callback function to trigger on a successful query transaction, this requires a parameter
-     * this returns the defined field
+     * that returns the defined field
      *
      * @var string $table
      * @var string $field
@@ -66,4 +77,24 @@ class MelisMarketPlaceSiteInstall
      * @return null|string|int
      */
     const GET_FIELD_VALUE = 'getFieldValue';
+
+    /**
+     * @const GET_PAGE_ID Retrieves the corresponding Page ID
+     *
+     * @param $args
+     * @param-suggest string $page_name | key: "page_name"
+     *
+     * @return null|int|string
+     */
+    const GET_PAGE_ID = 'getPageId';
+
+    /**
+     * @const GET_TEMPLATE_ID Retrieves the corresponding Template ID of the Site
+     *
+     * @param $args
+     * @param-suggest string $template_name | key: "template_name"
+     *
+     * @return null|int|string
+     */
+    const GET_TEMPLATE_ID = 'getTemplateId';
 }

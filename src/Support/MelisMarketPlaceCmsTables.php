@@ -62,5 +62,12 @@ class MelisMarketPlaceCmsTables extends MelisTables
      */
     const CURRENT_PAGE_ID = '%current_page_id%';
 
-    const TEMPLATE_NAME = '';
+    /**
+     * @const CURRENT_TEMPLATE_ID holds the string value of "%current_template_id%", which will be used to swap
+     * with the current available template ID, if there's no available template ID, it will throw PlatformIdMaxRangeReachedException
+     *
+     * @throws \MelisMarketPlace\Exception\TemplateIdMaxRangeReachedException
+     */
+    const CURRENT_TEMPLATE_ID = '%current_template_id%';
+
 }
