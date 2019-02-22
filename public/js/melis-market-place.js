@@ -172,14 +172,14 @@ $(function () {
 
     $("body").on("click", "button.melis-marketplace-product-action", function () {
         var action = $(this).data().action;
-        var package = $(this).data().package;
+        var pkg = $(this).data().package;
         var module = $(this).data().module;
 
         var zoneId = "id_melis_market_place_tool_package_modal_content";
         var melisKey = "melis_market_place_tool_package_modal_content";
         var modalUrl = "/melis/MelisMarketPlace/MelisMarketPlace/toolProductModalContainer";
 
-        var objData = {action: action, package: package, module: module};
+        var objData = {action: action, package: pkg, module: module};
 
         melisCoreTool.pending("button");
         if (action === "remove") {
