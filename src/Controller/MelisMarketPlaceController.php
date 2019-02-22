@@ -1402,7 +1402,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
         $test = $service->installSite($this->getRequest())->invokeSetup();
         $timeElapsed = microtime(true) - $start;
-//        $test = $service->installSite($this->getRequest());
+        $test = $service->installSite($this->getRequest())->invokeSetup();
 
         /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $moduleService */
 //        $moduleService = $this->getServiceLocator()->get('MelisAssetManagerModulesService');

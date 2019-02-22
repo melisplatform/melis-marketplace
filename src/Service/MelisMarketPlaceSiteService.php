@@ -271,7 +271,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             $pageTreeSvc = $this->getServiceLocator()->get('MelisEngineTree');
             $pageTreeMap = $pageTreeSvc->getAllPages($this->getSiteId());
 
-            $this->sendEvent('melis_marketplace_site_install_results', ['pages' => $pageTreeMap]);
+            $this->sendEvent('melis_marketplace_site_install_results', ['site_id' => $this->getSiteId(), 'pages' => $pageTreeMap]);
 
         } else {
             throw new ArrayKeyNotFoundException("{$this->getAction()} key not found in {$this->getAction()} configuration");
