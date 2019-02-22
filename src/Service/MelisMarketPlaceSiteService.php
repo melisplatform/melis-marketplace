@@ -19,14 +19,17 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      * @var \Zend\Db\Adapter\Adapter $adapter
      */
     protected $adapter;
+
     /**
      * @var string $setupFile - setup config file to lookup
      */
     protected $setupFile;
+
     /**
      * @var string $module - name of the module to process
      */
     protected $module;
+
     /**
      * @var string $action - set what type of action is being done
      */
@@ -264,6 +267,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             $queries = $this->createInsertSql($dataConfig);
             $this->processTransactions($queries);
 
+            /** @var \MelisEngine\Service\MelisTreeService $pageTreeSvc */
+            $pageTreeSvc = $this->getServiceLocator()->get('MelisEngineTree');
+            $pageTreeMap = $pageTreeSvc->getAllPages($this->getSiteId());
+
+            $this->sendEvent('melis_marketplace_site_install_results', ['pages' => $pageTreeMap]);
+
         } else {
             throw new ArrayKeyNotFoundException("{$this->getAction()} key not found in {$this->getAction()} configuration");
         }
@@ -372,6 +381,13 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                             $value = str_replace(["'", '"'], ["\'", '\"'], $value);
 
                             if (!in_array($field, [Melis::RELATION, Site::THEN, Melis::PRIMARY_KEY])) {
+
+                                if ($table === Melis::CMS_PAGE_PUBLISHED) {
+                                    if ($field === 'page_name') {
+                                        $this->pageMap[$value] = '';
+                                    }
+                                }
+
                                 if (is_array($value)) {
 
                                     $fn = current(array_keys($value));
