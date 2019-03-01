@@ -465,6 +465,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
                 if ($insertedId = $this->insert($sql, $primaryKey)) {
 
+                    $this->sendEvent('melis_marketplace_site_install_inserted_id', ['table_name' => $table, 'id' => $insertedId, 'sql' => $sql]);
+
                     // Execute set callbacks in the configuration array table
                     if (isset($transact[Site::THEN])) {
                         foreach ($transact[Site::THEN] as $fnOrKey => $fn) {
