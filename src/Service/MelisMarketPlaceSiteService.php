@@ -71,12 +71,13 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 'site_main_page_id' => $siteId,
             ]);
 
-            $siteDomain = $this->siteDomainTable()->save([
-                'sdom_site_id' => $siteId,
-                'sdom_env' => $platformName,
-                'sdom_scheme' => $scheme,
-                'sdom_domain' => $domain,
-            ]);
+//            $siteDomain = $this->siteDomainTable()->save([
+//                'sdom_site_id' => $siteId,
+//                'sdom_env' => $platformName,
+//                'sdom_scheme' => $scheme,
+//                'sdom_domain' => $domain,
+//            ]);
+            // this will duplicate the entry in melis_site_domain
 
         } else {
             throw new EmptySiteException('Site data is empty', 500);
@@ -463,6 +464,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 ], $transact[Melis::SQL]);
 
                 if ($insertedId = $this->insert($sql, $primaryKey)) {
+
+                    $this->sendEvent('melis_marketplace_site_install_inserted_id', ['table_name' => $table, 'id' => $insertedId, 'sql' => $sql]);
 
                     // Execute set callbacks in the configuration array table
                     if (isset($transact[Site::THEN])) {
