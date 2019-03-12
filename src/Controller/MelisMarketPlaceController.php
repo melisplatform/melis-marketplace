@@ -4,6 +4,7 @@ namespace MelisMarketPlace\Controller;
 
 use Illuminate\View\View;
 use Zend\Mvc\Controller\AbstractActionController;
+use Zend\Session\Container;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
 use Zend\Json\Json;
@@ -1032,6 +1033,67 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
+     * This method will return required moduel of requested module
+     *
+     * @param $module
+     * @return array
+     */
+    public function packageRequire($module)
+    {
+        $psr4 = 'psr-4';
+
+        $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
+        $composerInstalledPckg = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+
+        $packageRequire = array();
+        foreach ($composerInstalledPckg As $pckgConfg){
+
+            if (!empty($pckgConfg->autoload->$psr4)){
+                $moduleName = null;
+                foreach ($pckgConfg->autoload->$psr4 As $modName => $v)
+                    $moduleName = $modName;
+
+                $moduleName = rtrim($moduleName, '\\');
+
+                if ($moduleName === $module){
+                    if (!empty($pckgConfg->require)){
+                        foreach ($pckgConfg->require As $pckgName => $v){
+                            if (!is_bool(strpos($pckgName, 'melisplatform'))){
+
+                                foreach ($composerInstalledPckg As $reqPckg => $reqPckgConf){
+
+                                    if ($reqPckgConf->name == $pckgName){
+
+                                        $moduleName = $pckgName;
+                                        foreach ($reqPckgConf->autoload->$psr4 As $modName => $v)
+                                            $moduleName = $modName;
+
+                                        $moduleName = rtrim($moduleName, '\\');
+
+                                        array_push($packageRequire, $moduleName);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $moduleMngr = $this->getServiceLocator()->get('ModuleManager');
+        $activeModules = array_keys($moduleMngr->getLoadedModules());
+
+        if (!empty($packageRequire))
+            foreach ($packageRequire As $key => $reqMod)
+                if (in_array($reqMod, $activeModules))
+                    unset($packageRequire[$key]);
+
+
+
+        return $packageRequire;
+    }
+
+    /**frontIdPage
      * @return \Zend\View\Model\JsonModel
      */
     public function execDbDeployAction()
@@ -1042,16 +1104,59 @@ class MelisMarketPlaceController extends AbstractActionController
         if ($request->isPost()) {
             $module = $this->getTool()->sanitize($request->getPost('module'));
             if ($module) {
+
+                $modules[] = $module;
+
+                $moduleDpndncs = $this->packageRequire($module);
+                if (!empty($moduleDpndncs))
+                    $modules = array_merge($moduleDpndncs, $modules);
+
                 /** @var \MelisDbDeploy\Service\MelisDbDeployDiscoveryService $deployDiscoveryService */
                 $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
-                $deployDiscoveryService->processing($module);
-                $success = true;
+
+                foreach ($modules as $key => $module) {
+                    $deployDiscoveryService->processing($module);
+                }
+
+                if ($this->reprocessDbDeploy()) {
+                    $success = true;
+                }else{
+                    $success = -1;
+                }
             }
         }
 
         return new JsonModel([
             'success' => $success,
         ]);
+    }
+
+    private function reprocessDbDeploy()
+    {
+        $service = new \MelisDbDeploy\Service\MelisDbDeployDeployService();
+
+        if (false === $service->isInstalled()) {
+            $service->install();
+        }
+
+        if ($service->changeLogCount() === $this->getTotalDataFile()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function getTotalDataFile()
+    {
+        $dbDeployPath = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/';
+
+        if (!file_exists($dbDeployPath)) {
+            return 0;
+        }
+
+        $files = glob($dbDeployPath . '*.sql');
+
+        return count($files);
     }
 
     /**
@@ -1243,11 +1348,27 @@ class MelisMarketPlaceController extends AbstractActionController
         $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
 
         if ($this->getRequest()->isPost()) {
-            $module = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+            $module = $this->getRequest()->getPost('module');
+            if ($module) {
 
-            if ($module && isset($module['module'])) {
-                $module = $module['module'];
-                $this->getMarketPlaceService()->plugModule($module);
+                $modules[] = $module;
+
+                $moduleDpndncs = $this->packageRequire($module);
+                if (!empty($moduleDpndncs))
+                    $modules = array_merge($moduleDpndncs, $modules);
+
+                if (!empty($moduleDpndncs)){
+                    /**
+                     * Store required melis module to session
+                     * in this case this will be easy to unplug module
+                     * that activate during setup needs to deactivate after setup
+                     */
+                    $reqModSessTemp = new Container('melismarketplace');
+                    $reqModSessTemp['temp_mod_actvt'] = $moduleDpndncs;
+                }
+
+                $this->getMarketPlaceService()->plugModule($modules);
+
                 $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ok', [$module]);
                 $success = true;
             }
@@ -1291,7 +1412,20 @@ class MelisMarketPlaceController extends AbstractActionController
         if ($this->getRequest()->isPost()) {
             $module = $this->getRequest()->getPost('module');
             if ($module) {
-                $this->getMarketPlaceService()->unplugModule($module);
+
+                $modules[] = $module;
+
+                // Deactivating temporary activated modules
+                $reqModSessTemp = new Container('melismarketplace');
+
+
+                if (!empty($reqModSessTemp['temp_mod_actvt'])){
+                    $modules = array_merge($reqModSessTemp['temp_mod_actvt'], $modules);
+//                    unset($reqModSessTemp['temp_mod_actvt']);
+                }
+
+                $this->getMarketPlaceService()->unplugModule($modules);
+
                 $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ok', [$module]);
                 $success = true;
             }
