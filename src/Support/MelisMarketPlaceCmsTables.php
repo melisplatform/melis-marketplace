@@ -38,6 +38,7 @@ class MelisMarketPlaceCmsTables extends MelisTables
     const CMS_SLIDER_DETAILS = 'melis_cms_slider_details';
     const CMS_STYLE = 'melis_cms_style';
     const CMS_TEMPLATE = 'melis_cms_template';
+    const CMS_GDPR_TEXTS = 'melis_cms_gdpr_texts';
 
     /**
      * @const CMS_TOTAL_PAGE holds the string value of "melis_cms_total_page" in configuration
