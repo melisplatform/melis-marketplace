@@ -71,14 +71,21 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 'site_main_page_id' => $siteId,
             ]);
 
-//            $siteDomain = $this->siteDomainTable()->save([
-//                'sdom_site_id' => $siteId,
-//                'sdom_env' => $platformName,
-//                'sdom_scheme' => $scheme,
-//                'sdom_domain' => $domain,
-//            ]);
-            // this will duplicate the entry in melis_site_domain
-
+            /**
+             * save the site home page language id
+             */
+            $this->siteHomeTable()->save([
+                'shome_site_id' => $siteTable,
+                'shome_lang_id' => 1,
+                'shome_page_id' => $siteId
+            ]);
+            /**
+             * Save the site lang id
+             */
+            $this->siteLangsTable()->save([
+                'slang_site_id' => $siteId,
+                'slang_lang_id' => 1,
+            ]);
         } else {
             throw new EmptySiteException('Site data is empty', 500);
         }
@@ -229,6 +236,20 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $siteDomain = $this->getServiceLocator()->get('MelisEngineTableSiteDomain');
 
         return $siteDomain;
+    }
+
+    private function siteHomeTable()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisCmsSiteHomeTable $siteHomeTable */
+        $siteHomeTable = $this->getServiceLocator()->get('MelisEngineTableCmsSiteHome');
+        return $siteHomeTable;
+    }
+
+    private function siteLangsTable()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisCmsSiteLangsTable $siteHomeTable */
+        $sitelangsTable = $this->getServiceLocator()->get('MelisEngineTableCmsSiteLangs');
+        return $sitelangsTable;
     }
 
     /**
