@@ -582,6 +582,8 @@ class MelisMarketPlaceController extends AbstractActionController
                                     $retainModules[] = $module;
                                 }
                             }
+                            // unload module first before executing  dump autoload
+                            $moduleSvc->unloadModule($module);
                             $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
                             $composerSvc->dumpAutoload();
                         }
