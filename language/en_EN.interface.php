@@ -99,4 +99,6 @@ return array(
 
     'tr_melis_marketplace_setup_config_ok' => 'Setup configuration successful',
 
+    'tr_meliscore_delete_module_header' => 'Delete module',
+
 );

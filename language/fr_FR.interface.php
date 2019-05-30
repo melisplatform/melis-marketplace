@@ -78,4 +78,5 @@ return array(
     'tr_melis_market_place_tool_package_module_outdated' => 'Mise à jour disponible !',
     'tr_melis_market_place_task_done' => 'Tâche terminée',
 
+    'tr_meliscore_delete_module_header' => 'Supprimer le module',
 );
