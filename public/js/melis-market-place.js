@@ -208,7 +208,7 @@ $(function () {
                     melisCoreTool.confirm(
                         translations.tr_meliscore_common_yes,
                         translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
-                        translations.tr_meliscore_general_proceed,
+                        translations.tr_meliscore_delete_module_header,
                         translations.melis_market_place_tool_package_remove_confirm_on_dependencies.replace("%s", module) + modules + "<br/>" + translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
                         function () {
                             melisHelper.createModal(zoneId, melisKey, false, objData, modalUrl, function () {
