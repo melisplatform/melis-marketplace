@@ -19,7 +19,7 @@ return array(
     'tr_market_place_not_allowed' => 'This platform is not allowed to download from marketplace. Please check with an admin if you want to do so.',
 
     'tr_market_place_modal_download_title' => 'Download module',
-    'tr_market_place_modal_download_content' => 'Are you sure you want to download %s',
+    'tr_market_place_modal_download_content' => 'Are you sure you want to download %s ?',
 
     'tr_market_place_modal_update_title' => 'Update module',
     'tr_market_place_modal_update_content' => 'Are you sure you want to update %s',
@@ -98,5 +98,7 @@ return array(
     'tr_melis_marketplace_check_addtl_setup_skipped' => 'Skipped additional setup.',
 
     'tr_melis_marketplace_setup_config_ok' => 'Setup configuration successful',
+
+    'tr_meliscore_delete_module_header' => 'Delete module',
 
 );

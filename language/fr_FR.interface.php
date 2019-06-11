@@ -19,7 +19,7 @@ return array(
     'tr_market_place_not_allowed' => 'Cette plateforme n\'a pas le droit de télécharger sur le marketplace. Merci de voir avec un admin si vous voulez le faire.',
 
     'tr_market_place_modal_download_title' => 'Télécharger le module',
-    'tr_market_place_modal_download_content' => 'Êtes-vous sûr de vouloir télécharger le %s',
+    'tr_market_place_modal_download_content' => 'Êtes-vous sûr de vouloir télécharger %s ?',
 
     'tr_market_place_modal_update_title' => 'Mettre à jour le module',
     'tr_market_place_modal_update_content' => 'Êtes-vous sûr de vouloir mettre à jour le %s',
@@ -78,4 +78,5 @@ return array(
     'tr_melis_market_place_tool_package_module_outdated' => 'Mise à jour disponible !',
     'tr_melis_market_place_task_done' => 'Tâche terminée',
 
+    'tr_meliscore_delete_module_header' => 'Supprimer le module',
 );

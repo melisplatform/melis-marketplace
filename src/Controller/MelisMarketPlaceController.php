@@ -582,6 +582,8 @@ class MelisMarketPlaceController extends AbstractActionController
                                     $retainModules[] = $module;
                                 }
                             }
+                            // unload module first before executing  dump autoload
+                            $moduleSvc->unloadModule($module);
                             $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
                             $composerSvc->dumpAutoload();
                         }
@@ -637,10 +639,12 @@ class MelisMarketPlaceController extends AbstractActionController
             $objects = scandir($dirPath);
             foreach ($objects as $object) {
                 if ($object != "." && $object != "..") {
+                    if (!is_writable($dirPath . "/" . $object)) {
+                        chmod($dirPath . "/" . $object, 0777);
+                    }
                     if (filetype($dirPath . "/" . $object) == "dir") {
                         $this->deleteDir($dirPath . "/" . $object);
                     } else {
-                        chmod($dirPath . "/" . $object, 0777);
                         unlink($dirPath . "/" . $object);
                     }
                 }
