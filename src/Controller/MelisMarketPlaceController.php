@@ -735,26 +735,46 @@ class MelisMarketPlaceController extends AbstractActionController
             $moduleSvc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
             $activeModules = $moduleSvc->getActiveModules();
 
-            if (!in_array($module, $activeModules)) {
+            //check for module dependencies
+            $modDependencies = $moduleSvc->getDependencies($module);
+            $arrayDependency = array();
+            if(!empty($modDependencies)){
+                foreach($modDependencies as $depen){
+                    $modLower = strtolower($depen);
+                    if (strpos($modLower, 'melis') !== false && $modLower != 'meliscore') {
+                        array_push($arrayDependency, $depen);
+                    }
+                }
+            }
 
-                // since we are still running the function, we cannot get the accurate modules that are being loaded
-                // instead, we can read the module.load
-                $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
+            //include the module
+            array_push($arrayDependency, $module);
 
-                if (file_exists($moduleLoadFile)) {
+            /**
+             * Process module activation
+             */
 
-                    $modules = include $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
+            foreach($arrayDependency as $mod) {
+                if (!in_array($mod, $activeModules)) {
+                    // since we are still running the function, we cannot get the accurate modules that are being loaded
+                    // instead, we can read the module.load
+                    $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
 
-                    $moduleCount = count($modules);
-                    $insertAtIdx = $moduleCount - 1;
-                    array_splice($modules, $insertAtIdx, 0, $module);
+                    if (file_exists($moduleLoadFile)) {
 
-                    // create the module.load file
-                    $moduleSvc->createModuleLoader('config/', $modules, [], []);
+                        $modules = include $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
 
-                    // recheck if the module requested to be added is in module.load
-                    if (in_array($module, $modules)) {
-                        $success = 1;
+                        $moduleCount = count($modules);
+                        $insertAtIdx = $moduleCount - 1;
+                        array_splice($modules, $insertAtIdx, 0, $mod);
+
+                        // create the module.load file
+                        $moduleSvc->createModuleLoader('config/', $modules, [], []);
+
+                        // recheck if the modu89le requested to be added is in module.load
+                        if (in_array($mod, $modules)) {
+                            $success = 1;
+                        }
                     }
                 }
             }
