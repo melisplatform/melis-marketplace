@@ -101,4 +101,6 @@ return array(
 
     'tr_meliscore_delete_module_header' => 'Delete module',
 
+    'tr_marketplace_common_submit' => 'Save ',
+
 );
