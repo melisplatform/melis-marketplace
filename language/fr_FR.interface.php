@@ -79,4 +79,6 @@ return array(
     'tr_melis_market_place_task_done' => 'Tâche terminée',
 
     'tr_meliscore_delete_module_header' => 'Supprimer le module',
+
+    'tr_marketplace_common_submit' => 'Enregistrer',
 );
