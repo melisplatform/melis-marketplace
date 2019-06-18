@@ -1536,7 +1536,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
                 $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
                 try {
-                    $service->installSite($this->getRequest())->invokeSetup();
+                    $service->marketplaceInstallSite($this->getRequest())->invokeSetup();
                     if ($result['success'] === true) {
                         $result['message'] = $this->getTool()->getTranslation('tr_melis_marketplace_setup_config_ok');
                     }
