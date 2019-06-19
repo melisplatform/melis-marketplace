@@ -149,7 +149,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             /**
              * Save the site 404 page od
              */
-            $this->siteLangsTable()->save([
+            $this->site404Table()->save([
                 's404_site_id' => $siteTable,
                 's404_page_id' => $page404Id,
             ]);
