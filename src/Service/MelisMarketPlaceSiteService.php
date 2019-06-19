@@ -116,6 +116,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 
             $siteId = $this->getCurrentPageId();
             $platformName = $this->getPlatform()->plf_name;
+            $page404Id = (int)$siteId + 36;
 
             $siteTable = $this->siteTable()->save([
                 'site_name' => $module,
@@ -142,8 +143,15 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
              * Save the site lang id
              */
             $this->siteLangsTable()->save([
-                'slang_site_id' => $siteId,
+                'slang_site_id' => $siteTable,
                 'slang_lang_id' => 1,
+            ]);
+            /**
+             * Save the site 404 page od
+             */
+            $this->siteLangsTable()->save([
+                's404_site_id' => $siteTable,
+                's404_page_id' => $page404Id,
             ]);
         } else {
             throw new EmptySiteException('Site data is empty', 500);
