@@ -80,10 +80,10 @@ return array(
 
     'tr_meliscore_delete_module_header' => 'Supprimer le module',
 
-    'tr_melis_marketplace_common_no_skip' => 'No, skip',
+    'tr_melis_marketplace_common_no_skip' => 'Non',
 
     'tr_melis_market_place_setup_title' => 'Configuration %s',
-    'tr_melis_market_place_has_setup_form' => 'An additional setup has been found, would you like to set up %s?',
+    'tr_melis_market_place_has_setup_form' => 'Une configuration additionnelle a été trouvée, souhaitez-vous configurer  %s?',
     'tr_melis_marketplace_setup_module_modal_title' => 'Configuration %s',
     'tr_melis_marketplace_setup_error' => 'Something went wrong with processing the additional setup, please reload the page',
 
