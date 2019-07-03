@@ -11,10 +11,14 @@ namespace MelisMarketPlace\Listener;
 
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\ListenerAggregateInterface;
-use MelisCore\Listener\MelisCoreGeneralListener;
 
-class MelisMarketPlaceTestListener extends MelisCoreGeneralListener implements ListenerAggregateInterface
+class MelisMarketPlaceTestListener implements ListenerAggregateInterface
 {
+
+    /**
+     * @var \Zend\Stdlib\CallbackHandler[]
+     */
+    protected $listeners = array();
 
     public function attach(EventManagerInterface $events)
     {
@@ -30,5 +34,14 @@ class MelisMarketPlaceTestListener extends MelisCoreGeneralListener implements L
             -10000);
 
         $this->listeners[] = $callBackHandler;
+    }
+
+    public function detach(EventManagerInterface $events)
+    {
+        foreach ($this->listeners as $index => $listener) {
+            if ($events->detach($listener)) {
+                unset($this->listeners[$index]);
+            }
+        }
     }
 }

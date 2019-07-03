@@ -94,6 +94,73 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
+     * @param \Zend\Http\PhpEnvironment\Request $request
+     *
+     * @return $this
+     * @throws \MelisMarketPlace\Exception\EmptySiteException
+     * @throws \MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException
+     */
+    public function marketplaceInstallSite(Request $request)
+    {
+        $name = $request->getPost('name');
+        $scheme = $request->getPost('scheme');
+        $domain = $request->getPost('domain');
+        $module = $request->getPost('module');
+        $action = $request->getPost('action', 'download') === self::ACTION_REQUIRE ? Site::DOWNLOAD : Site::DOWNLOAD;
+
+        $this->setDbAdapter();
+
+        if ($scheme && $name && $domain && $module && $action) {
+
+            $this->setModule($module)->setAction($action);
+
+            $siteId = $this->getCurrentPageId();
+            $platformName = $this->getPlatform()->plf_name;
+            $page404Id = (int)$siteId + 36;
+
+            $siteTable = $this->siteTable()->save([
+                'site_name' => $module,
+                'site_label' => $name,
+                'site_main_page_id' => $siteId,
+            ]);
+
+            $this->siteDomainTable()->save([
+                'sdom_site_id' => $siteTable,
+                'sdom_domain' => $domain,
+                'sdom_scheme' => $scheme,
+                'sdom_env' => getenv('MELIS_PLATFORM'),
+            ]);
+
+            /**
+             * save the site home page language id
+             */
+            $this->siteHomeTable()->save([
+                'shome_site_id' => $siteTable,
+                'shome_lang_id' => 1,
+                'shome_page_id' => $siteId
+            ]);
+            /**
+             * Save the site lang id
+             */
+            $this->siteLangsTable()->save([
+                'slang_site_id' => $siteTable,
+                'slang_lang_id' => 1,
+            ]);
+            /**
+             * Save the site 404 page od
+             */
+            $this->site404Table()->save([
+                's404_site_id' => $siteTable,
+                's404_page_id' => $page404Id,
+            ]);
+        } else {
+            throw new EmptySiteException('Site data is empty', 500);
+        }
+
+        return $this;
+    }
+
+    /**
      * @inheritdoc
      * Sets the Database adapter that will be used when querying
      * the database, this will use the configuration set

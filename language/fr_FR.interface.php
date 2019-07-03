@@ -79,4 +79,22 @@ return array(
     'tr_melis_market_place_task_done' => 'Tâche terminée',
 
     'tr_meliscore_delete_module_header' => 'Supprimer le module',
+
+    'tr_melis_marketplace_common_no_skip' => 'Non',
+
+    'tr_melis_market_place_setup_title' => 'Configuration %s',
+    'tr_melis_market_place_has_setup_form' => 'Une configuration additionnelle a été trouvée, souhaitez-vous configurer  %s?',
+    'tr_melis_marketplace_setup_module_modal_title' => 'Configuration %s',
+    'tr_melis_marketplace_setup_error' => 'Something went wrong with processing the additional setup, please reload the page',
+
+    'tr_marketplace_common_submit' => 'Enregistrer',
+    'tr_melis_market_place_plug_module_ok' => 'Module %s has been plugged',
+    'tr_melis_market_place_plug_module_ko' => 'Unable to plug module %s, please reload the page and try again',
+    'tr_melis_market_place_unplug_module_ok' => 'Module %s has been unplugged',
+    'tr_melis_market_place_unplug_module_ko' => 'Unable to unplug module %s, please reload the page and try again',
+    'tr_melis_marketplace_check_addtl_setup' => 'Checking additional setup...',
+    'tr_melis_marketplace_check_addtl_setup_ok' => 'Additional setup retreived',
+    'tr_melis_marketplace_check_addtl_setup_ko' => 'Something went wrong on retreving additional setup',
+    'tr_melis_marketplace_check_addtl_setup_skipped' => 'Skipped additional setup.',
+    'tr_melis_marketplace_setup_config_ok' => 'Configuration effectuée avec succès',
 );
