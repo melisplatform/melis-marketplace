@@ -1332,6 +1332,16 @@
     color: #159cd4;
 }
 
+.market-place-btn-filter-group .btn-primary.site.active ,
+.market-place-btn-filter-group .btn-primary.site.active:hover,
+.market-place-btn-filter-group .btn-primary.site.active:focus,
+.market-place-btn-filter-group .btn-primary.site.active:active{
+    box-shadow: 0 0 8px #d43d42 !important;
+    border-color: #e61c23;
+    background: #fff;
+    color: #e61c23;
+}
+
 .market-place-btn-filter-group .core:hover,
 .market-place-btn-filter-group .core:active {
     background: none;
@@ -1358,6 +1368,13 @@
     background: none;
     border-color: #159cd4;
     color: #159cd4;
+}
+
+.market-place-btn-filter-group .site:hover,
+.market-place-btn-filter-group .site:active {
+    background: none;
+    border-color: #e61c23;
+    color: #e61c23;
 }
 
 .market-place-btn-filter-group .core .melis-svg .bg-color {
