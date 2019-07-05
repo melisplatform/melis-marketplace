@@ -1273,14 +1273,21 @@
     height: 20px;
 }
 
-.market-place-btn-filter-group .btn-primary:focus {
+/* .market-place-btn-filter-group .btn-primary:focus {
     background: #981a1f;
+    background: none;
     color: #fff;
-}
+} */
 
+.btn-primary.core:focus,
+.btn-primary.cms:focus,
+.btn-primary.marketing:focus,
+.btn-primary.commerce:focus,
+.btn-primary.site:focus,
 .market-place-btn-filter-group .btn-primary {
     background: #d4d4d4;
     border-color: #d4d4d4;
+    color: #fff;
     letter-spacing: 0.6px;
 }
 
@@ -1309,7 +1316,6 @@
     border-color: #67b345;
     background: #fff;
     color: #67b345;
-
 }
 
 .market-place-btn-filter-group .btn-primary.marketing.active,
@@ -1332,6 +1338,17 @@
     color: #159cd4;
 }
 
+.market-place-btn-filter-group .btn-primary.site.active ,
+.market-place-btn-filter-group .btn-primary.site.active:hover,
+.market-place-btn-filter-group .btn-primary.site.active:focus,
+.market-place-btn-filter-group .btn-primary.site.active:active{
+    box-shadow: 0 0 8px #d43d42 !important;
+    border-color: #e61c23;
+    background: #fff;
+    color: #e61c23;
+}
+
+.market-place-btn-filter-group .btn-primary.core:active:hover,
 .market-place-btn-filter-group .core:hover,
 .market-place-btn-filter-group .core:active {
     background: none;
@@ -1339,6 +1356,7 @@
     color: #ef6623;
 }
 
+.market-place-btn-filter-group .btn-primary.cms:active:hover,
 .market-place-btn-filter-group .cms:hover,
 .market-place-btn-filter-group .cms:active {
     background: none;
@@ -1346,6 +1364,7 @@
     color: #67b345;
 }
 
+.market-place-btn-filter-group .btn-primary.marketing:active:hover,
 .market-place-btn-filter-group .marketing:hover,
 .market-place-btn-filter-group .marketing:active {
     background: none;
@@ -1353,11 +1372,20 @@
     color: #70479c;
 }
 
+.market-place-btn-filter-group .btn-primary.commerce:active:hover,
 .market-place-btn-filter-group .commerce:hover,
 .market-place-btn-filter-group .commerce:active {
     background: none;
     border-color: #159cd4;
     color: #159cd4;
+}
+
+.market-place-btn-filter-group .btn-primary.site:active:hover,
+.market-place-btn-filter-group .site:hover,
+.market-place-btn-filter-group .site:active {
+    background: none;
+    border-color: #e61c23;
+    color: #e61c23;
 }
 
 .market-place-btn-filter-group .core .melis-svg .bg-color {
