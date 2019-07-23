@@ -9,6 +9,13 @@ $form = $this->searchForm;
     <?php if ($packages && is_array($packages)) {
         echo '<ul class="products product-thumb-info-list clearfix">';
         foreach ($packages as $package) { ?>
+            <?php
+                $opacity = '';
+
+                if ($package['packageIsPrivate']) {
+                    $opacity = 'opacity-zero';
+                }
+            ?>
             <li class="col-sm-6 col-md-6 col-lg-4">
                 <div class="product melis-market-place-view-details <?= strtolower(trim($package['packageGroupName'])) ?>" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
                     <a href="#">
@@ -37,8 +44,8 @@ $form = $this->searchForm;
                                target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                             </a>
                             <div class="clearfix product-mini-sub">
-                                <span class="melis-module-version"> <?= $package['packageVersion']; ?></span>
-                                <span class="melis-module-downloads"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
+                                <span class="melis-module-version <?= $opacity ?>"> <?= $package['packageVersion']; ?></span>
+                                <span class="melis-module-downloads <?= $opacity ?>"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
                             </div>
 
                             <div class="melis-svg">
@@ -57,15 +64,19 @@ $form = $this->searchForm;
                     </div>
                     <div class="clearfix product-status">
                         <span class="installed">
-                            <?php
-                            if ((bool) $package['installed']) {
-                                echo '<span class="text-success"><i class="fa fa-check-circle"></i> ' . $this->translate('tr_market_place_package_installed') . '</span>';
-                            } else {
-                                if ($this->isUpdatablePlatform) {
-                                    echo '<span class="text-warning"><i class="fa fa-download"></i> ' . $this->translate('tr_market_place_require') . '</span>';
+                            <?php if ($package['packageIsPrivate']) : ?>
+                                <span class=""><i class="fa fa-lock"></i> PRIVATE</span>
+                            <?php else : ?>
+                                <?php
+                                if ((bool) $package['installed']) {
+                                    echo '<span class="text-success"><i class="fa fa-check-circle"></i> ' . $this->translate('tr_market_place_package_installed') . '</span>';
+                                } else {
+                                    if ($this->isUpdatablePlatform) {
+                                        echo '<span class="text-warning ' . $opacity . '"><i class="fa fa-download"></i> ' . $this->translate('tr_market_place_require') . '</span>';
+                                    }
                                 }
-                            }
-                            ?>
+                                ?>
+                            <?php endif; ?>
                         </span>
                         <?php
                         $statusClass = 'melis-module-version-status';
@@ -73,7 +84,7 @@ $form = $this->searchForm;
                             $statusClass = 'melis-module-version-status need-update';
                         }
                         ?>
-                        <span class="<?= $statusClass ?>"> <?= $this->translate($package['version_status']); ?></span>
+                        <span class="<?= $statusClass ?><?= ' ' . $opacity ?>"> <?= $this->translate($package['version_status']); ?></span>
                     </div>
                 </div>
             </li>
