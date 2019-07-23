@@ -20,38 +20,47 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                             <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?>
                                         </p>
                                     <?php endif; ?>
-                                    <?php if ($this->marketPlaceStatus) { ?>
+                                    <?php if ($this->package['packageIsPrivate']) : ?>
                                         <div class="melis-marketplace-product-buttons">
-                                            <?php if (!$this->isModuleInstalled && !$this->isExempted) {
-                                                if (!$this->isUpdatablePlatform) ?>
-                                                    <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                                <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
-                                                </button>
-                                            <?php } else {
-                                                if ($this->versionStatus === -1 && $this->isUpdatablePlatform) {
-                                                    ?>
-                                                    <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-                                                        <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
+                                            <button class="btn" disabled>
+                                                <i class="fa fa-lock"></i>  Private
+                                            </button>
+                                        </div>
+                                    <?php else : ?>
+                                        <?php if ($this->marketPlaceStatus) { ?>
+                                            <div class="melis-marketplace-product-buttons">
+                                                <?php if (!$this->isModuleInstalled && !$this->isExempted) {
+                                                    if (!$this->isUpdatablePlatform) ?>
+                                                        <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                    <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
                                                     </button>
-                                                <?php }
-                                                if (!$this->isExempted) {
-                                                    ?>
-                                                    <?php if ($this->isModuleInstalled) { ?>
-                                                        <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
-
-                                                            <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
-
+                                                <?php } else {
+                                                    if ($this->versionStatus === -1 && $this->isUpdatablePlatform) {
+                                                        ?>
+                                                        <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                            <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
                                                         </button>
+                                                    <?php }
+                                                    if (!$this->isExempted) {
+                                                        ?>
+                                                        <?php if ($this->isModuleInstalled) { ?>
+                                                            <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+
+                                                                <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
+
+                                                            </button>
+                                                        <?php } ?>
                                                     <?php } ?>
                                                 <?php } ?>
-                                            <?php } ?>
-                                        </div>
-                                    <?php } ?>
+                                            </div>
+                                        <?php } ?>
+                                    <?php endif; ?>
                                     <p><label><?= $this->translate($this->package['version_status']); ?></label></p>
                                 </div>
                             </div>
                             <div class="col-xs-12">
                                 <h5 class="sm-info-title"> <?= $this->translate('tr_market_place_package_additional_info'); ?></h5>
+                                <?php if ($this->package['packageIsPrivate'] == 0) : ?>
                                 <ul class="add-info-lists">
                                     <li>
                                         <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_lastest_version'); ?>:</span>
@@ -80,6 +89,14 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                         <span><?= number_format($this->package['packageTotalDownloads']); ?></span>
                                     </li>
                                 </ul>
+                                <?php else : ?>
+                                <p>This is a private module.</p>
+                                <p>You can't download it directly, it must be bought.</p>
+                                <p>Please, contact us at:</p>
+                                <p>contact@melistechnology.com</p>
+                                <p>(+33) 972 386 280</p>
+                                <p>Or directly through our <a target="_blank" rel="noopener noreferrer" href="https://www.melistechnology.com/transversal/contact-us/id/37">contact form</a>.</p>
+                                <?php endif; ?>
                             </div>
                             <div class="col-md-12">
                                 <?php

@@ -1463,3 +1463,6 @@
     height: 20px;
     line-height: 24px;
 }
+.opacity-zero {
+    opacity: 0;
+}
