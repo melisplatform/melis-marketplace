@@ -97,7 +97,7 @@ return [
                 ],
             ],
             'datas' => [
-                'melis_packagist_server' => 'http://marketplace.melisplatform.com/melis-packagist',
+                'melis_packagist_server' => 'http://melis.marketplace.local/melis-packagist',
                 'exceptions' => ['MelisCore', 'MelisEngine', 'MelisFront', 'MelisAssetManager', 'MelisComposerDeploy', 'MelisDbDeploy'],
             ],
             'interface' => [

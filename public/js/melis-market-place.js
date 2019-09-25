@@ -301,13 +301,20 @@ $(function () {
                                         return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                                     }
 
-                                    // check if the module has a form setup
-                                    var hasSetupForm = false;
-                                    var form = null;
+                                    // Check for composer scripts to be executed
+                                    addLazyCmdText('span_c_scripts_setup', 'Executing composer scripts');
 
-                                    addLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup);
+                                    $.get("/melis/MelisMarketPlace/MelisMarketPlace/executeComposerScripts").done(function(res){
+                                        updateCmdText(res);
+                                        clearLazyCmdText('span_c_scripts_setup', 'Composer scripts executed');
 
-                                    setTimeout(function(){
+                                        // check if the module has a form setup
+                                        var hasSetupForm = false;
+                                        var form = null;
+
+                                        addLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup);
+
+                                        setTimeout(function(){
                                         axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {
                                             action: payload.action,
                                             module: payload.module
@@ -359,8 +366,9 @@ $(function () {
                                             .catch(function (error) {
                                                 updateCmdText('<span style="color: #ff190d;">' + translations.tr_melis_marketplace_check_addtl_setup_ko + "</span>");
                                             });
-                                    }, 3000);
+                                        }, 3000);
 
+                                    });
                                 });
 
                             return payload;
