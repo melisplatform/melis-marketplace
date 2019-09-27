@@ -302,11 +302,11 @@ $(function () {
                                     }
 
                                     // Check for composer scripts to be executed
-                                    addLazyCmdText('span_c_scripts_setup', 'Executing composer scripts');
+                                    addLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executing);
 
                                     $.get("/melis/MelisMarketPlace/MelisMarketPlace/executeComposerScripts").done(function(res){
                                         updateCmdText(res);
-                                        clearLazyCmdText('span_c_scripts_setup', 'Composer scripts executed');
+                                        clearLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executed);
 
                                         // check if the module has a form setup
                                         var hasSetupForm = false;

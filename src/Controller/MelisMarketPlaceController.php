@@ -1249,6 +1249,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function executeComposerScriptsAction()
     {
+        \MelisCore\ModuleComposerScript::setServiceManager($this->getServiceLocator());
         \MelisCore\ModuleComposerScript::executeScripts();
 
         $view = new ViewModel();
