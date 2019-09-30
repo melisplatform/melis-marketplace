@@ -7,6 +7,7 @@ return array(
 
     'tr_market_place_single_view' => 'Melis Market Place package view',
     'tr_market_place_single_view_header' => 'Melis Market Place package view header',
+    'tr_market_place_single_view_header' => 'Melis Market Place package view header',
     'tr_market_place_single_view_content' => 'Melis Market Place package view content',
 
     'tr_market_place_check_on_github' => 'Check on Github',
@@ -44,6 +45,7 @@ return array(
     'tr_market_place_remove' => 'Remove',
     'tr_market_place_reload' => 'Reload',
     'tr_market_place_activate_module' => 'Activate %s',
+    'tr_market_place_btn_activate_module' => 'Activate',
 
     'tr_market_place_subtitle' => 'Search new modules for Melis Platform and stop reinventing the wheel!',
 

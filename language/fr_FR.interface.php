@@ -45,6 +45,7 @@ return array(
     'tr_market_place_remove' => 'Supprimer',
     'tr_market_place_reload' => 'Recharger',
     'tr_market_place_activate_module' => 'Activer %s',
+    'tr_market_place_btn_activate_module' => 'Activer',
 
     'tr_market_place_subtitle' => 'Cherchez de nouveau modules pour Melis platform et arretez de réinventer la roue !',
     'tr_market_place_composer_instruction' => '<h5 class="widget-title">Vous voulez votre module listé sur cette page?</h5>Ajoutez cette ligne dans votre composer.json<pre class="meliscore-mp-composer-text"><code>"type": "melisplatform-module"</code></pre>et il sera automatiquement inclu dans les résultats de Packagist ! Les images et les textes doivent être définis dans vos sources sous la forme d\'un XML placé dans le répertoire etc/ de votre module. Merci de regarder <a target="_blank" href="https://github.com/melisplatform/melis-cms/tree/master/etc/MarketPlace">ici</a> pour avoir un exemple de structure.',

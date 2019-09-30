@@ -31,11 +31,11 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                 <?= $this->translate('tr_meliscore_notification_modal_Close') ?></a>
 
                             <div class="pull-right">
-                                <button type="submit" class="btn btn-info melis-marketplace-modal-activate-module hidden" data-module="<?= $this->module ?>">
-                                    <i class="fa fa-check"></i> <?= sprintf($this->translate('tr_market_place_activate_module'), $module); ?>
+                                <button type="submit" class="btn btn-info melis-marketplace-modal-activate-module hidden" data-module="<?= $this->module ?>" title="<?= sprintf($this->translate('tr_market_place_activate_module'), $module); ?>">
+                                    <i class="fa fa-check"></i> <?= $this->translate('tr_market_place_btn_activate_module'); ?>
                                 </button>
 
-                                <button type="submit" class="btn btn-info melis-marketplace-modal-reload hidden">
+                                <button type="submit" class="btn btn-info melis-marketplace-modal-reload hidden" title="<?= $this->translate('tr_market_place_reload'); ?>">
                                     <i class="fa fa-refresh"></i> <?= $this->translate('tr_market_place_reload'); ?>
                                 </button>
                             </div>
