@@ -315,10 +315,10 @@ $(function () {
                                         addLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup);
 
                                         setTimeout(function(){
-                                        axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {
-                                            action: payload.action,
-                                            module: payload.module
-                                        })
+                                            axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {
+                                                action: payload.action,
+                                                module: payload.module
+                                            })
                                             .then(function (response) {
 
                                                 clearLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup_ok);
@@ -366,7 +366,7 @@ $(function () {
                                             .catch(function (error) {
                                                 updateCmdText('<span style="color: #ff190d;">' + translations.tr_melis_marketplace_check_addtl_setup_ko + "</span>");
                                             });
-                                        }, 3000);
+                                        }, 5000);
 
                                     });
                                 });
