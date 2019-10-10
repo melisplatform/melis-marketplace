@@ -623,8 +623,8 @@ $(function () {
                     success: function (data) {
 
                         setTimeout(function () {
-                            $.get("/melis/MelisMarketPlace/MelisMarketPlace/reDumpAutoload", function(res){
-                                console.log(res);
+                            // Composer re-Dumpautoload
+                            $.get("/melis/MelisMarketPlace/MelisMarketPlace/reDumpAutoload", function(){
 
                                 vConsoleText = "" + vConsole.html();
                                 vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
