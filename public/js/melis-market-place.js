@@ -621,19 +621,26 @@ $(function () {
                         // do additional task here
                     },
                     success: function (data) {
-                        vConsoleText = "" + vConsole.html();
-                        vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
-                        vConsole.animate({
-                            scrollTop: vConsole.prop("scrollHeight")
-                        }, 1115);
-                        $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
-                        $("#melis-marketplace-product-modal-hide").removeClass("disabled");
-                        $("body").find("p#melis-marketplace-console-loading").remove();
-                        if (callback !== undefined || callback !== null) {
-                            if (callback) {
-                                callback();
-                            }
-                        }
+
+                        setTimeout(function () {
+                            $.get("/melis/MelisMarketPlace/MelisMarketPlace/reDumpAutoload", function(res){
+                                console.log(res);
+
+                                vConsoleText = "" + vConsole.html();
+                                vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
+                                vConsole.animate({
+                                    scrollTop: vConsole.prop("scrollHeight")
+                                }, 1115);
+                                $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
+                                $("#melis-marketplace-product-modal-hide").removeClass("disabled");
+                                $("body").find("p#melis-marketplace-console-loading").remove();
+                                if (callback !== undefined || callback !== null) {
+                                    if (callback) {
+                                        callback();
+                                    }
+                                }
+                            });
+                        }, 3000);
                     }
                 }).error(function (e) {
                 var vConsole = $("body").find("#melis-marketplace-event-do-response");
