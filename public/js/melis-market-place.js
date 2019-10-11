@@ -423,7 +423,9 @@ $(function () {
         var module = $(this).data().module;
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/activateModule", {module: module}, function () {
             $.get("/melis", function(){
-                $("button.melis-marketplace-modal-reload").trigger("click");
+                setTimeout(function(){
+                    $("button.melis-marketplace-modal-reload").trigger("click");
+                }, 1000);
             });
         });
     });
