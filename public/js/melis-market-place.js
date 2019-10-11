@@ -377,7 +377,7 @@ $(function () {
                         })
                         .catch(function (err) {
                             console.log(err);
-                        })
+                        });
                 }
             );
 
@@ -422,7 +422,9 @@ $(function () {
     $("body").on("click", "button.melis-marketplace-modal-activate-module", function () {
         var module = $(this).data().module;
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/activateModule", {module: module}, function () {
-            $("button.melis-marketplace-modal-reload").trigger("click");
+            $.get("/melis", function(){
+                $("button.melis-marketplace-modal-reload").trigger("click");
+            });
         });
     });
 
