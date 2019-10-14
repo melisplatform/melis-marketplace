@@ -735,17 +735,8 @@ class MelisMarketPlaceController extends AbstractActionController
             $moduleSvc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
             $activeModules = $moduleSvc->getActiveModules();
 
-            //check for module dependencies
-            $modDependencies = $moduleSvc->getDependencies($module);
-            $arrayDependency = array();
-            if(!empty($modDependencies)){
-                foreach($modDependencies as $depen){
-                    $modLower = strtolower($depen);
-                    if (strpos($modLower, 'melis') !== false && $modLower != 'meliscore') {
-                        array_push($arrayDependency, $depen);
-                    }
-                }
-            }
+            // Melis Modules required
+            $arrayDependency = $this->packageRequire($module);
 
             //include the module
             array_push($arrayDependency, $module);
@@ -782,6 +773,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $response = [
             'success' => $success,
+            'modules' => $arrayDependency
         ];
 
         return new JsonModel($response);
@@ -1094,7 +1086,11 @@ class MelisMarketPlaceController extends AbstractActionController
 
                                         $moduleName = rtrim($moduleName, '\\');
 
-                                        array_push($packageRequire, $moduleName);
+                                        // Skipping not modules of Melis Platform
+                                        // e.g MelisPlatformFrameworkLaravel, MelisPlatformFrameworkSymfony etc...
+                                        $xtraModuleName = 'module-name';
+                                        if (!empty($reqPckgConf->extra->$xtraModuleName))
+                                            array_push($packageRequire, $moduleName);
                                     }
                                 }
                             }
@@ -1248,6 +1244,23 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $view->downloadedPackages = $data;
 
+        return $view;
+    }
+
+    public function reDumpAutoloadAction()
+    {
+        $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
+        $composerSvc->dumpAutoload();
+        exit;
+    }
+
+    public function executeComposerScriptsAction()
+    {
+        \MelisCore\ModuleComposerScript::setServiceManager($this->getServiceLocator());
+        \MelisCore\ModuleComposerScript::executeScripts();
+
+        $view = new ViewModel();
+        $view->setTerminal(true);
         return $view;
     }
 

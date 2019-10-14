@@ -301,66 +301,75 @@ $(function () {
                                         return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
                                     }
 
-                                    // check if the module has a form setup
-                                    var hasSetupForm = false;
-                                    var form = null;
-
-                                    addLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup);
+                                    // Check for composer scripts to be executed
+                                    addLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executing);
 
                                     setTimeout(function(){
-                                        axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {
-                                            action: payload.action,
-                                            module: payload.module
-                                        })
-                                            .then(function (response) {
+                                        $.get("/melis/MelisMarketPlace/MelisMarketPlace/executeComposerScripts").done(function(res){
+                                            updateCmdText(res);
+                                            clearLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executed);
 
-                                                clearLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup_ok);
+                                            // check if the module has a form setup
+                                            var hasSetupForm = false;
+                                            var form = null;
 
-                                                if (response.data.form !== '' && response.data.form !== null) {
-                                                    hasSetupForm = true;
-                                                }
+                                            addLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup);
 
-                                                return Object.assign(payload, {hasSetupForm: hasSetupForm});
-                                            })
-                                            .then(function (payload) {
+                                            setTimeout(function(){
+                                                axiosPost('/melis/MelisMarketPlace/MelisMarketPlace/getSetupModuleForm', {
+                                                    action: payload.action,
+                                                    module: payload.module
+                                                })
+                                                .then(function (response) {
 
-                                                if (typeof payload === 'undefined' || typeof payload == null) {
-                                                    melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                                    return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
-                                                }
+                                                    clearLazyCmdText('span_get_setup', translations.tr_melis_marketplace_check_addtl_setup_ok);
 
-                                                if (payload.hasSetupForm) {
-                                                    // ask the user to proceed or skip setup
-                                                    var skip = true;
-                                                    melisCoreTool.confirm(
-                                                        translations.tr_meliscore_common_yes,
-                                                        translations.tr_melis_marketplace_common_no_skip,
-                                                        translations.tr_melis_market_place_setup_title.replace('%s', payload.module),
-                                                        translations.tr_melis_market_place_has_setup_form.replace('%s', payload.module),
-                                                        function () {
-                                                            // show the setup form, but verify if the form has a content
-                                                            skip = false;
-                                                            // open a new modal with the setup form
-                                                            melisHelper.createModal('id_melis_market_place_module_setup_form_content_ajax',
-                                                                'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
-                                                                    melisCoreTool.done("button");
-                                                                });
-                                                        },
-                                                        function () {
-                                                            modalActivateReloadBtns(module, payload);
-                                                        }
-                                                    );
-                                                }else{
-                                                    modalActivateReloadBtns(module, payload);
-                                                }
+                                                    if (response.data.form !== '' && response.data.form !== null) {
+                                                        hasSetupForm = true;
+                                                    }
 
-                                                return Object.assign(payload, {skip: skip});
-                                            })
-                                            .catch(function (error) {
-                                                updateCmdText('<span style="color: #ff190d;">' + translations.tr_melis_marketplace_check_addtl_setup_ko + "</span>");
-                                            });
-                                    }, 3000);
+                                                    return Object.assign(payload, {hasSetupForm: hasSetupForm});
+                                                })
+                                                .then(function (payload) {
 
+                                                    if (typeof payload === 'undefined' || typeof payload == null) {
+                                                        melisHelper.melisKoNotification('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                                        return Promise.reject('Melis Marketplace', translations.tr_melis_marketplace_setup_error);
+                                                    }
+
+                                                    if (payload.hasSetupForm) {
+                                                        // ask the user to proceed or skip setup
+                                                        var skip = true;
+                                                        melisCoreTool.confirm(
+                                                            translations.tr_meliscore_common_yes,
+                                                            translations.tr_melis_marketplace_common_no_skip,
+                                                            translations.tr_melis_market_place_setup_title.replace('%s', payload.module),
+                                                            translations.tr_melis_market_place_has_setup_form.replace('%s', payload.module),
+                                                            function () {
+                                                                // show the setup form, but verify if the form has a content
+                                                                skip = false;
+                                                                // open a new modal with the setup form
+                                                                melisHelper.createModal('id_melis_market_place_module_setup_form_content_ajax',
+                                                                    'melis_market_place_module_setup_form_content', false, payload, modalUrl, function () {
+                                                                        melisCoreTool.done("button");
+                                                                    });
+                                                            },
+                                                            function () {
+                                                                modalActivateReloadBtns(module, payload);
+                                                            }
+                                                        );
+                                                    }else{
+                                                        modalActivateReloadBtns(module, payload);
+                                                    }
+
+                                                    return Object.assign(payload, {skip: skip});
+                                                })
+                                                .catch(function (error) {
+                                                    updateCmdText('<span style="color: #ff190d;">' + translations.tr_melis_marketplace_check_addtl_setup_ko + "</span>");
+                                                });
+                                            }, 5000);
+                                        });
+                                    }, 5000);
                                 });
 
                             return payload;
@@ -368,7 +377,7 @@ $(function () {
                         })
                         .catch(function (err) {
                             console.log(err);
-                        })
+                        });
                 }
             );
 
@@ -413,7 +422,11 @@ $(function () {
     $("body").on("click", "button.melis-marketplace-modal-activate-module", function () {
         var module = $(this).data().module;
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/activateModule", {module: module}, function () {
-            $("button.melis-marketplace-modal-reload").trigger("click");
+            $.get("/melis", function(){
+                setTimeout(function(){
+                    $("button.melis-marketplace-modal-reload").trigger("click");
+                }, 1000);
+            });
         });
     });
 
@@ -612,19 +625,26 @@ $(function () {
                         // do additional task here
                     },
                     success: function (data) {
-                        vConsoleText = "" + vConsole.html();
-                        vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
-                        vConsole.animate({
-                            scrollTop: vConsole.prop("scrollHeight")
-                        }, 1115);
-                        $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
-                        $("#melis-marketplace-product-modal-hide").removeClass("disabled");
-                        $("body").find("p#melis-marketplace-console-loading").remove();
-                        if (callback !== undefined || callback !== null) {
-                            if (callback) {
-                                callback();
-                            }
-                        }
+
+                        setTimeout(function () {
+                            // Composer re-Dumpautoload
+                            $.get("/melis/MelisMarketPlace/MelisMarketPlace/reDumpAutoload", function(){
+
+                                vConsoleText = "" + vConsole.html();
+                                vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');
+                                vConsole.animate({
+                                    scrollTop: vConsole.prop("scrollHeight")
+                                }, 1115);
+                                $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
+                                $("#melis-marketplace-product-modal-hide").removeClass("disabled");
+                                $("body").find("p#melis-marketplace-console-loading").remove();
+                                if (callback !== undefined || callback !== null) {
+                                    if (callback) {
+                                        callback();
+                                    }
+                                }
+                            });
+                        }, 3000);
                     }
                 }).error(function (e) {
                 var vConsole = $("body").find("#melis-marketplace-event-do-response");
