@@ -741,33 +741,29 @@ class MelisMarketPlaceController extends AbstractActionController
             //include the module
             array_push($arrayDependency, $module);
 
-            /**
-             * Process module activation
-             */
+            // since we are still running the function, we cannot get the accurate modules that are being loaded
+            // instead, we can read the module.load
+            $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
 
-            foreach($arrayDependency as $mod) {
-                if (!in_array($mod, $activeModules)) {
-                    // since we are still running the function, we cannot get the accurate modules that are being loaded
-                    // instead, we can read the module.load
-                    $moduleLoadFile = $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
+            if (file_exists($moduleLoadFile)) {
 
-                    if (file_exists($moduleLoadFile)) {
+                $modules = require $moduleLoadFile;
 
-                        $modules = include $_SERVER['DOCUMENT_ROOT'] . '/../config/melis.module.load.php';
+                /**
+                 * Process module activation
+                 */
+                foreach($arrayDependency as $mod) {
+                    if (!in_array($mod, $activeModules)) {
 
                         $moduleCount = count($modules);
                         $insertAtIdx = $moduleCount - 1;
                         array_splice($modules, $insertAtIdx, 0, $mod);
-
-                        // create the module.load file
-                        $moduleSvc->createModuleLoader('config/', $modules, [], []);
-
-                        // recheck if the modu89le requested to be added is in module.load
-                        if (in_array($mod, $modules)) {
-                            $success = 1;
-                        }
                     }
                 }
+
+                // create the module.load file
+                $moduleSvc->createModuleLoader('config/', $modules, [], []);
+                $success = 1;
             }
         }
 
