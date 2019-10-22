@@ -550,17 +550,23 @@ class MelisMarketPlaceController extends AbstractActionController
                              */
                             $tempToBeRemove = [];
                             foreach ($currentModules As $key => $mod){
+
+                                $skipModule = false;
                                 if (in_array($mod, $moduleDep)){
 
                                     foreach ($currentModules As $cMod){
                                         if ($cMod != $mod){
                                             $modDeps = $moduleSvc->getDependencies($cMod);
-                                            if (!in_array($mod, $modDeps))
-                                                if (!in_array($mod, $tempToBeRemove))
-                                                    $tempToBeRemove[] = $mod;
+                                            if (in_array($mod, $modDeps)){
+                                                $skipModule = true;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
+
+                                if (!$skipModule && !in_array($mod, $tempToBeRemove))
+                                    $tempToBeRemove[] = $mod;
                             }
 
                             /**
