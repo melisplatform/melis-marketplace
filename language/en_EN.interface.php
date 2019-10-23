@@ -56,6 +56,8 @@ return array(
     'melis_market_place_tool_package_do_event_message_ko' => 'Nothing to do.',
 
     'melis_market_place_tool_package_remove_confirm_on_dependencies' => 'By removing %s, this will deactivate the following modules: ',
+    'melis_market_place_tool_package_remove_no_no_msg_1' => '%s cannot be removed because one or more modules are dependent on this module: ',
+    'melis_market_place_tool_package_remove_no_no_msg_2' => 'In order to remove it you must first remove the modules using it.',
     'melis_market_place_tool_package_remove_confirm' => 'Are you sure you want to remove %s?',
     'melis_market_place_tool_package_remove_ok' => '%s has been removed successfully',
     'melis_market_place_tool_package_remove_ko' => 'Unable to remove module %s, please try again.',

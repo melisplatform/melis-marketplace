@@ -55,6 +55,8 @@ return array(
     'melis_market_place_tool_package_do_event_message_ko' => 'Rien à faire.',
 
     'melis_market_place_tool_package_remove_confirm_on_dependencies' => 'En supprimant %s, cela désactivera les modules suivants:',
+    'melis_market_place_tool_package_remove_no_no_msg_1' => '%s ne peut pas être désinstallé car un ou plusieurs modules sont dépendants de ce module :',
+    'melis_market_place_tool_package_remove_no_no_msg_2' => 'Pour le désinstaller vous devez d\'abord désinstaller les modules qui l\'utilisent.',
     'melis_market_place_tool_package_remove_confirm' => 'Êtes-vous sûr de vouloir supprimer ce module?',
     'melis_market_place_tool_package_remove_ok' => '%s a été supprimé avec succès',
     'melis_market_place_tool_package_remove_ko' => 'Impossible de supprimer le module %s, veuillez réessayer.',

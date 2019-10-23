@@ -205,23 +205,10 @@ $(function () {
                 modules = modules.replace("%s", moduleList);
 
                 if (data.success) {
-                    melisCoreTool.confirm(
-                        translations.tr_meliscore_common_yes,
-                        translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
+                    melisCoreTool.closeDialog(
                         translations.tr_meliscore_delete_module_header,
-                        translations.melis_market_place_tool_package_remove_confirm_on_dependencies.replace("%s", module) + modules + "<br/>" + translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
-                        function () {
-                            melisHelper.createModal(zoneId, melisKey, false, objData, modalUrl, function () {
-
-                                melisCoreTool.done("button");
-                                checkPermission(module, function () {
-                                    doEvent(objData, function () {
-                                        postDeleteEvent(module, tables, files);
-                                    });
-                                });
-
-                            });
-                        }
+                        translations.melis_market_place_tool_package_remove_no_no_msg_1.replace("%s", module) +
+                        modules + "<br/>" + translations.melis_market_place_tool_package_remove_no_no_msg_2
                     );
                 }
 
