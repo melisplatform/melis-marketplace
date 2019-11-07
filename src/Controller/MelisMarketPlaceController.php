@@ -530,62 +530,68 @@ class MelisMarketPlaceController extends AbstractActionController
                     case $composerSvc::REMOVE:
                         if (!in_array($module, $this->getModuleExceptions())) {
 
-                            // read the composer.json file
+                            // Retrieve current activated modules
+                            $mm = $this->getServiceLocator()->get('ModuleManager');
+                            $currentModules = $mm->getLoadedModules();
+
+                            // Unset module target module
+                            if (isset($currentModules[$module]))
+                                unset($currentModules[$module]);
+
+                            $currentModules = array_keys($currentModules);
+
+                            // Target module dependencies
+                            $moduleDep = $moduleSvc->getDependencies($module);
+
+                            /**
+                             * Checking target module dependencies from other
+                             * activated modules, this will avoid deactivation if
+                             * on of the activated module is using
+                             */
+                            $tempToBeRemove = [];
+                            foreach ($currentModules As $key => $mod){
+
+                                $skipModule = false;
+                                if (in_array($mod, $moduleDep)){
+
+                                    foreach ($currentModules As $cMod){
+                                        if ($cMod != $mod){
+                                            $modDeps = $moduleSvc->getDependencies($cMod);
+                                            if (in_array($mod, $modDeps)){
+                                                $skipModule = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (!$skipModule && !in_array($mod, $tempToBeRemove))
+                                    $tempToBeRemove[] = $mod;
+                            }
+
+                            /**
+                             * Checking if the Target module dependencies
+                             * listed on the root composer.json
+                             * this will skip from deactivating
+                             */
                             $composerJsonFile = $_SERVER['DOCUMENT_ROOT'] . '/../composer.json';
+                            $composerJson = json_decode(@file_get_contents($composerJsonFile), true);
+                            $composerReqs = $composerJson['require'];
 
-                            if (file_exists($composerJsonFile)) {
-                                // read the composer.json file
-                                set_time_limit(0);
-                                ini_set('memory_limit', '-1');
-                                try {
-                                    $composerJson = json_decode(@file_get_contents($composerJsonFile), true);
-                                } catch (\Exception $e) {
-                                    $composerJson = null;
-                                }
+                            foreach ($tempToBeRemove As $tMod){
+                                // Retrieving module composer.json to get na package name
+                                $moduleJson = json_decode(@file_get_contents($moduleSvc->getModulePath($tMod) . '/composer.json'), true);
+                                $modulePackageName = $moduleJson['name'];
 
-                                $modulePath = $moduleSvc->getModulePath($module);
-                                if (file_exists($modulePath)) {
-
-                                    if (file_exists("$modulePath/.gitignore")) {
-                                        unlink("$modulePath/.gitignore");
-                                    }
-
-                                    if ($this->hasDirRights($modulePath)) {
-                                        $this->deleteDir("$modulePath/.git");
-                                        $this->deleteDir($modulePath);
-                                    }
-                                }
-
-                                // update the content of composer.json
-                                $require = isset($composerJson['require']) ? $composerJson['require'] : null;
-                                if ($require) {
-                                    unset($require[$package]);
-                                    $composerJson['require'] = $require;
-                                }
-
-                                $newContent = \Zend\Json\Json::encode($composerJson, false, ['prettyPrint' => true]);
-                                $newContent = str_replace('\/', '/', $newContent);
-
-                                unlink($composerJsonFile);
-                                file_put_contents($composerJsonFile, $newContent);
+                                if (!isset($composerReqs[$modulePackageName]))
+                                    if (!is_bool(array_search($tMod, $currentModules)))
+                                        unset($currentModules[array_search($tMod, $currentModules)]);
                             }
 
-                            $defaultModules = ['MelisAssetManager', 'MelisComposerDeploy', 'MelisDbDeploy', 'MelisCore'];
-                            $removeModules = array_merge($moduleSvc->getChildDependencies($module), [$module, 'MelisModuleConfig']);
-                            $activeModules = $moduleSvc->getActiveModules($defaultModules);
-
-                            // create new module.load file
-                            $retainModules = [];
-
-                            foreach ($activeModules as $module) {
-                                if (!in_array($module, $removeModules)) {
-                                    $retainModules[] = $module;
-                                }
-                            }
-                            // unload module first before executing  dump autoload
-                            $moduleSvc->unloadModule($module);
-                            $moduleSvc->createModuleLoader('config/', $retainModules, $defaultModules);
-                            $composerSvc->dumpAutoload();
+                            // Re-creating module.load
+                            $moduleSvc->createModuleLoader('config/', $currentModules, [], []);
+                            $composerSvc->remove($package);
+                            // $composerSvc->dumpAutoload();
                         }
                         break;
                     default:
@@ -1384,21 +1390,26 @@ class MelisMarketPlaceController extends AbstractActionController
             $module = $this->getRequest()->getPost('module');
             if ($module) {
 
+                // Retrieve current activated modules
+                $mm = $this->getServiceLocator()->get('ModuleManager');
+                $currentModules = $mm->getLoadedModules();
+
                 $modules[] = $module;
 
                 $moduleDpndncs = $this->packageRequire($module);
-                if (!empty($moduleDpndncs))
-                    $modules = array_merge($moduleDpndncs, $modules);
 
-                if (!empty($moduleDpndncs)){
-                    /**
-                     * Store required melis module to session
-                     * in this case this will be easy to unplug module
-                     * that activate during setup needs to deactivate after setup
-                     */
-                    $reqModSessTemp = new Container('melismarketplace');
-                    $reqModSessTemp['temp_mod_actvt'] = $moduleDpndncs;
-                }
+                if (!empty($moduleDpndncs))
+                    foreach ($moduleDpndncs As $key => $mod)
+                        if (!in_array($mod, $currentModules))
+                            $modules[] = $mod;
+
+                /**
+                 * Store required melis module to session
+                 * in this case this will be easy to unplug module
+                 * that activate during setup needs to deactivate after setup
+                 */
+                $reqModSessTemp = new Container('melismarketplace');
+                $reqModSessTemp['temp_mod_actvt'] = $modules;
 
                 $this->getMarketPlaceService()->plugModule($modules);
 
@@ -1451,10 +1462,8 @@ class MelisMarketPlaceController extends AbstractActionController
                 // Deactivating temporary activated modules
                 $reqModSessTemp = new Container('melismarketplace');
 
-
                 if (!empty($reqModSessTemp['temp_mod_actvt'])){
                     $modules = array_merge($reqModSessTemp['temp_mod_actvt'], $modules);
-//                    unset($reqModSessTemp['temp_mod_actvt']);
                 }
 
                 $this->getMarketPlaceService()->unplugModule($modules);
