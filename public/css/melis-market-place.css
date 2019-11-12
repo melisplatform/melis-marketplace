@@ -541,6 +541,15 @@
     position: relative;
     margin-bottom: 30px;
     padding: 0 15px;
+    float: left;
+}
+
+.pagination {
+    display: inline-block;
+}
+
+.pagination li {
+    float: left;
 }
 
 .melis-store .product-thumb-info-content {
@@ -983,7 +992,6 @@
     text-transform: uppercase;
     letter-spacing: 0.4px;
     color: #ccc;
-    display: inline-block;
     margin: 0 5px;
     -webkit-transition: all 0.4s ease-in-out;
     -moz-transition: all 0.4s ease-in-out;
