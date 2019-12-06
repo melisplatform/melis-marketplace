@@ -521,7 +521,7 @@ class MelisMarketPlaceController extends AbstractActionController
                              * then it should use the \MelisMarketPlace\Service\MelisMarketPlaceSiteInstallService
                              * else, then use the regular composer download
                              */
-                            $composerSvc->download($package);
+                            $composerSvc->download($package, 'dev-develop');
                         }
                         break;
                     case $composerSvc::UPDATE:
@@ -743,9 +743,11 @@ class MelisMarketPlaceController extends AbstractActionController
 
             // Melis Modules required
             $arrayDependency = $this->packageRequire($module);
-
-            //include the module
-            array_push($arrayDependency, $module);
+            //check if module is zend module
+            $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
+            if($moduleInfo['isZendModule'])
+                //include the module
+                array_push($arrayDependency, $module);
 
             // since we are still running the function, we cannot get the accurate modules that are being loaded
             // instead, we can read the module.load
@@ -794,7 +796,8 @@ class MelisMarketPlaceController extends AbstractActionController
             $module = $request->getPost('module');
 
             if ($module) {
-                $isExist = (bool) $this->isModuleInstalled($module);
+                $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
+                $isExist = $moduleInfo['isExist'];
             }
         }
 
@@ -805,6 +808,77 @@ class MelisMarketPlaceController extends AbstractActionController
 
         return new JsonModel($response);
 
+    }
+
+    /**
+     * @param $module
+     * @return array
+     */
+    public function checkIfModuleExistAndZendModule($module)
+    {
+        $isExist = false;
+        $zendModule = false;
+
+        $moduleSrc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+        $repos = $moduleSrc->getComposer()->getRepositoryManager()->getLocalRepository();
+        $packageName = $this->convertToPackageName($module);
+        $packageInfo = $repos->findPackages("melisplatform/".$packageName);
+        /**
+         * Check if package exist
+         */
+        if(!empty($packageInfo[0])){
+            /**
+             * Check if package is melis platform module
+             */
+            if($packageInfo[0]->getType() == 'melisplatform-module') {
+                $extra = $packageInfo[0]->getExtra();
+                /**
+                 * Check if module is zend module
+                 * or form other framework(laravel,symfony,lumen,silex)
+                 *
+                 * If melis-module key does not exist,
+                 * then we expect it is a zend module
+                 */
+                if (isset($extra['melis-module'])) {
+                    if($extra['melis-module']){
+                        /**
+                         * Module is made in zend module
+                         */
+                        $isExist = ($module == $extra['module-name']) ? true : false;
+                        $zendModule = true;
+                    }else{
+                        /**
+                         * Module is made form other framework
+                         */
+                        $isExist = true;
+                        $zendModule = false;
+                    }
+                } else {
+                    /**
+                     * Module is made in zend module
+                     */
+                    $isExist = ($module == $extra['module-name']) ? true : false;
+                    $zendModule = true;
+                }
+            }
+        }
+
+        return [
+            'isExist' => $isExist,
+            'isZendModule' => $zendModule
+        ];
+    }
+
+    /**
+     * Convert module name to package name: (MelisCore -> melis-core)
+     * @param $module
+     * @return string
+     */
+    public function convertToPackageName($module)
+    {
+        $moduleName = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $module));
+
+        return $moduleName;
     }
 
     /**
@@ -1394,7 +1468,12 @@ class MelisMarketPlaceController extends AbstractActionController
                 $mm = $this->getServiceLocator()->get('ModuleManager');
                 $currentModules = $mm->getLoadedModules();
 
-                $modules[] = $module;
+                //include module in the activation if it is zend module
+                $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
+                if($moduleInfo['isZendModule'])
+                    $modules[] = $module;
+                else
+                    $modules = [];
 
                 $moduleDpndncs = $this->packageRequire($module);
 
@@ -1457,7 +1536,12 @@ class MelisMarketPlaceController extends AbstractActionController
             $module = $this->getRequest()->getPost('module');
             if ($module) {
 
-                $modules[] = $module;
+                //Check if module is zend module
+                $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
+                if($moduleInfo['isZendModule'])
+                    $modules[] = $module;
+                else
+                    $modules = [];
 
                 // Deactivating temporary activated modules
                 $reqModSessTemp = new Container('melismarketplace');
