@@ -744,8 +744,7 @@ class MelisMarketPlaceController extends AbstractActionController
             // Melis Modules required
             $arrayDependency = $this->packageRequire($module);
             //check if module is zend module
-            $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
-            if($moduleInfo['isZendModule'])
+            if($this->isZendModule($module))
                 //include the module
                 array_push($arrayDependency, $module);
 
@@ -796,8 +795,7 @@ class MelisMarketPlaceController extends AbstractActionController
             $module = $request->getPost('module');
 
             if ($module) {
-                $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
-                $isExist = $moduleInfo['isExist'];
+                $isExist = (bool) $this->isModuleInstalled($module);
             }
         }
 
@@ -812,11 +810,10 @@ class MelisMarketPlaceController extends AbstractActionController
 
     /**
      * @param $module
-     * @return array
+     * @return bool
      */
-    public function checkIfModuleExistAndZendModule($module)
+    public function isZendModule($module)
     {
-        $isExist = false;
         $zendModule = false;
 
         $moduleSrc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
@@ -844,29 +841,23 @@ class MelisMarketPlaceController extends AbstractActionController
                         /**
                          * Module is made in zend module
                          */
-                        $isExist = ($module == $extra['module-name']) ? true : false;
                         $zendModule = true;
                     }else{
                         /**
                          * Module is made form other framework
                          */
-                        $isExist = true;
                         $zendModule = false;
                     }
                 } else {
                     /**
                      * Module is made in zend module
                      */
-                    $isExist = ($module == $extra['module-name']) ? true : false;
                     $zendModule = true;
                 }
             }
         }
 
-        return [
-            'isExist' => $isExist,
-            'isZendModule' => $zendModule
-        ];
+        return $zendModule;
     }
 
     /**
@@ -1469,8 +1460,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 $currentModules = $mm->getLoadedModules();
 
                 //include module in the activation if it is zend module
-                $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
-                if($moduleInfo['isZendModule'])
+                if($this->isZendModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
@@ -1537,8 +1527,7 @@ class MelisMarketPlaceController extends AbstractActionController
             if ($module) {
 
                 //Check if module is zend module
-                $moduleInfo = $this->checkIfModuleExistAndZendModule($module);
-                if($moduleInfo['isZendModule'])
+                if($this->isZendModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
