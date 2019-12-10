@@ -760,11 +760,12 @@ class MelisMarketPlaceController extends AbstractActionController
                  * Process module activation
                  */
                 foreach($arrayDependency as $mod) {
-                    if (!in_array($mod, $activeModules)) {
-
-                        $moduleCount = count($modules);
-                        $insertAtIdx = $moduleCount - 1;
-                        array_splice($modules, $insertAtIdx, 0, $mod);
+                    if($this->isZendModule($mod)){
+                        if (!in_array($mod, $activeModules)) {
+                            $moduleCount = count($modules);
+                            $insertAtIdx = $moduleCount - 1;
+                            array_splice($modules, $insertAtIdx, 0, $mod);
+                        }
                     }
                 }
 
@@ -1469,8 +1470,9 @@ class MelisMarketPlaceController extends AbstractActionController
 
                 if (!empty($moduleDpndncs))
                     foreach ($moduleDpndncs As $key => $mod)
-                        if (!in_array($mod, $currentModules))
-                            $modules[] = $mod;
+                        if($this->isZendModule($mod))
+                            if (!in_array($mod, $currentModules))
+                                $modules[] = $mod;
 
                 /**
                  * Store required melis module to session
