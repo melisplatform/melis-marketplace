@@ -205,23 +205,10 @@ $(function () {
                 modules = modules.replace("%s", moduleList);
 
                 if (data.success) {
-                    melisCoreTool.confirm(
-                        translations.tr_meliscore_common_yes,
-                        translations.tr_meliscore_tool_emails_mngt_generic_from_header_cancel,
+                    melisCoreTool.closeDialog(
                         translations.tr_meliscore_delete_module_header,
-                        translations.melis_market_place_tool_package_remove_confirm_on_dependencies.replace("%s", module) + modules + "<br/>" + translations.melis_market_place_tool_package_remove_confirm.replace("%s", module),
-                        function () {
-                            melisHelper.createModal(zoneId, melisKey, false, objData, modalUrl, function () {
-
-                                melisCoreTool.done("button");
-                                checkPermission(module, function () {
-                                    doEvent(objData, function () {
-                                        postDeleteEvent(module, tables, files);
-                                    });
-                                });
-
-                            });
-                        }
+                        translations.melis_market_place_tool_package_remove_no_no_msg_1.replace("%s", module) +
+                        modules + "<br/>" + translations.melis_market_place_tool_package_remove_no_no_msg_2
                     );
                 }
 
@@ -276,6 +263,8 @@ $(function () {
                                             if (response.data.isExist || response.data.isExist === true) {
                                                 // show reload and activate module buttons
                                                 execDbDeploy(module, response, action, resolve, reject);
+                                            }else{
+                                                updateCmdText('<span style="color: #ff190d;">' + translations.tr_meliscore_error_message + "</span>");
                                             }
                                         });
                                 });
@@ -471,7 +460,6 @@ $(function () {
         doAjax("POST", "/melis/MelisMarketPlace/MelisMarketPlace/isModuleExists", {module: module}, function (module) {
 
             if (!module.isExist || module.isExist === false) {
-
                 vConsole.html(vConsoleText + '<br/><span style="color:#02de02">' + translations.melis_market_place_tool_package_remove_ok.replace("%s", module.module) + '</span>');
 
                 // export tables
@@ -596,7 +584,11 @@ $(function () {
                         onprogress: function (e) {
 
                             var vConsole = $("body").find("#melis-marketplace-event-do-response");
-                            vConsole.html("");
+
+                            if (vConsole.html().includes("pre-task-action")) {
+                                vConsole.html("");
+                            }
+
                             var vConsoleText = vConsole.html();
 
                             var curResponse, response = e.currentTarget.response;
