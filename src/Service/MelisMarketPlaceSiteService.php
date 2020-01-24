@@ -908,12 +908,29 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         if ($eventName && $params) {
             $config = $this->getConfig();
             $dataConfig = $config[Site::DATA];
+
+            /**
+             * Replacing values before pass to events
+             */
+            foreach ($params as $key => $value) {
+                $params[$key] = str_replace([
+                            Melis::CMS_SITE_ID,
+                            Melis::CURRENT_PAGE_ID,
+                            Melis::CURRENT_TEMPLATE_ID,
+                        ], [
+                            $this->getSiteId(),
+                            $this->getCurrentPageId(),
+                            $this->getCurrentTemplateId(),
+                        ], 
+                        $value
+                    );
+            }
+
             $params = array_merge($dataConfig, ['params' => $params]);
 
             return $this->sendEvent($eventName, $params);
         }
 
         return null;
-
     }
 }
