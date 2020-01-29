@@ -645,9 +645,8 @@ $(function () {
                 $("#melis-marketplace-product-modal-hide").removeClass("disabled");
             });
 
-        }, 800);
+        }, 801);
     }
-
 
     $("body").on("click", ".melis-market-place-pagination", function () {
         var divOverlay = '<div class="melis-overlay"></div>';
@@ -759,8 +758,6 @@ $(function () {
     function clearLazyCmdText(id, message) {
         $("#" + id).html('<i class="fa fa-info-circle"></i> ' + message + '<br/>');
     }
-
-
 });
 
 
