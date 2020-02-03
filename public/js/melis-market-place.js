@@ -522,7 +522,7 @@ $(function () {
             dataType: 'json',
             encode: true
             // processData: false
-        }).success(function (data) {
+        }).done(function (data) {
             try {
                 if (callbackOnSuccess !== undefined || callbackOnSuccess !== null) {
                     if (callbackOnSuccess) {
@@ -534,7 +534,7 @@ $(function () {
                 melisHelper.melisKoNotification(err.toString());
                 console.error(err);
             }
-        }).error(function (e) {
+        }).fail(function (e) {
             if (callbackOnFail !== undefined || callbackOnFail !== null) {
                 if (callbackOnFail) {
                     callbackOnFail(data);
@@ -638,16 +638,15 @@ $(function () {
                             });
                         }, 3000);
                     }
-                }).error(function (e) {
+                }).fail(function (e) {
                 var vConsole = $("body").find("#melis-marketplace-event-do-response");
                 vConsole.html("An error has occured, please try again");
                 $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
                 $("#melis-marketplace-product-modal-hide").removeClass("disabled");
             });
 
-        }, 800);
+        }, 801);
     }
-
 
     $("body").on("click", ".melis-market-place-pagination", function () {
         var divOverlay = '<div class="melis-overlay"></div>';
@@ -759,8 +758,6 @@ $(function () {
     function clearLazyCmdText(id, message) {
         $("#" + id).html('<i class="fa fa-info-circle"></i> ' + message + '<br/>');
     }
-
-
 });
 
 
