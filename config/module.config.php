@@ -111,6 +111,7 @@ return [
         'display_exceptions' => true,
         'doctype' => 'HTML5',
         'template_map' => [
+
         ],
         'template_path_stack' => [
             __DIR__ . '/../view',

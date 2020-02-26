@@ -1,4 +1,7 @@
-window.fetchPackages = function (page, search, orderBy, order, itemPerPage, group) {
+window.fetchPackages = function (page, search, orderBy, order, itemPerPage, group, paginationClickOwner) {
+    paginationClickOwner = (typeof paginationClickOwner == undefined) ? null : paginationClickOwner;
+    //get bundle filter value
+    var bundle = getBundle();
 
     page = page || 1;
     search = search || $("body").find("input#melis_market_place_search_input").val();
@@ -9,24 +12,84 @@ window.fetchPackages = function (page, search, orderBy, order, itemPerPage, grou
     if (!group) {
         group = ["1", "2", "3", "4", '5'];
     }
+    var modUrl = "/melis/MelisMarketPlace/MelisMarketPlace/module-list?page=" + page + "&search=" + search + "&orderBy=" + orderBy + "&group=" + group;
+    var bundleUrl = "/melis/MelisMarketPlace/MelisMarketPlace/bundle-list?page=" + page + "&search=" + search + "&orderBy=" + orderBy + "&group=" + group + "&bundle=" + bundle;
+    var data = {page: page, search: search, orderBy: orderBy, order: order, itemPerPage: itemPerPage, group: group, bundle: bundle};
+
+    //on pagination click, we execute only the owner of the pagination
+    if(paginationClickOwner == 'bundle' || bundle == 1) {
+        getBundles(bundleUrl, data, true);
+    }else if(paginationClickOwner == 'module'){
+        getModules(modUrl, data, true);
+    }else {
+        $.when(getBundles(bundleUrl, data, false), getModules(modUrl, data, false)).done(function(){
+            $(".package-list").find("div.melis-overlay").remove();
+        });
+    }
 
     $(".market-place-btn-filter-group button").attr("disabled", "disabled");
     $("#btnMarketPlaceSearch").attr("disabled", "disabled");
-    $.ajax({
-        type: 'POST',
-        url: "/melis/MelisMarketPlace/MelisMarketPlace/package-list?page=" + page + "&search=" + search + "&orderBy=" + orderBy + "&group=" + group,
-        data: {page: page, search: search, orderBy: orderBy, order: order, itemPerPage: itemPerPage, group: group},
-        dataType: "html",
-        success: function (data) {
-            $("body").find("div#melis-market-place-package-list").html(data);
-            $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
-            $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
-        }
-    });
 };
 
+function getModules(url, data, removeOverlay)
+{
+    return $.ajax({
+        type: 'POST',
+        url: url,
+        data: data,
+        dataType: "html"
+    }).done(function(data){
+        $("body").find("div#melis-market-place-module-list").html(data);
+        $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
+        $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
+        //update title of the package to add the selected group name
+        changePackageHeaderTitle();
+        if(removeOverlay)
+            $(".package-list").find("div.melis-overlay").remove();
+    });
+}
+
+function getBundles(url, data, removeOverlay)
+{
+    return $.ajax({
+        type: 'POST',
+        url: url,
+        data: data,
+        dataType: "html"
+    }).done(function(data){
+        $("body").find("div#melis-market-place-bundle-list").html(data);
+        $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
+        $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
+        //update title of the package to add the selected group name
+        changePackageHeaderTitle();
+        if(removeOverlay)
+            $(".package-list").find("div.melis-overlay").remove();
+
+        //remove modules data
+        if(getBundle() == 1) {
+            $("#melis-market-place-module-list").empty();
+        }
+    });
+}
+
+function changePackageHeaderTitle()
+{
+    var groupId = $(".market-place-btn-filter-group").find('.active').not('.bundles');
+    var headerBundleTitle = $(".package-bundle-header-title").find("h3");
+    var headerModuleTitle = $(".package-module-header-title").find("h3");
+    var modulesName = "";
+    //get the active buttons Id
+    for (var ctr = 0; ctr < groupId.length; ctr++) {
+        modulesName += (ctr == 0) ? "" : ", ";
+        modulesName += $(groupId[ctr]).attr("data-groupname");
+    }
+
+    headerBundleTitle.text("Bundles "+modulesName);
+    headerModuleTitle.text("Modules "+modulesName);
+}
+
 function getActiveGroupIdFilter() {
-    var groupId = $(".market-place-btn-filter-group").find('.active');
+    var groupId = $(".market-place-btn-filter-group").find('.active').not('.bundles');
     var btnId = [];
     var tmpData = {};
 
@@ -39,6 +102,14 @@ function getActiveGroupIdFilter() {
     tmpData = [btnId];
 
     return tmpData;
+}
+
+function getBundle(){
+    var bundleButton = $(".market-place-btn-filter-group").find("button.bundles");
+    if(bundleButton.hasClass('active'))
+        return 1;
+
+    return 0;
 }
 
 function initSlick(tab) {
@@ -650,10 +721,15 @@ $(function () {
 
     $("body").on("click", ".melis-market-place-pagination", function () {
         var divOverlay = '<div class="melis-overlay"></div>';
-        $("#melis-market-place-package-list").append(divOverlay);
+        $(".package-list").append(divOverlay);
         var page = $(this).data("goto-page");
         var groupId = getActiveGroupIdFilter();
-        fetchPackages(page, null, null, null, null, groupId);
+        var paginationOwner = 'module';
+        if($(this).hasClass('bundle-pagination')) {
+            paginationOwner = 'bundle';
+        }
+
+        fetchPackages(page, null, null, null, null, groupId, paginationOwner);
     });
 
     $("body").on("keypress", "input#melis_market_place_search_input", function (e) {
@@ -664,7 +740,7 @@ $(function () {
 
     $("body").on("click", "button#btnMarketPlaceSearch", function () {
         var divOverlay = '<div class="melis-overlay"></div>';
-        $(".product-list-view").append(divOverlay);
+        $(".package-list").append(divOverlay);
         var search = $("body").find("input#melis_market_place_search_input").val();
         var groupId = getActiveGroupIdFilter();
         fetchPackages(null, search, null, null, null, groupId);
@@ -850,7 +926,7 @@ $(document).ready(function () {
         var flag = 0;
         //put overlay for loading
         var divOverlay = '<div class="melis-overlay"></div>';
-        $(".product-list-view").append(divOverlay);
+        $(".package-list").append(divOverlay);
 
         var isActive = $(this).hasClass("active");
 
@@ -862,8 +938,6 @@ $(document).ready(function () {
         var search = $("body").find("input#melis_market_place_search_input").val();
 
         fetchPackages(null, search, null, null, null, data);
-
-
     });
 
     /*

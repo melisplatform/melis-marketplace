@@ -1,11 +1,11 @@
 <?php
 $packages = $this->packages;
 $pagination = $this->pagination;
-$form = $this->searchForm;
 ?>
 
 <hr>
 <div class="product-list-view">
+    <div class="package-module-header-title"><h3>Modules</h3></div>
     <?php if ($packages && is_array($packages)) {
         echo '<ul class="products product-thumb-info-list clearfix">';
         foreach ($packages as $package) { ?>

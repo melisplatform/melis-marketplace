@@ -47,13 +47,13 @@ $packageGroupData = $this->packageGroupData;
 
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-7">
                                 <div class="market-place-btn-filter-group">
                                     <?php
                                     if (isset($packageGroupData)) {
                                         foreach ($packageGroupData as $groupData => $groupValue) {
                                             $typeName = substr($groupValue['mp_group_name'], 5); ?>
-                                                <button class='btn btn-primary <?= strtolower($typeName) ?>' value='<?= $groupValue['mp_group_id'] ?>'>
+                                                <button class='btn btn-primary <?= strtolower($typeName) ?>' data-groupname="<?= $groupValue['mp_group_name'] ?>" value='<?= $groupValue['mp_group_id'] ?>'>
                                                     <div class="melis-svg">
                                                         <svg version="1.1" id="Layer_<?= $groupValue['mp_group_id'] ?>" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 30 30" enable-background="new 0 0 30 30" xml:space="preserve">
                                                             <g>
@@ -69,10 +69,28 @@ $packageGroupData = $this->packageGroupData;
                                                 </button>
                                         <?php } ?>
                                     <?php } ?>
+<!--                                    Add bundles-->
+                                    <button class='btn btn-primary bundles pull-right'>
+                                        <div class="melis-svg">
+                                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 30 30" enable-background="new 0 0 30 30" xml:space="preserve">
+                                                    <g>
+                                                        <rect class="bg-color" y="0.1" fill="#C52127" width="29.9" height="29.9"></rect>
+                                                        <rect class="light-color" x="14.6" y="2.7" fill="#E71E26" width="12.7" height="24.6"></rect>
+                                                        <g>
+                                                            <path fill="#FFFFFF" d="M7.4,21.1V9.5H22v11.7h-2.9v-8.8h-2.9v8.8h-2.9v-8.8h-2.9v8.8H7.4z"></path>
+                                                        </g>
+                                                    </g>
+                                                </svg>
+                                        </div>
+                                        Bundles
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <div id="melis-market-place-package-list"></div>
+                        <div class="package-list">
+                            <div id="melis-market-place-bundle-list"></div>
+                            <div id="melis-market-place-module-list"></div>
+                        </div>
                     </div>
 
                 </div>

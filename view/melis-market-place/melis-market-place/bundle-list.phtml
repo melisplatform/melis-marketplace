@@ -1,0 +1,146 @@
+<?php
+$bundles = $this->bundles;
+$pagination = $this->pagination;
+?>
+<div class="product-list-view">
+    <?php if ($bundles && is_array($bundles)) {
+        echo '<hr>';
+        echo '<div class="package-bundle-header-title"><h3>Bundles</h3></div>';
+        echo '<ul class="products product-thumb-info-list clearfix">';
+        foreach ($bundles as $bundle) { ?>
+            <?php
+                $opacity = '';
+
+                if ($bundle['packageIsPrivate']) {
+                    $opacity = 'opacity-zero';
+                }
+            ?>
+                <li class="col-sm-6 col-md-6 col-lg-4">
+                    <div class="product melis-market-place-view-details <?= strtolower(trim($bundle['packageGroupName'])) ?>" title="View Details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>">
+                        <a href="#">
+                            <span class="onsale hidden"></span>
+                        </a>
+                        <div class="product-thumb">
+                            <?php
+                            $bundleImage = isset($bundle['packageImages'][0]['imageFile']) ? $bundle['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
+                            ?>
+                            <img alt="" class="img-responsive" src="<?= $bundleImage; ?>" height="200" width="310">
+                            <div class="product-action">
+                                <a><span>
+                                    <i class="icon icon-visual-eye-fill"></i></span></a>
+                            </div>
+                        </div>
+                        <div class="product-thumb-info">
+                            <div class="product-thumb-info-content">
+
+                                <h4 class="product-name"><a href="#"><?= $bundle['packageTitle']; ?></a></h4>
+                                <span class="price hidden">
+                                    <span class="amount old"></span>
+                                    <span class="amount current"></span>
+                                </span>
+
+                                <a class="hidden" href="<?= $bundle['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
+                                target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
+                                </a>
+                                <div class="clearfix product-mini-sub">
+                                    <span class="melis-module-version <?= $opacity ?>"> <?= $bundle['packageVersion']; ?></span>
+                                    <span class="melis-module-downloads <?= $opacity ?>"><i class="fa fa-download"></i> <?= number_format($bundle['packageTotalDownloads']); ?></span>
+                                </div>
+
+                                <div class="melis-svg">
+                                    <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                                        viewBox="0 0 30 30" enable-background="new 0 0 30 30" xml:space="preserve">
+                                        <g>
+                                            <rect class="bg-color" y="0.1" fill="#C52127" width="29.9" height="29.9"/>
+                                            <rect class="light-color" x="14.6" y="2.7" fill="#E71E26" width="12.7" height="24.6"/>
+                                            <g>
+                                                <path fill="#FFFFFF" d="M7.4,21.1V9.5H22v11.7h-2.9v-8.8h-2.9v8.8h-2.9v-8.8h-2.9v8.8H7.4z"/>
+                                            </g>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clearfix product-status">
+                            <span class="installed">
+                                <?php if ($bundle['packageIsPrivate']) : ?>
+                                    <span class=""><i class="fa fa-lock"></i> PRIVATE</span>
+                                <?php else : ?>
+                                    <?php
+                                    if ((bool) $bundle['installed']) {
+                                        echo '<span class="text-success"><i class="fa fa-check-circle"></i> ' . $this->translate('tr_market_place_package_installed') . '</span>';
+                                    } else {
+                                        if ($this->isUpdatablePlatform) {
+                                            echo '<span class="text-warning ' . $opacity . '"><i class="fa fa-download"></i> ' . $this->translate('tr_market_place_require') . '</span>';
+                                        }
+                                    }
+                                    ?>
+                                <?php endif; ?>
+                            </span>
+                            <?php
+                            $statusClass = 'melis-module-version-status';
+                            if ($bundle['version_status'] == 'Update') {
+                                $statusClass = 'melis-module-version-status need-update';
+                            }
+                            ?>
+                            <span class="<?= $statusClass ?><?= ' ' . $opacity ?>"> <?= $this->translate($bundle['version_status']); ?></span>
+                        </div>
+                    </div>
+                </li>
+            <?php
+        }
+        echo '</ul>';
+    }else {
+        if($this->isBundleOnly) {
+            echo '<hr>';
+            echo '<h3>' . $this->translate('tr_market_place_search_ko') . '</h3>';
+        }
+    }
+    ?>
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <?php if ($pagination): ?>
+                <ul class="pagination">
+                    <!-- Previous page link -->
+                    <?php if ($pagination['previous']['enabled'] == 'true'): ?>
+                        <li class="page-item">
+                            <a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="<?= $pagination['previous']['page']; ?>"><i class="icon icon-chevron-left"></i></a>
+                        </li>
+                    <?php else: ?>
+                        <li class="disabled page-item">
+                            <a href="#" class="page-link">
+                                <i class="icon icon-chevron-left"></i>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php
+                    foreach ($pagination['pages'] as $page) {
+                        $active = '';
+                        $link = '<a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="' . $page['page'] . '">' . $page['page'] . '</a>';
+
+                        if ($page['current'] == 'true' || $page['current'] == 1) {
+                            $active = ' class="active page-item"';
+                            $link = '<a class="page-link">' . $page['page'] . '</a>';
+                        }
+                        echo '<li' . $active . ' class="page-item">' . $link . '</li>' . PHP_EOL;
+                    }
+                    ?>
+
+                    <!-- Next page link -->
+                    <?php if ($pagination['next']['enabled'] == 'true'): ?>
+                        <li class="page-item">
+                            <a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="<?= $pagination['next']['page']; ?>"><i class="icon icon-chevron-right"></i></a>
+                        </li>
+                    <?php else: ?>
+                        <li class="disabled page-item">
+                            <a href="#" class="page-link">
+                                <i class="icon icon-chevron-right"></i>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>

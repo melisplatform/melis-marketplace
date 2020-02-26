@@ -300,7 +300,7 @@ class MelisMarketPlaceController extends AbstractActionController
      *
      * @return \Zend\View\Model\ViewModel
      */
-    public function packageListAction()
+    public function moduleListAction()
     {
         $packages = [];
         $itemCountPerPage = 1;
@@ -316,7 +316,6 @@ class MelisMarketPlaceController extends AbstractActionController
             $config = $this->getServiceLocator()->get('MelisConfig');
             $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
-
             //end verifying modules
 
             $factory = new \Zend\Form\Factory();
@@ -325,67 +324,10 @@ class MelisMarketPlaceController extends AbstractActionController
             $searchForm = $factory->createForm($searchForm);
 
             $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), [], true);
-
-            $page = isset($post['page']) ? (int) $post['page'] : 1;
-            $search = isset($post['search']) ? $post['search'] : '';
-            $orderBy = isset($post['orderBy']) ? $post['orderBy'] : 'mp_total_downloads';
-            $order = isset($post['order']) ? $post['order'] : 'desc';
-            $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
-            $group = isset($this->getRequest()->getQuery()['group']) ? (string) $this->getRequest()->getQuery()['group'] : null;
-
-
-            set_time_limit(0);
-            ini_set('memory_limit', '-1');
-            $search = urlencode($search);
-            $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/' . $page . '/search/' . $search
-                . '/item_per_page/' . $itemPerPage . '/order/' . $order . '/order_by/' . $orderBy . '/status/1' . '/group/' . $group;
-
-            $serverPackages = @file_get_contents($requestJsonUrl);
-            try {
-                $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
-            } catch (\Exception $e) {
-                $serverPackages = null;
-            }
-            $tmpPackages = empty($serverPackages['packages']) ?: $serverPackages['packages'];
-
-
-            if (isset($serverPackages['packages']) && $serverPackages['packages']) {
-                // check if the module is installed
-                $installedModules = $this->getServiceLocator()->get('MelisAssetManagerModulesService')->getAllModules();
-                $installedModules = array_map(function ($a) {
-                    return trim(strtolower($a));
-                }, $installedModules);
-
-
-                // rewrite array, add installed status
-                foreach ($serverPackages['packages'] as $idx => $package) {
-                    $isInstalled = false;
-                    // to make sure it will match
-                    $packageName = trim(strtolower($package['packageModuleName']));
-
-                    if (in_array($packageName, $installedModules)) {
-                        $tmpPackages[$idx]['installed'] = true;
-                    } else {
-                        $tmpPackages[$idx]['installed'] = false;
-                    }
-
-                    $isInstalled = (bool) $tmpPackages[$idx]['installed'];
-
-                    //compare the package local version to the repository
-                    if (isset($tmpPackages[$idx]['packageModuleName'])) {
-                        $d = $this->getMarketPlaceService()->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
-
-                        if (!empty($d)) {
-                            $tmpPackages[$idx]['version_status'] = $isInstalled === true ? $this->getVersionStatusText($d) : "";
-                        } else {
-                            $tmpPackages[$idx]['version_status'] = "";
-                        }
-                    }
-                }
-
-                $serverPackages['packages'] = $tmpPackages;
-            }
-
+            //get only modules that are not bundle
+            $post['bundle'] = 0;
+            //get packages
+            $serverPackages = $this->fetchPackages($post);
 
             $packages = isset($serverPackages['packages']) ? $serverPackages['packages'] : null;
             $itemCountPerPage = isset($serverPackages['itemCountPerPage']) ? $serverPackages['itemCountPerPage'] : null;
@@ -408,6 +350,128 @@ class MelisMarketPlaceController extends AbstractActionController
         $view->setVariable('searchForm', $searchForm);
 
         return $view;
+    }
+
+    /**
+     * Translates the retrieved data coming from the Melis Packagist URL
+     * and transform's it into a display including the pagination
+     *
+     * @return \Zend\View\Model\ViewModel
+     */
+    public function bundleListAction()
+    {
+        $bundles = [];
+        $itemCountPerPage = 1;
+        $pageCount = 1;
+        $currentPageNumber = 1;
+        $pagination = null;
+        $isBundleOnly = false;
+
+        if ($this->getRequest()->isPost()) {
+            $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), [], true);
+
+            if($post['bundle'] == 1)
+                $isBundleOnly = true;
+            else
+                $post['itemPerPage'] = 3;//limit the bundle if modules list is also displayed
+
+            //get only modules that are bundle
+            $post['bundle'] = 1;
+
+            //get bundle list
+            $serverPackages = $this->fetchPackages($post);
+
+            $bundles = isset($serverPackages['packages']) ? $serverPackages['packages'] : null;
+            $itemCountPerPage = isset($serverPackages['itemCountPerPage']) ? $serverPackages['itemCountPerPage'] : null;
+            $pageCount = isset($serverPackages['pageCount']) ? $serverPackages['pageCount'] : null;
+            $currentPageNumber = isset($serverPackages['currentPageNumber']) ? $serverPackages['currentPageNumber'] : null;
+            $pagination = isset($serverPackages['pagination']) ? $serverPackages['pagination'] : null;
+
+        }
+
+        $view = new ViewModel();
+
+        $view->setTerminal(true);
+
+        $view->bundles = $bundles;
+        $view->isBundleOnly = $isBundleOnly;
+        $view->itemCountPerPage = $itemCountPerPage;
+        $view->pageCount = $pageCount;
+        $view->currentPageNumber = $currentPageNumber;
+        $view->pagination = $pagination;
+        $view->isUpdatablePlatform = $this->allowUpdate();
+
+        return $view;
+    }
+
+    /**
+     * @param $post
+     * @return false|mixed|string|null
+     */
+    private function fetchPackages($post)
+    {
+        $page = isset($post['page']) ? (int) $post['page'] : 1;
+        $search = isset($post['search']) ? $post['search'] : '';
+        $orderBy = isset($post['orderBy']) ? $post['orderBy'] : 'mp_total_downloads';
+        $order = isset($post['order']) ? $post['order'] : 'desc';
+        $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
+        $group = isset($this->getRequest()->getQuery()['group']) ? (string) $this->getRequest()->getQuery()['group'] : null;
+        $bundle = isset($post['bundle']) ? $post['bundle'] : null;
+
+
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+        $search = urlencode($search);
+        $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/' . $page . '/search/' . $search
+            . '/item_per_page/' . $itemPerPage . '/order/' . $order . '/order_by/' . $orderBy . '/status/1' . '/group/' . $group
+            . '/bundle/' . $bundle;
+
+        $serverPackages = @file_get_contents($requestJsonUrl);
+        try {
+            $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
+        } catch (\Exception $e) {
+            $serverPackages = null;
+        }
+        $tmpPackages = empty($serverPackages['packages']) ?: $serverPackages['packages'];
+
+
+        if (isset($serverPackages['packages']) && $serverPackages['packages']) {
+            // check if the module is installed
+            $installedModules = $this->getServiceLocator()->get('MelisAssetManagerModulesService')->getAllModules();
+            $installedModules = array_map(function ($a) {
+                return trim(strtolower($a));
+            }, $installedModules);
+
+
+            // rewrite array, add installed status
+            foreach ($serverPackages['packages'] as $idx => $package) {
+                $isInstalled = false;
+                // to make sure it will match
+                $packageName = trim(strtolower($package['packageModuleName']));
+
+                if (in_array($packageName, $installedModules)) {
+                    $tmpPackages[$idx]['installed'] = true;
+                } else {
+                    $tmpPackages[$idx]['installed'] = false;
+                }
+
+                $isInstalled = (bool) $tmpPackages[$idx]['installed'];
+
+                //compare the package local version to the repository
+                if (isset($tmpPackages[$idx]['packageModuleName'])) {
+                    $d = $this->getMarketPlaceService()->compareLocalVersionFromRepo($tmpPackages[$idx]['packageModuleName'], $tmpPackages[$idx]['packageVersion']);
+
+                    if (!empty($d)) {
+                        $tmpPackages[$idx]['version_status'] = $isInstalled === true ? $this->getVersionStatusText($d) : "";
+                    } else {
+                        $tmpPackages[$idx]['version_status'] = "";
+                    }
+                }
+            }
+
+            $serverPackages['packages'] = $tmpPackages;
+        }
+        return $serverPackages;
     }
 
     /**
