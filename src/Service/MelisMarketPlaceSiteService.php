@@ -577,6 +577,29 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
+     * Returns the site id
+     *
+     * @return null|int
+     */
+    public function getIdSite()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
+        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+
+        $select = $siteTable->getTableGateway()->getSql()->select();
+
+        $select->where->equalTo('site_name', $this->getModule());
+
+        $resultSet = $siteTable->getTableGateway()->selectWith($select)->toArray();
+
+        if ($resultSet) {
+            return end($resultSet)['site_id'];
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the main page ID of the selected site module
      *
      * @return null|int
