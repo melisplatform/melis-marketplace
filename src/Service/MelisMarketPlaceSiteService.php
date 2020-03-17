@@ -10,13 +10,13 @@ use MelisMarketPlace\Exception\TemplateIdMaxRangeReachedException;
 use MelisMarketPlace\Support\MelisMarketPlaceCmsTables as Melis;
 use MelisMarketPlace\Support\MelisMarketPlaceSiteInstall as Site;
 use PDO;
-use Zend\Db\Adapter\Adapter as DbAdapter;
-use Zend\Http\PhpEnvironment\Request;
+use Laminas\Db\Adapter\Adapter as DbAdapter;
+use Laminas\Http\PhpEnvironment\Request;
 
 class MelisMarketPlaceSiteService extends MelisCoreGeneralService
 {
     /**
-     * @var \Zend\Db\Adapter\Adapter $adapter
+     * @var \Laminas\Db\Adapter\Adapter $adapter
      */
     protected $adapter;
 
@@ -42,7 +42,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     const ACTION_REQUIRE = 'require';
 
     /**
-     * @param \Zend\Http\PhpEnvironment\Request $request
+     * @param \Laminas\Http\PhpEnvironment\Request $request
      *
      * @return $this
      * @throws \MelisMarketPlace\Exception\EmptySiteException
@@ -94,7 +94,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @param \Zend\Http\PhpEnvironment\Request $request
+     * @param \Laminas\Http\PhpEnvironment\Request $request
      *
      * @return $this
      * @throws \MelisMarketPlace\Exception\EmptySiteException
@@ -170,7 +170,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      */
     private function setDbAdapter()
     {
-        /** @var \Zend\Config\Config $config */
+        /** @var \Laminas\Config\Config $config */
         $config = $this->getServiceLocator()->get('config');
         $db = $config['db'];
 
@@ -270,7 +270,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     /**
      * @param string $env
      *
-     * @return array|\ArrayObject|\Zend\Db\ResultSet\ResultSet|null
+     * @return array|\ArrayObject|\Laminas\Db\ResultSet\ResultSet|null
      */
     protected function getPlatform($env = null)
     {
@@ -655,7 +655,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     /**
      * Returns the instance of DbAdapter
      *
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     private function getAdapter()
     {

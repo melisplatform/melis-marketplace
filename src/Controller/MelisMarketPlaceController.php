@@ -3,15 +3,15 @@
 namespace MelisMarketPlace\Controller;
 
 use Illuminate\View\View;
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\Session\Container;
-use Zend\View\Model\ViewModel;
-use Zend\View\Model\JsonModel;
-use Zend\Json\Json;
+use Laminas\Mvc\Controller\AbstractActionController;
+use Laminas\Session\Container;
+use Laminas\View\Model\ViewModel;
+use Laminas\View\Model\JsonModel;
+use Laminas\Json\Json;
 use PDO;
-use Zend\Db\Sql\Sql;
-use Zend\Db\Adapter\Adapter as DbAdapter;
-use Zend\Db\Sql\Ddl;
+use Laminas\Db\Sql\Sql;
+use Laminas\Db\Adapter\Adapter as DbAdapter;
+use Laminas\Db\Sql\Ddl;
 
 /**
  * Class MelisMarketPlaceController
@@ -19,7 +19,7 @@ use Zend\Db\Sql\Ddl;
  */
 class MelisMarketPlaceController extends AbstractActionController
 {
-    /** @var  \Zend\Db\Adapter\Adapter $adapter */
+    /** @var  \Laminas\Db\Adapter\Adapter $adapter */
     protected $adapter;
 
     const ACTION_REQUIRE = 'require';
@@ -28,7 +28,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Handles the display of the tool
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolContainerAction()
     {
@@ -45,7 +45,7 @@ class MelisMarketPlaceController extends AbstractActionController
             $packageGroupData = null;
         }
 
-        $factory = new \Zend\Form\Factory();
+        $factory = new \Laminas\Form\Factory();
         $formElements = $this->getServiceLocator()->get('FormElementManager');
         $factory->setFormElementManager($formElements);
         $searchForm = $factory->createForm($searchForm);
@@ -123,7 +123,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Handles the display of a specific package
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      * @throws \Exception
      */
     public function toolContainerProductViewAction()
@@ -298,7 +298,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * Translates the retrieved data coming from the Melis Packagist URL
      * and transform's it into a display including the pagination
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function moduleListAction()
     {
@@ -318,7 +318,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             //end verifying modules
 
-            $factory = new \Zend\Form\Factory();
+            $factory = new \Laminas\Form\Factory();
             $formElements = $this->getServiceLocator()->get('FormElementManager');
             $factory->setFormElementManager($formElements);
             $searchForm = $factory->createForm($searchForm);
@@ -356,7 +356,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * Translates the retrieved data coming from the Melis Packagist URL
      * and transform's it into a display including the pagination
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function bundleListAction()
     {
@@ -475,7 +475,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolProductModalContainerAction()
     {
@@ -491,7 +491,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolProductModalContentAction()
     {
@@ -527,7 +527,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolModuleFormSetupContentAction()
     {
@@ -549,7 +549,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function melisMarketPlaceProductDoAction()
     {
@@ -725,7 +725,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function isPackageDirectoryRemovableAction()
     {
@@ -758,7 +758,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function changePackageDirectoryPermissionAction()
     {
@@ -793,7 +793,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function activateModuleAction()
     {
@@ -808,7 +808,7 @@ class MelisMarketPlaceController extends AbstractActionController
             // Melis Modules required
             $arrayDependency = $this->packageRequire($module);
             //check if module is zend module
-            if($this->isZendModule($module))
+            if($this->isLaminasModule($module))
                 //include the module
                 array_push($arrayDependency, $module);
 
@@ -824,7 +824,7 @@ class MelisMarketPlaceController extends AbstractActionController
                  * Process module activation
                  */
                 foreach($arrayDependency as $mod) {
-                    if($this->isZendModule($mod)){
+                    if($this->isLaminasModule($mod)){
                         if (!in_array($mod, $activeModules)) {
                             $moduleCount = count($modules);
                             $insertAtIdx = $moduleCount - 1;
@@ -848,7 +848,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function isModuleExistsAction()
     {
@@ -877,7 +877,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * @param $module
      * @return bool
      */
-    public function isZendModule($module)
+    public function isLaminasModule($module)
     {
         $zendModule = false;
 
@@ -938,7 +938,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function getModuleTablesAction()
     {
@@ -997,7 +997,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel|\Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\JsonModel|\Laminas\View\Model\ViewModel
      */
     public function exportTablesAction()
     {
@@ -1140,7 +1140,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Returns the instance of DbAdapter
      *
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     private function getAdapter()
     {
@@ -1191,7 +1191,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $psr4 = 'psr-4';
 
         $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
-        $composerInstalledPckg = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+        $composerInstalledPckg = (array) \Laminas\Json\Json::decode(file_get_contents($composerFile));
 
         $packageRequire = array();
         foreach ($composerInstalledPckg As $pckgConfg){
@@ -1246,7 +1246,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**frontIdPage
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function execDbDeployAction()
     {
@@ -1314,7 +1314,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * dashboard view of market place
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function marketPlaceDashboardAction()
     {
@@ -1397,7 +1397,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function marketPlaceModuleHeaderAction()
     {
@@ -1509,7 +1509,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function plugModuleAction()
     {
@@ -1525,7 +1525,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 $currentModules = $mm->getLoadedModules();
 
                 //include module in the activation if it is zend module
-                if($this->isZendModule($module))
+                if($this->isLaminasModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
@@ -1534,7 +1534,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
                 if (!empty($moduleDpndncs))
                     foreach ($moduleDpndncs As $key => $mod)
-                        if($this->isZendModule($mod))
+                        if($this->isLaminasModule($mod))
                             if (!in_array($mod, $currentModules))
                                 $modules[] = $mod;
 
@@ -1560,14 +1560,14 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function isModuleActiveAction()
     {
         $active = false;
 
         if ($this->getRequest()->isPost()) {
-            /** @var  Zend\Http\Request $request */
+            /** @var  Laminas\Http\Request $request */
             $request = $this->getRequest();
             $module = $this->getTool()->sanitize($request->getPost('module'));
             /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $mm */
@@ -1581,7 +1581,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function unplugModuleAction()
     {
@@ -1593,7 +1593,7 @@ class MelisMarketPlaceController extends AbstractActionController
             if ($module) {
 
                 //Check if module is zend module
-                if($this->isZendModule($module))
+                if($this->isLaminasModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
@@ -1618,7 +1618,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      * @throws \ReflectionException
      */
     public function getSetupModuleFormAction()
@@ -1638,7 +1638,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel|null
+     * @return \Laminas\View\Model\JsonModel|null
      * @throws \ReflectionException
      */
     public function validateSetupFormAction()
@@ -1666,7 +1666,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * This will be used to finalize the POST data
      *
-     * @return \Zend\View\Model\JsonModel|null
+     * @return \Laminas\View\Model\JsonModel|null
      * @throws \ReflectionException
      */
     public function submitSetupFormAction()

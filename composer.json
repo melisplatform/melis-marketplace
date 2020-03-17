@@ -1,51 +1,52 @@
 {
-  "name": "melisplatform/melis-marketplace",
-  "description": "Melis Platform Market Place",
-  "type": "melisplatform-module",
-  "license": "OSL-3.0",
-  "homepage": "https://github.com/melisplatform/melis-marketplace",
-  "support": {
-	"email": "contact@melistechnology.com",
-    "source": "https://github.com/melisplatform/melis-marketplace",
-    "issues": "https://github.com/melisplatform/melis-marketplace/issues",
-	"docs": "https://www.melistechnology.com/melistechnology/resources/download-documentation/id/17#documentation"
-  },
-  "authors": [
-	{
-		"name": "Melis Technology",
-		"email": "contact@melistechnology.com",
-		"homepage": "https://www.melistechnology.com",
-		"role": "Developer"
-	}
-  ],
-  "keywords": [
-    "cms",
-    "melis",
-    "zf2",
-    "module"
-  ],
-  "extra": {
-    "module-name": "MelisMarketPlace",
-    "dbdeploy": true,
-    "melis-site": false,
-    "melis-module-category": "core"
-  },
-  "require": {
-    "php": "^7.0",
-    "ext-openssl": "*",
-    "ext-json": "*",
-    "ext-pdo_mysql": "*",
-    "justinrainbow/json-schema": "5.2.1",
-    "melisplatform/melis-core": "*",
-    "melisplatform/melis-composerdeploy": "*",
-    "melisplatform/melis-dbdeploy": "*"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "~4.8"
-  },
-  "autoload": {
-    "psr-4": {
-      "MelisMarketPlace\\": "src/"
+    "name": "melisplatform/melis-marketplace",
+    "description": "Melis Platform Market Place",
+    "type": "melisplatform-module",
+    "license": "OSL-3.0",
+    "homepage": "https://github.com/melisplatform/melis-marketplace",
+    "support": {
+        "email": "contact@melistechnology.com",
+        "source": "https://github.com/melisplatform/melis-marketplace",
+        "issues": "https://github.com/melisplatform/melis-marketplace/issues",
+        "docs": "https://www.melistechnology.com/melistechnology/resources/download-documentation/id/17#documentation"
+    },
+    "authors": [
+        {
+            "name": "Melis Technology",
+            "email": "contact@melistechnology.com",
+            "homepage": "https://www.melistechnology.com",
+            "role": "Developer"
+        }
+    ],
+    "keywords": [
+        "cms",
+        "melis",
+        "zf2",
+        "module"
+    ],
+    "extra": {
+        "module-name": "MelisMarketPlace",
+        "dbdeploy": true,
+        "melis-site": false,
+        "melis-module-category": "core"
+    },
+    "require": {
+        "php": "^7.0",
+        "ext-openssl": "*",
+        "ext-json": "*",
+        "ext-pdo_mysql": "*",
+        "justinrainbow/json-schema": "5.2.1",
+        "melisplatform/melis-core": "*",
+        "melisplatform/melis-composerdeploy": "*",
+        "melisplatform/melis-dbdeploy": "*",
+        "laminas/laminas-dependency-plugin": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "MelisMarketPlace\\": "src/"
+        }
     }
-  }
 }

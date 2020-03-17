@@ -9,14 +9,14 @@
 
 namespace MelisMarketPlace\Listener;
 
-use Zend\EventManager\EventManagerInterface;
-use Zend\EventManager\ListenerAggregateInterface;
+use Laminas\EventManager\EventManagerInterface;
+use Laminas\EventManager\ListenerAggregateInterface;
 
 class MelisMarketPlaceTestListener implements ListenerAggregateInterface
 {
 
     /**
-     * @var \Zend\Stdlib\CallbackHandler[]
+     * @var \Laminas\Stdlib\CallbackHandler[]
      */
     protected $listeners = array();
 

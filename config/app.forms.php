@@ -10,7 +10,7 @@ return [
                         'method' => 'POST',
                         'action' => '',
                     ],
-                    'hydrator' => 'Zend\Stdlib\Hydrator\ArraySerializable',
+                    'hydrator' => 'Laminas\Stdlib\Hydrator\ArraySerializable',
                     'elements' => [
                         [
                             'spec' => [
