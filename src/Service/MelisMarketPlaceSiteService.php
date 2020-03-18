@@ -542,11 +542,13 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 $sql = str_replace([
                     $foreignKey,
                     Melis::CMS_SITE_ID,
+                    Melis::CMS_SITE_HOME_PAGE_ID,
                     Melis::CURRENT_PAGE_ID,
                     Melis::CURRENT_TEMPLATE_ID,
                 ], [
                     $lastInsertedId,
                     $this->getIdSite(),
+                    $this->getSiteId(),
                     $this->getCurrentPageId(),
                     $this->getCurrentTemplateId(),
                 ], $transact[Melis::SQL]);
