@@ -898,7 +898,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      */
     private function getTemplateId($args)
     {
-        $siteId = $this->getSiteId();
+        $siteId = $this->getIdSite();
         $templateName = $args['template_name'] ?? null;
         $return = 'tpl_id';
 
@@ -940,9 +940,11 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             foreach ($params as $key => $value) {
                 $params[$key] = str_replace([
                             Melis::CMS_SITE_ID,
+                            Melis::CMS_SITE_HOME_PAGE_ID,
                             Melis::CURRENT_PAGE_ID,
                             Melis::CURRENT_TEMPLATE_ID,
                         ], [
+                            $this->getIdSite(),
                             $this->getSiteId(),
                             $this->getCurrentPageId(),
                             $this->getCurrentTemplateId(),
