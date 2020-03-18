@@ -359,8 +359,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             /** @var \MelisEngine\Service\MelisTreeService $pageTreeSvc */
             $pageTreeSvc = $this->getServiceLocator()->get('MelisEngineTree');
             $pageTreeMap = $pageTreeSvc->getAllPages($this->getSiteId());
-
-            $this->sendEvent('melis_marketplace_site_install_results', ['site_id' => $this->getSiteId(), 'pages' => $pageTreeMap]);
+                                                                                                //site id                                                           //site main page id
+            $this->sendEvent('melis_marketplace_site_install_results', ['site_id' => $this->getIdSite(), 'pages' => $pageTreeMap, 'site_home_page_id' => $this->getSiteId()]);
 
         } else {
             throw new ArrayKeyNotFoundException("{$this->getAction()} key not found in {$this->getAction()} configuration");
@@ -542,10 +542,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 $sql = str_replace([
                     $foreignKey,
                     Melis::CMS_SITE_ID,
+                    Melis::CMS_SITE_HOME_PAGE_ID,
                     Melis::CURRENT_PAGE_ID,
                     Melis::CURRENT_TEMPLATE_ID,
                 ], [
                     $lastInsertedId,
+                    $this->getIdSite(),
                     $this->getSiteId(),
                     $this->getCurrentPageId(),
                     $this->getCurrentTemplateId(),
@@ -574,6 +576,29 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                 }
             }
         }
+    }
+
+    /**
+     * Returns the site id
+     *
+     * @return null|int
+     */
+    public function getIdSite()
+    {
+        /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
+        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+
+        $select = $siteTable->getTableGateway()->getSql()->select();
+
+        $select->where->equalTo('site_name', $this->getModule());
+
+        $resultSet = $siteTable->getTableGateway()->selectWith($select)->toArray();
+
+        if ($resultSet) {
+            return end($resultSet)['site_id'];
+        }
+
+        return null;
     }
 
     /**
@@ -873,7 +898,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      */
     private function getTemplateId($args)
     {
-        $siteId = $this->getSiteId();
+        $siteId = $this->getIdSite();
         $templateName = $args['template_name'] ?? null;
         $return = 'tpl_id';
 
@@ -915,9 +940,11 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             foreach ($params as $key => $value) {
                 $params[$key] = str_replace([
                             Melis::CMS_SITE_ID,
+                            Melis::CMS_SITE_HOME_PAGE_ID,
                             Melis::CURRENT_PAGE_ID,
                             Melis::CURRENT_TEMPLATE_ID,
                         ], [
+                            $this->getIdSite(),
                             $this->getSiteId(),
                             $this->getCurrentPageId(),
                             $this->getCurrentTemplateId(),
