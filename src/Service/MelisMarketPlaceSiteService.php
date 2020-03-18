@@ -359,8 +359,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             /** @var \MelisEngine\Service\MelisTreeService $pageTreeSvc */
             $pageTreeSvc = $this->getServiceLocator()->get('MelisEngineTree');
             $pageTreeMap = $pageTreeSvc->getAllPages($this->getSiteId());
-
-            $this->sendEvent('melis_marketplace_site_install_results', ['site_id' => $this->getSiteId(), 'pages' => $pageTreeMap]);
+                                                                                                //site id                                                           //site main page id
+            $this->sendEvent('melis_marketplace_site_install_results', ['site_id' => $this->getIdSite(), 'pages' => $pageTreeMap, 'site_home_page_id' => $this->getSiteId()]);
 
         } else {
             throw new ArrayKeyNotFoundException("{$this->getAction()} key not found in {$this->getAction()} configuration");
@@ -546,7 +546,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
                     Melis::CURRENT_TEMPLATE_ID,
                 ], [
                     $lastInsertedId,
-                    $this->getSiteId(),
+                    $this->getIdSite(),
                     $this->getCurrentPageId(),
                     $this->getCurrentTemplateId(),
                 ], $transact[Melis::SQL]);
