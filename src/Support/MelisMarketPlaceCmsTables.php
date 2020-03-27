@@ -56,6 +56,11 @@ class MelisMarketPlaceCmsTables extends MelisTables
     const CMS_SITE_ID = '%site_id%';
 
     /**
+     * @const CMS_SITE_HOME_PAGE_ID string value to swap
+     */
+    const CMS_SITE_HOME_PAGE_ID = '%site_home_page_id%';
+
+    /**
      * @const CURRENT_PAGE_ID holds the string value of "%current_page_id%", which will be used to swap
      * with the current available page ID, if there's no available page ID, it will throw PlatformIdMaxRangeReachedException
      *
