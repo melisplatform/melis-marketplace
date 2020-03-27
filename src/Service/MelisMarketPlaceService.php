@@ -8,6 +8,7 @@
 
 namespace MelisMarketPlace\Service;
 
+use Laminas\ServiceManager\ServiceManager;
 use MelisCore\Service\MelisCoreGeneralService;
 use Laminas\View\Model\JsonModel;
 
@@ -109,7 +110,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         $form = $this->forward()->dispatch($class, ['action' => str_replace('Action', '', self::MODULE_SETUP_FORM)]);
 
         /** @var \Laminas\View\Renderer\RendererInterface $renderer */
-        $renderer = $this->getServiceLocator()->get('Laminas\View\Renderer\RendererInterface');
+        $renderer = $this->getServiceManager()->get('Laminas\View\Renderer\RendererInterface');
         $formDom = (new \Laminas\Mime\Part($renderer->render($form)))->getContent() ?: null;
 
         return trim($formDom);
@@ -285,7 +286,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     protected function moduleManager()
     {
         /** @var \MelisAssetManager\Service\MelisCoreModulesService $service */
-        $service = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+        $service = $this->getServiceManager()->get('MelisAssetManagerModulesService');
 
         return $service;
     }
@@ -355,7 +356,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     protected function forward()
     {
         /** @var \Laminas\Mvc\Controller\Plugin\Forward $forward */
-        $forward = $this->getServiceLocator()->get('Application')->getMvcEvent()->getTarget()->forward();
+        $forward = $this->getServiceManager()->get('Application')->getMvcEvent()->getTarget()->forward();
         return $forward;
     }
 }

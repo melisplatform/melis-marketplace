@@ -9,18 +9,13 @@
 
 namespace MelisMarketPlace\Listener;
 
+use Laminas\EventManager\AbstractListenerAggregate;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\EventManager\ListenerAggregateInterface;
 
-class MelisMarketPlaceTestListener implements ListenerAggregateInterface
+class MelisMarketPlaceTestListener extends AbstractListenerAggregate implements ListenerAggregateInterface
 {
-
-    /**
-     * @var \Laminas\Stdlib\CallbackHandler[]
-     */
-    protected $listeners = array();
-
-    public function attach(EventManagerInterface $events)
+    public function attach(EventManagerInterface $events, $priority = 1)
     {
         $sharedEvents = $events->getSharedManager();
 
@@ -34,14 +29,5 @@ class MelisMarketPlaceTestListener implements ListenerAggregateInterface
             -10000);
 
         $this->listeners[] = $callBackHandler;
-    }
-
-    public function detach(EventManagerInterface $events)
-    {
-        foreach ($this->listeners as $index => $listener) {
-            if ($events->detach($listener)) {
-                unset($this->listeners[$index]);
-            }
-        }
     }
 }

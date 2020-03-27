@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Melis Technology (http://www.melistechnology.com)
+ *
+ * @copyright Copyright (c) 2016 Melis Technology (http://www.melistechnology.com)
+ *
+ */
+
 return [
     'plugins' => [
         'melismarketplace_toolstree_section' => [
@@ -10,7 +18,6 @@ return [
                         'method' => 'POST',
                         'action' => '',
                     ],
-                    'hydrator' => 'Laminas\Stdlib\Hydrator\ArraySerializable',
                     'elements' => [
                         [
                             'spec' => [
