@@ -586,7 +586,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     public function getIdSite()
     {
         /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
-        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+        $siteTable = $this->getServiceManager()->get('MelisEngineTableSite');
 
         $select = $siteTable->getTableGateway()->getSql()->select();
 

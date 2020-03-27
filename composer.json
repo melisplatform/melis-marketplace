@@ -38,11 +38,7 @@
         "justinrainbow/json-schema": "5.2.1",
         "melisplatform/melis-core": "*",
         "melisplatform/melis-composerdeploy": "*",
-        "melisplatform/melis-dbdeploy": "*",
-        "laminas/laminas-dependency-plugin": "^1.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "~4.8"
+        "melisplatform/melis-dbdeploy": "*"
     },
     "autoload": {
         "psr-4": {
