@@ -1,6 +1,13 @@
 <?php
+/**
+ * Melis Technology (http://www.melistechnology.com)
+ *
+ * @copyright Copyright (c) 2016 Melis Technology (http://www.melistechnology.com)
+ *
+ */
 namespace MelisMarketPlace\Service\Factory;
-use Interop\Container\ContainerInterface;
+
+use Psr\Container\ContainerInterface;
 
 class AbstractFactory
 {
