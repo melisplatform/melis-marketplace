@@ -1505,4 +1505,7 @@
     .market-place-btn-filter-group {
         margin-top: 1rem;
     }
+    .bundle-modules {
+        text-align: left;
+    }
 }
