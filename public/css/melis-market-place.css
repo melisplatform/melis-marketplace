@@ -1497,6 +1497,12 @@
     margin-bottom: 15px;
 }
 
-/* .market-place-btn-filter-group .bundles {
-    margin-left: 2rem;
-} */
+.bundle-modules {
+    text-align: right;
+}
+
+@media (max-width: 767px) {
+    .market-place-btn-filter-group {
+        margin-top: 1rem;
+    }
+}
