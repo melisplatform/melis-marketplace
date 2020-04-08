@@ -9,10 +9,10 @@
 namespace MelisMarketPlace\Service;
 
 use Laminas\ServiceManager\ServiceManager;
-use MelisCore\Service\MelisCoreGeneralService;
+use MelisCore\Service\MelisGeneralService;
 use Laminas\View\Model\JsonModel;
 
-class MelisMarketPlaceService extends MelisCoreGeneralService
+class MelisMarketPlaceService extends MelisGeneralService
 {
     /**
      * @var int NEED_UPDATE

@@ -807,7 +807,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
             // Melis Modules required
             $arrayDependency = $this->packageRequire($module);
-            //check if module is zend module
+            //check if module is laminas module
             if($this->isLaminasModule($module))
                 //include the module
                 array_push($arrayDependency, $module);
@@ -879,7 +879,7 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     public function isLaminasModule($module)
     {
-        $zendModule = false;
+        $laminasModule = false;
 
         $moduleSrc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
         $repos = $moduleSrc->getComposer()->getRepositoryManager()->getLocalRepository();
@@ -895,34 +895,34 @@ class MelisMarketPlaceController extends AbstractActionController
             if($packageInfo[0]->getType() == 'melisplatform-module') {
                 $extra = $packageInfo[0]->getExtra();
                 /**
-                 * Check if module is zend module
+                 * Check if module is laminas module
                  * or form other framework(laravel,symfony,lumen,silex)
                  *
                  * If melis-module key does not exist,
-                 * then we expect it is a zend module
+                 * then we expect it is a laminas module
                  */
                 if (isset($extra['melis-module'])) {
                     if($extra['melis-module']){
                         /**
-                         * Module is made in zend module
+                         * Module is made in laminas module
                          */
-                        $zendModule = true;
+                        $laminasModule = true;
                     }else{
                         /**
                          * Module is made form other framework
                          */
-                        $zendModule = false;
+                        $laminasModule = false;
                     }
                 } else {
                     /**
-                     * Module is made in zend module
+                     * Module is made in laminas module
                      */
-                    $zendModule = true;
+                    $laminasModule = true;
                 }
             }
         }
 
-        return $zendModule;
+        return $laminasModule;
     }
 
     /**
@@ -1161,23 +1161,10 @@ class MelisMarketPlaceController extends AbstractActionController
         $config = $this->getServiceManager()->get('config');
         $db = $config['db'];
 
-        if ($db) {
+        if ($db)
+            $this->adapter = new DbAdapter($db);
 
-            $driver = $db['driver'];
-            $dsn = $db['dsn'];
-            $username = $db['username'];
-            $password = $db['password'];
-
-            $this->adapter = new DbAdapter([
-                'driver' => $driver,
-                'dsn' => $dsn,
-                'username' => $username,
-                'password' => $password,
-                'driver_options' => [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
-                ],
-            ]);
-        }
+        return $this;
     }
 
     /**
@@ -1524,7 +1511,7 @@ class MelisMarketPlaceController extends AbstractActionController
                 $mm = $this->getServiceManager()->get('ModuleManager');
                 $currentModules = $mm->getLoadedModules();
 
-                //include module in the activation if it is zend module
+                //include module in the activation if it is laminas module
                 if($this->isLaminasModule($module))
                     $modules[] = $module;
                 else
@@ -1592,7 +1579,7 @@ class MelisMarketPlaceController extends AbstractActionController
             $module = $this->getRequest()->getPost('module');
             if ($module) {
 
-                //Check if module is zend module
+                //Check if module is laminas module
                 if($this->isLaminasModule($module))
                     $modules[] = $module;
                 else

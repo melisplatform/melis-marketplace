@@ -9,7 +9,7 @@
 
 namespace MelisMarketPlace\Controller;
 
-use Laminas\Mvc\Controller\AbstractActionController;
+use MelisCore\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 use Laminas\View\Model\JsonModel;
 use Laminas\Validator\File\Size;

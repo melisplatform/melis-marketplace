@@ -3,7 +3,7 @@
 namespace MelisMarketPlace;
 use MelisMarketPlace\Support\MelisMarketPlace;
 use MelisMarketPlace\Service\MelisMarketPlaceService;
-use MelisMarketPlace\Service\Factory\AbstractFactory;
+use MelisCore\Service\Factory\AbstractFactory;
 use MelisMarketPlace\Service\MelisMarketPlaceSiteService;
 
 return [

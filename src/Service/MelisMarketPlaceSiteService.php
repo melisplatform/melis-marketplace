@@ -8,7 +8,7 @@
 
 namespace MelisMarketPlace\Service;
 
-use MelisCore\Service\MelisCoreGeneralService;
+use MelisCore\Service\MelisGeneralService;
 use MelisMarketPlace\Exception\ArrayKeyNotFoundException;
 use MelisMarketPlace\Exception\EmptySiteException;
 use MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException;
@@ -19,7 +19,7 @@ use PDO;
 use Laminas\Db\Adapter\Adapter as DbAdapter;
 use Laminas\Http\PhpEnvironment\Request;
 
-class MelisMarketPlaceSiteService extends MelisCoreGeneralService
+class MelisMarketPlaceSiteService extends MelisGeneralService
 {
     /**
      * @var \Laminas\Db\Adapter\Adapter $adapter
@@ -180,23 +180,8 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
         $config = $this->getServiceManager()->get('config');
         $db = $config['db'];
 
-        if ($db) {
-
-            $driver = $db['driver'];
-            $dsn = $db['dsn'];
-            $username = $db['username'];
-            $password = $db['password'];
-
-            $this->adapter = new DbAdapter([
-                'driver' => $driver,
-                'dsn' => $dsn,
-                'username' => $username,
-                'password' => $password,
-                'driver_options' => [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
-                ],
-            ]);
-        }
+        if ($db)
+            $this->adapter = new DbAdapter($db);
 
         return $this;
     }
