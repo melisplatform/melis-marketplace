@@ -1496,3 +1496,17 @@
 .package-bundle-header-title, .package-module-header-title{
     margin-bottom: 15px;
 }
+
+.bundle-modules {
+    text-align: right;
+}
+
+@media (max-width: 767px) {
+    .market-place-btn-filter-group {
+        margin-top: 1rem;
+    }
+    .bundle-modules {
+        text-align: left;
+        margin-top: 1.5rem;
+    }
+}
