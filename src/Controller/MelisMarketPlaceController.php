@@ -653,7 +653,7 @@ class MelisMarketPlaceController extends AbstractActionController
                             }
 
                             // Re-creating module.load
-                            $moduleSvc->createModuleLoader('config/', $currentModules, [], []);
+                            $moduleSvc->createModuleLoader('config/', $currentModules, []);
                             $composerSvc->remove($package);
                             // $composerSvc->dumpAutoload();
                         }
