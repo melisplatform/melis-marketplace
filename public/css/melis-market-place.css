@@ -1519,3 +1519,8 @@
 .melis-marketplace-product-action:hover .fa-download {
     color: #fff !important;
 }
+
+div[class*=col-md-].no-bt-gutters {
+    padding-right: 0;
+    padding-left: 0;
+}
