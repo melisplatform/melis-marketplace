@@ -1255,6 +1255,7 @@
 #module-status li{
     border-left:0;
     position: relative;
+    width: 100%;
 }
 .text-module-to-update {
     color: #932E2A;
