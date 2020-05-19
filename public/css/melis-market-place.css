@@ -1502,10 +1502,20 @@
     text-align: right;
 }
 
-@media (max-width: 767px) {
-    .market-place-btn-filter-group {
+@media (max-width: 1024px) {
+    .melis-store-items {
+        margin-right: 0;
+        padding-right: 15px;
+    }
+    .market-place-btn-filter-group-btns {
         margin-top: 1rem;
     }
+}
+
+@media (max-width: 767px) {
+    /* .market-place-btn-filter-group {
+        margin-top: 1rem;
+    } */
     .bundle-modules {
         text-align: left;
         margin-top: 1.5rem;
