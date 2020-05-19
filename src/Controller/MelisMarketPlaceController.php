@@ -585,7 +585,10 @@ class MelisMarketPlaceController extends AbstractActionController
                              * then it should use the \MelisMarketPlace\Service\MelisMarketPlaceSiteInstallService
                              * else, then use the regular composer download
                              */
-                            $composerSvc->download($package);
+                            if ($package == 'melisplatform/melis-demo-cms')
+                                $composerSvc->download($package, 'dev-module-activate');
+                            else
+                                $composerSvc->download($package);
                         }
                         break;
                     case $composerSvc::UPDATE:
