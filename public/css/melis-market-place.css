@@ -1512,10 +1512,14 @@
     }
 }
 
+@media (min-width: 768px) {
+    .market-place-btn-filter-group .market-place-btn-filter-group-col {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
 @media (max-width: 767px) {
-    /* .market-place-btn-filter-group {
-        margin-top: 1rem;
-    } */
     .bundle-modules {
         text-align: left;
         margin-top: 1.5rem;
