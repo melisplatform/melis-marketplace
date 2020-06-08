@@ -1255,6 +1255,7 @@
 #module-status li{
     border-left:0;
     position: relative;
+    width: 100%;
 }
 .text-module-to-update {
     color: #932E2A;
@@ -1497,6 +1498,43 @@
     margin-bottom: 15px;
 }
 
-/* .market-place-btn-filter-group .bundles {
-    margin-left: 2rem;
-} */
+.bundle-modules {
+    text-align: right;
+}
+
+@media (max-width: 1024px) {
+    .melis-store-items {
+        margin-right: 0;
+        padding-right: 15px;
+    }
+    .market-place-btn-filter-group-btns {
+        margin-top: 1rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .market-place-btn-filter-group .market-place-btn-filter-group-col {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+@media (max-width: 767px) {
+    .bundle-modules {
+        text-align: left;
+        margin-top: 1.5rem;
+    }
+}
+
+.melis-marketplace-product-action .fa-download {
+    color: #72af46 !important;
+}
+
+.melis-marketplace-product-action:hover .fa-download {
+    color: #fff !important;
+}
+
+div[class*=col-md-].no-bt-gutters {
+    padding-right: 0;
+    padding-left: 0;
+}

@@ -122,7 +122,6 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
 
             $siteId = $this->getCurrentPageId();
             $platformName = $this->getPlatform()->plf_name;
-            $page404Id = (int)$siteId + 36;
 
             $siteTable = $this->siteTable()->save([
                 'site_name' => $module,
@@ -152,13 +151,10 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                 'slang_site_id' => $siteTable,
                 'slang_lang_id' => 1,
             ]);
+
             /**
-             * Save the site 404 page od
+             * Page 404 saving is done in the download.config.php
              */
-            $this->site404Table()->save([
-                's404_site_id' => $siteTable,
-                's404_page_id' => $page404Id,
-            ]);
         } else {
             throw new EmptySiteException('Site data is empty', 500);
         }

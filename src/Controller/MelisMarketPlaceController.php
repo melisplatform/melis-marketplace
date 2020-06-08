@@ -613,24 +613,32 @@ class MelisMarketPlaceController extends AbstractActionController
                              * on of the activated module is using
                              */
                             $tempToBeRemove = [];
-                            foreach ($currentModules As $key => $mod){
 
-                                $skipModule = false;
-                                if (in_array($mod, $moduleDep)){
+                            foreach ($moduleDep as $depMod) {
+                                $hasDep = false;
+                                foreach ($currentModules as $cMod) {
+                                    /**
+                                     * Not checking in the same modules
+                                     * not same as the target module
+                                     */
+                                    if ($depMod != $cMod && $cMod !== $module) {
+                                        $modDeps = $moduleSvc->getDependencies($cMod);
 
-                                    foreach ($currentModules As $cMod){
-                                        if ($cMod != $mod){
-                                            $modDeps = $moduleSvc->getDependencies($cMod);
-                                            if (in_array($mod, $modDeps)){
-                                                $skipModule = true;
-                                                break;
-                                            }
+                                        if (in_array($depMod, $modDeps)) {
+                                            $hasDep = true;
+                                            break;
                                         }
                                     }
                                 }
 
-                                if (!$skipModule && !in_array($mod, $tempToBeRemove))
-                                    $tempToBeRemove[] = $mod;
+                                /**
+                                 * 1 Target module dependency module has no dependencies to other activated modules
+                                 * 2 Avoid element duplication
+                                 * 3 IT must on the current modules
+                                 */
+                                if (!$hasDep && !in_array($depMod, $tempToBeRemove) && in_array($depMod, $currentModules)) {
+                                    $tempToBeRemove[] = $depMod;
+                                }
                             }
 
                             /**
@@ -647,13 +655,13 @@ class MelisMarketPlaceController extends AbstractActionController
                                 $moduleJson = json_decode(@file_get_contents($moduleSvc->getModulePath($tMod) . '/composer.json'), true);
                                 $modulePackageName = $moduleJson['name'];
 
+                                // Not exist on the root composer.json
                                 if (!isset($composerReqs[$modulePackageName]))
-                                    if (!is_bool(array_search($tMod, $currentModules)))
-                                        unset($currentModules[array_search($tMod, $currentModules)]);
+                                    unset($currentModules[array_search($tMod, $currentModules)]);
                             }
 
                             // Re-creating module.load
-                            $moduleSvc->createModuleLoader('config/', $currentModules, [], []);
+                            $moduleSvc->createModuleLoader('config/', $currentModules, []);
                             $composerSvc->remove($package);
                             // $composerSvc->dumpAutoload();
                         }
