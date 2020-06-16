@@ -7,7 +7,7 @@ use Laminas\Session\Container;
 use Laminas\View\Model\ViewModel;
 use Laminas\View\Model\JsonModel;
 use Laminas\Json\Json;
-use MelisCore\Controller\AbstractActionController;
+use MelisCore\Controller\MelisAbstractActionController;
 use PDO;
 use Laminas\Db\Sql\Sql;
 use Laminas\Db\Adapter\Adapter as DbAdapter;
@@ -17,7 +17,7 @@ use Laminas\Db\Sql\Ddl;
  * Class MelisMarketPlaceController
  * @package MelisMarketPlace\Controller
  */
-class MelisMarketPlaceController extends AbstractActionController
+class MelisMarketPlaceController extends MelisAbstractActionController
 {
     /** @var  \Laminas\Db\Adapter\Adapter $adapter */
     protected $adapter;
@@ -585,7 +585,8 @@ class MelisMarketPlaceController extends AbstractActionController
                              * then it should use the \MelisMarketPlace\Service\MelisMarketPlaceSiteInstallService
                              * else, then use the regular composer download
                              */
-                            $composerSvc->download($package);
+                            // $composerSvc->download($package);
+                            $composerSvc->download($package,"dev-migrate/laminas");
                         }
                         break;
                     case $composerSvc::UPDATE:
