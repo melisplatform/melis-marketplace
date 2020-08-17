@@ -8,10 +8,11 @@
 
 namespace MelisMarketPlace\Service;
 
-use MelisCore\Service\MelisCoreGeneralService;
-use Zend\View\Model\JsonModel;
+use Laminas\ServiceManager\ServiceManager;
+use MelisCore\Service\MelisGeneralService;
+use Laminas\View\Model\JsonModel;
 
-class MelisMarketPlaceService extends MelisCoreGeneralService
+class MelisMarketPlaceService extends MelisGeneralService
 {
     /**
      * @var int NEED_UPDATE
@@ -108,9 +109,9 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
         $class = implode('\\', [$module, 'Controller', str_replace('Controller', '', $this->getActionController())]);
         $form = $this->forward()->dispatch($class, ['action' => str_replace('Action', '', self::MODULE_SETUP_FORM)]);
 
-        /** @var \Zend\View\Renderer\RendererInterface $renderer */
-        $renderer = $this->getServiceLocator()->get('Zend\View\Renderer\RendererInterface');
-        $formDom = (new \Zend\Mime\Part($renderer->render($form)))->getContent() ?: null;
+        /** @var \Laminas\View\Renderer\RendererInterface $renderer */
+        $renderer = $this->getServiceManager()->get('Laminas\View\Renderer\RendererInterface');
+        $formDom = (new \Laminas\Mime\Part($renderer->render($form)))->getContent() ?: null;
 
         return trim($formDom);
     }
@@ -128,7 +129,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
             ['action' => str_replace('Action', '', self::MODULE_SETUP_VALIDATE_FORM)],
             ['post' => $post]);
 
-        /** @var \Zend\View\Model\JsonModel $result */
+        /** @var \Laminas\View\Model\JsonModel $result */
         $result = $this->forward()->dispatch($class, $params);
 
         if ($result instanceof JsonModel) {
@@ -151,7 +152,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
             ['action' => str_replace('Action', '', self::MODULE_SETUP_SUBMIT_FORM)],
             ['post' => $post]);
 
-        /** @var \Zend\View\Model\JsonModel $result */
+        /** @var \Laminas\View\Model\JsonModel $result */
         $result = $this->forward()->dispatch($class, $params);
 
         if ($result instanceof JsonModel) {
@@ -285,7 +286,7 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     protected function moduleManager()
     {
         /** @var \MelisAssetManager\Service\MelisCoreModulesService $service */
-        $service = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+        $service = $this->getServiceManager()->get('MelisAssetManagerModulesService');
 
         return $service;
     }
@@ -350,12 +351,12 @@ class MelisMarketPlaceService extends MelisCoreGeneralService
     }
 
     /**
-     * @return \Zend\Mvc\Controller\Plugin\Forward
+     * @return \Laminas\Mvc\Controller\Plugin\Forward
      */
     protected function forward()
     {
-        /** @var \Zend\Mvc\Controller\Plugin\Forward $forward */
-        $forward = $this->getServiceLocator()->get('Application')->getMvcEvent()->getTarget()->forward();
+        /** @var \Laminas\Mvc\Controller\Plugin\Forward $forward */
+        $forward = $this->getServiceManager()->get('Application')->getMvcEvent()->getTarget()->forward();
         return $forward;
     }
 }

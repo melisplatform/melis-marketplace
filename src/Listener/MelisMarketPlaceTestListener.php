@@ -9,39 +9,24 @@
 
 namespace MelisMarketPlace\Listener;
 
-use Zend\EventManager\EventManagerInterface;
-use Zend\EventManager\ListenerAggregateInterface;
+use MelisCore\Listener\MelisGeneralListener;
+use Laminas\EventManager\EventManagerInterface;
+use Laminas\EventManager\ListenerAggregateInterface;
 
-class MelisMarketPlaceTestListener implements ListenerAggregateInterface
+class MelisMarketPlaceTestListener extends MelisGeneralListener implements ListenerAggregateInterface
 {
-
-    /**
-     * @var \Zend\Stdlib\CallbackHandler[]
-     */
-    protected $listeners = array();
-
-    public function attach(EventManagerInterface $events)
+    public function attach(EventManagerInterface $events, $priority = 1)
     {
-        $sharedEvents = $events->getSharedManager();
-
-        $callBackHandler = $sharedEvents->attach(
-            '*', 'melis_marketplace_site_intall_test',
+        $this->attachEventListener(
+            $events,
+            '*',
+            'melis_marketplace_site_intall_test',
             function ($e) {
                 $params = $params = $e->getParams();
                 $logPath = $_SERVER['DOCUMENT_ROOT'] . '/../cache/marketplace.log';
                 file_put_contents($logPath, print_r($params, true) . PHP_EOL . PHP_EOL, FILE_APPEND);
             },
-            -10000);
-
-        $this->listeners[] = $callBackHandler;
-    }
-
-    public function detach(EventManagerInterface $events)
-    {
-        foreach ($this->listeners as $index => $listener) {
-            if ($events->detach($listener)) {
-                unset($this->listeners[$index]);
-            }
-        }
+            -10000
+        );
     }
 }

@@ -9,15 +9,15 @@
 
 namespace MelisMarketPlace\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\View\Model\ViewModel;
-use Zend\View\Model\JsonModel;
-use Zend\Validator\File\Size;
-use Zend\Validator\File\IsImage;
-use Zend\Validator\File\Upload;
-use Zend\File\Transfer\Adapter\Http;
-use Zend\Session\Container;
+use MelisCore\Controller\MelisAbstractActionController;
+use Laminas\View\Model\ViewModel;
+use Laminas\View\Model\JsonModel;
+use Laminas\Validator\File\Size;
+use Laminas\Validator\File\IsImage;
+use Laminas\Validator\File\Upload;
+use Laminas\File\Transfer\Adapter\Http;
+use Laminas\Session\Container;
 
-class MelisSetupController extends AbstractActionController
+class MelisSetupController extends MelisAbstractActionController
 {
 }

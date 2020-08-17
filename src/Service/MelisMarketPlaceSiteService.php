@@ -1,8 +1,14 @@
 <?php
+/**
+ * Melis Technology (http://www.melistechnology.com)
+ *
+ * @copyright Copyright (c) 2016 Melis Technology (http://www.melistechnology.com)
+ *
+ */
 
 namespace MelisMarketPlace\Service;
 
-use MelisCore\Service\MelisCoreGeneralService;
+use MelisCore\Service\MelisGeneralService;
 use MelisMarketPlace\Exception\ArrayKeyNotFoundException;
 use MelisMarketPlace\Exception\EmptySiteException;
 use MelisMarketPlace\Exception\PlatformIdMaxRangeReachedException;
@@ -10,13 +16,13 @@ use MelisMarketPlace\Exception\TemplateIdMaxRangeReachedException;
 use MelisMarketPlace\Support\MelisMarketPlaceCmsTables as Melis;
 use MelisMarketPlace\Support\MelisMarketPlaceSiteInstall as Site;
 use PDO;
-use Zend\Db\Adapter\Adapter as DbAdapter;
-use Zend\Http\PhpEnvironment\Request;
+use Laminas\Db\Adapter\Adapter as DbAdapter;
+use Laminas\Http\PhpEnvironment\Request;
 
-class MelisMarketPlaceSiteService extends MelisCoreGeneralService
+class MelisMarketPlaceSiteService extends MelisGeneralService
 {
     /**
-     * @var \Zend\Db\Adapter\Adapter $adapter
+     * @var \Laminas\Db\Adapter\Adapter $adapter
      */
     protected $adapter;
 
@@ -42,7 +48,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     const ACTION_REQUIRE = 'require';
 
     /**
-     * @param \Zend\Http\PhpEnvironment\Request $request
+     * @param \Laminas\Http\PhpEnvironment\Request $request
      *
      * @return $this
      * @throws \MelisMarketPlace\Exception\EmptySiteException
@@ -94,7 +100,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     }
 
     /**
-     * @param \Zend\Http\PhpEnvironment\Request $request
+     * @param \Laminas\Http\PhpEnvironment\Request $request
      *
      * @return $this
      * @throws \MelisMarketPlace\Exception\EmptySiteException
@@ -166,27 +172,12 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
      */
     private function setDbAdapter()
     {
-        /** @var \Zend\Config\Config $config */
-        $config = $this->getServiceLocator()->get('config');
+        /** @var \Laminas\Config\Config $config */
+        $config = $this->getServiceManager()->get('config');
         $db = $config['db'];
 
-        if ($db) {
-
-            $driver = $db['driver'];
-            $dsn = $db['dsn'];
-            $username = $db['username'];
-            $password = $db['password'];
-
-            $this->adapter = new DbAdapter([
-                'driver' => $driver,
-                'dsn' => $dsn,
-                'username' => $username,
-                'password' => $password,
-                'driver_options' => [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
-                ],
-            ]);
-        }
+        if ($db)
+            $this->adapter = new DbAdapter($db);
 
         return $this;
     }
@@ -248,7 +239,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     private function platformIdTable()
     {
         /** @var \MelisEngine\Model\Tables\MelisPlatformIdsTable $table */
-        $table = $this->getServiceLocator()->get('MelisEngineTablePlatformIds');
+        $table = $this->getServiceManager()->get('MelisEngineTablePlatformIds');
 
         return $table;
     }
@@ -266,14 +257,14 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     /**
      * @param string $env
      *
-     * @return array|\ArrayObject|\Zend\Db\ResultSet\ResultSet|null
+     * @return array|\ArrayObject|\Laminas\Db\ResultSet\ResultSet|null
      */
     protected function getPlatform($env = null)
     {
         $env = $env ?: getenv('MELIS_PLATFORM');
 
         /** @var \MelisCore\Model\Tables\MelisPlatformTable $platformTable */
-        $platformTable = $this->getServiceLocator()->get('MelisPlatformTable');
+        $platformTable = $this->getServiceManager()->get('MelisPlatformTable');
         $platform = $platformTable->getEntryByField('plf_name', $env)->current();
 
         return $platform;
@@ -285,7 +276,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     private function siteTable()
     {
         /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
-        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+        $siteTable = $this->getServiceManager()->get('MelisEngineTableSite');
 
         return $siteTable;
     }
@@ -296,7 +287,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     public function siteDomainTable()
     {
         /** @var \MelisEngine\Model\Tables\MelisSiteDomainTable $siteDomain */
-        $siteDomain = $this->getServiceLocator()->get('MelisEngineTableSiteDomain');
+        $siteDomain = $this->getServiceManager()->get('MelisEngineTableSiteDomain');
 
         return $siteDomain;
     }
@@ -304,14 +295,14 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     private function siteHomeTable()
     {
         /** @var \MelisEngine\Model\Tables\MelisCmsSiteHomeTable $siteHomeTable */
-        $siteHomeTable = $this->getServiceLocator()->get('MelisEngineTableCmsSiteHome');
+        $siteHomeTable = $this->getServiceManager()->get('MelisEngineTableCmsSiteHome');
         return $siteHomeTable;
     }
 
     private function siteLangsTable()
     {
         /** @var \MelisEngine\Model\Tables\MelisCmsSiteLangsTable $siteHomeTable */
-        $sitelangsTable = $this->getServiceLocator()->get('MelisEngineTableCmsSiteLangs');
+        $sitelangsTable = $this->getServiceManager()->get('MelisEngineTableCmsSiteLangs');
         return $sitelangsTable;
     }
 
@@ -353,7 +344,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
             $this->processTransactions($queries);
 
             /** @var \MelisEngine\Service\MelisTreeService $pageTreeSvc */
-            $pageTreeSvc = $this->getServiceLocator()->get('MelisEngineTree');
+            $pageTreeSvc = $this->getServiceManager()->get('MelisEngineTree');
             $pageTreeMap = $pageTreeSvc->getAllPages($this->getSiteId());
                                                                                                 //site id                                                           //site main page id
             $this->sendEvent('melis_marketplace_site_install_results', ['site_id' => $this->getIdSite(), 'pages' => $pageTreeMap, 'site_home_page_id' => $this->getSiteId()]);
@@ -371,7 +362,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     protected function moduleManager()
     {
         /** @var \MelisAssetManager\Service\MelisCoreModulesService $service */
-        $service = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+        $service = $this->getServiceManager()->get('MelisAssetManagerModulesService');
 
         return $service;
     }
@@ -412,7 +403,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     private function config()
     {
         /** @var \MelisAssetManager\Service\MelisCoreConfigService $config */
-        $config = $this->getServiceLocator()->get('MelisConfig');
+        $config = $this->getServiceManager()->get('MelisConfig');
 
         return $config;
     }
@@ -582,7 +573,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     public function getIdSite()
     {
         /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
-        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+        $siteTable = $this->getServiceManager()->get('MelisEngineTableSite');
 
         $select = $siteTable->getTableGateway()->getSql()->select();
 
@@ -605,7 +596,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     public function getSiteId()
     {
         /** @var \MelisEngine\Model\Tables\MelisSiteTable $siteTable */
-        $siteTable = $this->getServiceLocator()->get('MelisEngineTableSite');
+        $siteTable = $this->getServiceManager()->get('MelisEngineTableSite');
 
         $select = $siteTable->getTableGateway()->getSql()->select();
 
@@ -676,7 +667,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     /**
      * Returns the instance of DbAdapter
      *
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     private function getAdapter()
     {
@@ -783,7 +774,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     private function pageTreeTable()
     {
         /** @var \MelisEngine\Model\Tables\MelisPageTreeTable $pageTreeTable */
-        $pageTreeTable = $this->getServiceLocator()->get('MelisEngineTablePageTree');
+        $pageTreeTable = $this->getServiceManager()->get('MelisEngineTablePageTree');
 
         return $pageTreeTable;
     }
@@ -806,7 +797,7 @@ class MelisMarketPlaceSiteService extends MelisCoreGeneralService
     private function site404Table()
     {
         /** @var \MelisEngine\Model\Tables\MelisSite404Table $site404 */
-        $site404 = $this->getServiceLocator()->get('MelisEngineTableSite404');
+        $site404 = $this->getServiceManager()->get('MelisEngineTableSite404');
 
         return $site404;
     }

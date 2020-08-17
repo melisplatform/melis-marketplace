@@ -3,23 +3,23 @@
 namespace MelisMarketPlace\Controller;
 
 use Illuminate\View\View;
-use Zend\Mvc\Controller\AbstractActionController;
-use Zend\Session\Container;
-use Zend\View\Model\ViewModel;
-use Zend\View\Model\JsonModel;
-use Zend\Json\Json;
+use Laminas\Session\Container;
+use Laminas\View\Model\ViewModel;
+use Laminas\View\Model\JsonModel;
+use Laminas\Json\Json;
+use MelisCore\Controller\MelisAbstractActionController;
 use PDO;
-use Zend\Db\Sql\Sql;
-use Zend\Db\Adapter\Adapter as DbAdapter;
-use Zend\Db\Sql\Ddl;
+use Laminas\Db\Sql\Sql;
+use Laminas\Db\Adapter\Adapter as DbAdapter;
+use Laminas\Db\Sql\Ddl;
 
 /**
  * Class MelisMarketPlaceController
  * @package MelisMarketPlace\Controller
  */
-class MelisMarketPlaceController extends AbstractActionController
+class MelisMarketPlaceController extends MelisAbstractActionController
 {
-    /** @var  \Zend\Db\Adapter\Adapter $adapter */
+    /** @var  \Laminas\Db\Adapter\Adapter $adapter */
     protected $adapter;
 
     const ACTION_REQUIRE = 'require';
@@ -28,13 +28,13 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Handles the display of the tool
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolContainerAction()
     {
         $url = $this->getMelisPackagistServer();
         $melisKey = $this->getMelisKey();
-        $config = $this->getServiceLocator()->get('MelisConfig');
+        $config = $this->getServiceManager()->get('MelisConfig');
         $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
         $packageGroupData = @file_get_contents($url . '/get-package-group', true);
@@ -45,8 +45,8 @@ class MelisMarketPlaceController extends AbstractActionController
             $packageGroupData = null;
         }
 
-        $factory = new \Zend\Form\Factory();
-        $formElements = $this->getServiceLocator()->get('FormElementManager');
+        $factory = new \Laminas\Form\Factory();
+        $formElements = $this->getServiceManager()->get('FormElementManager');
         $factory->setFormElementManager($formElements);
         $searchForm = $factory->createForm($searchForm);
 
@@ -80,7 +80,7 @@ class MelisMarketPlaceController extends AbstractActionController
     private function getMelisPackagistServer()
     {
         $env = getenv('MELIS_PLATFORM') ?: 'default';
-        $config = $this->getServiceLocator()->get('MelisConfig');
+        $config = $this->getServiceManager()->get('MelisConfig');
         $server = $config->getItem('melismarketplace_toolstree_section/datas/')['melis_packagist_server'];
 
         if ($server) {
@@ -108,7 +108,7 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     private function allowUpdate()
     {
-        $platformTable = $this->getServiceLocator()->get('MelisCoreTablePlatform');
+        $platformTable = $this->getServiceManager()->get('MelisCoreTablePlatform');
         $currentPlatform = $platformTable->getEntryByField('plf_name', getenv('MELIS_PLATFORM'))->current();
 
         if ($currentPlatform) {
@@ -123,7 +123,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Handles the display of a specific package
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      * @throws \Exception
      */
     public function toolContainerProductViewAction()
@@ -150,8 +150,8 @@ class MelisMarketPlaceController extends AbstractActionController
         if (!empty($package)) {
 
             //get marketplace service
-            $marketPlaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
-            $moduleSvc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $marketPlaceService = $this->getServiceManager()->get('MelisMarketPlaceService');
+            $moduleSvc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
 
             //compare the package local version to the repository
             if (isset($package['packageModuleName'])) {
@@ -207,7 +207,7 @@ class MelisMarketPlaceController extends AbstractActionController
     private function checkStatusMarketPlace()
     {
         //Table
-        $platformTbl = $this->getServiceLocator()->get('MelisCoreTablePlatform');
+        $platformTbl = $this->getServiceManager()->get('MelisCoreTablePlatform');
         //Get the current Env
         $currentEnv = getenv('MELIS_PLATFORM');
         try {
@@ -248,7 +248,7 @@ class MelisMarketPlaceController extends AbstractActionController
     private function getMarketPlaceService()
     {
         /** @var \MelisMarketPlace\Service\MelisMarketPlaceService $service */
-        $service = $this->getServiceLocator()->get('MelisMarketPlaceService');
+        $service = $this->getServiceManager()->get('MelisMarketPlaceService');
         return $service;
     }
 
@@ -258,7 +258,7 @@ class MelisMarketPlaceController extends AbstractActionController
     private function getTool()
     {
         /** @var \MelisCore\Service\MelisCoreToolService $tool */
-        $tool = $this->getServiceLocator()->get('MelisCoreTool');
+        $tool = $this->getServiceManager()->get('MelisCoreTool');
         return $tool;
     }
 
@@ -270,7 +270,7 @@ class MelisMarketPlaceController extends AbstractActionController
     private function getModuleExceptions()
     {
         $env = getenv('MELIS_PLATFORM') ?: 'default';
-        $config = $this->getServiceLocator()->get('MelisConfig');
+        $config = $this->getServiceManager()->get('MelisConfig');
         $modules = $config->getItem('melismarketplace_toolstree_section/datas/')['exceptions'];
 
         if ($modules) {
@@ -287,7 +287,7 @@ class MelisMarketPlaceController extends AbstractActionController
      */
     private function isModuleInstalled($module)
     {
-        if ($this->getServiceLocator()->get('MelisAssetManagerModulesService')->getModulePath($module)) {
+        if ($this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulePath($module)) {
             return true;
         }
 
@@ -298,7 +298,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * Translates the retrieved data coming from the Melis Packagist URL
      * and transform's it into a display including the pagination
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function moduleListAction()
     {
@@ -313,13 +313,13 @@ class MelisMarketPlaceController extends AbstractActionController
             /*
              *  For verifying the moduleList
              */
-            $config = $this->getServiceLocator()->get('MelisConfig');
+            $config = $this->getServiceManager()->get('MelisConfig');
             $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
             //end verifying modules
 
-            $factory = new \Zend\Form\Factory();
-            $formElements = $this->getServiceLocator()->get('FormElementManager');
+            $factory = new \Laminas\Form\Factory();
+            $formElements = $this->getServiceManager()->get('FormElementManager');
             $factory->setFormElementManager($formElements);
             $searchForm = $factory->createForm($searchForm);
 
@@ -356,7 +356,7 @@ class MelisMarketPlaceController extends AbstractActionController
      * Translates the retrieved data coming from the Melis Packagist URL
      * and transform's it into a display including the pagination
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function bundleListAction()
     {
@@ -437,7 +437,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if (isset($serverPackages['packages']) && $serverPackages['packages']) {
             // check if the module is installed
-            $installedModules = $this->getServiceLocator()->get('MelisAssetManagerModulesService')->getAllModules();
+            $installedModules = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getAllModules();
             $installedModules = array_map(function ($a) {
                 return trim(strtolower($a));
             }, $installedModules);
@@ -475,7 +475,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolProductModalContainerAction()
     {
@@ -491,7 +491,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolProductModalContentAction()
     {
@@ -502,7 +502,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $title = $this->getTool()->getTranslation('tr_market_place_' . $action) . ' ' . $module;
         $data = [];
         $status = '';
-        $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
+        $composerSvc = $this->getServiceManager()->get('MelisComposerService');
 
         switch ($action) {
             case $composerSvc::DOWNLOAD:
@@ -527,7 +527,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function toolModuleFormSetupContentAction()
     {
@@ -549,7 +549,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function melisMarketPlaceProductDoAction()
     {
@@ -563,7 +563,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if ($request->isPost()) {
 
-            $moduleSvc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $moduleSvc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
             $post = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
 
             $this->getEventManager()->trigger('melis_marketplace_product_do_start', $this, $post);
@@ -575,7 +575,7 @@ class MelisMarketPlaceController extends AbstractActionController
             if ($action && $package && $module) {
 
                 $title = $this->getTool()->getTranslation('tr_market_place_' . $action) . ' ' . $module;
-                $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
+                $composerSvc = $this->getServiceManager()->get('MelisComposerService');
 
                 switch ($action) {
                     case $composerSvc::DOWNLOAD:
@@ -595,7 +595,7 @@ class MelisMarketPlaceController extends AbstractActionController
                         if (!in_array($module, $this->getModuleExceptions())) {
 
                             // Retrieve current activated modules
-                            $mm = $this->getServiceLocator()->get('ModuleManager');
+                            $mm = $this->getServiceManager()->get('ModuleManager');
                             $currentModules = $mm->getLoadedModules();
 
                             // Unset module target module
@@ -733,7 +733,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function isPackageDirectoryRemovableAction()
     {
@@ -745,7 +745,7 @@ class MelisMarketPlaceController extends AbstractActionController
         if ($request->isPost()) {
 
             $post = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
-            $moduleSvc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $moduleSvc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
             $module = isset($post['module']) ? $post['module'] : '';
             $modulePath = $moduleSvc->getModulePath($module);
 
@@ -766,7 +766,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function changePackageDirectoryPermissionAction()
     {
@@ -778,7 +778,7 @@ class MelisMarketPlaceController extends AbstractActionController
         if ($request->isPost()) {
 
             $post = $this->getTool()->sanitizeRecursive($request->getPost()->toArray());
-            $moduleSvc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $moduleSvc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
             $module = isset($post['module']) ? $post['module'] : '';
             $modulePath = $moduleSvc->getModulePath($module);
 
@@ -801,7 +801,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function activateModuleAction()
     {
@@ -810,13 +810,13 @@ class MelisMarketPlaceController extends AbstractActionController
 
         if ($request->isPost()) {
             $module = $this->getTool()->sanitize($request->getPost('module'));
-            $moduleSvc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $moduleSvc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
             $activeModules = $moduleSvc->getActiveModules();
 
             // Melis Modules required
             $arrayDependency = $this->packageRequire($module);
-            //check if module is zend module
-            if($this->isZendModule($module))
+            //check if module is laminas module
+            if($this->isLaminasModule($module))
                 //include the module
                 array_push($arrayDependency, $module);
 
@@ -832,7 +832,7 @@ class MelisMarketPlaceController extends AbstractActionController
                  * Process module activation
                  */
                 foreach($arrayDependency as $mod) {
-                    if($this->isZendModule($mod)){
+                    if($this->isLaminasModule($mod)){
                         if (!in_array($mod, $activeModules)) {
                             $moduleCount = count($modules);
                             $insertAtIdx = $moduleCount - 1;
@@ -856,7 +856,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function isModuleExistsAction()
     {
@@ -885,11 +885,11 @@ class MelisMarketPlaceController extends AbstractActionController
      * @param $module
      * @return bool
      */
-    public function isZendModule($module)
+    public function isLaminasModule($module)
     {
-        $zendModule = false;
+        $laminasModule = false;
 
-        $moduleSrc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+        $moduleSrc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
         $repos = $moduleSrc->getComposer()->getRepositoryManager()->getLocalRepository();
         $packageName = $this->convertToPackageName($module);
         $packageInfo = $repos->findPackages("melisplatform/".$packageName);
@@ -903,34 +903,34 @@ class MelisMarketPlaceController extends AbstractActionController
             if($packageInfo[0]->getType() == 'melisplatform-module') {
                 $extra = $packageInfo[0]->getExtra();
                 /**
-                 * Check if module is zend module
+                 * Check if module is laminas module
                  * or form other framework(laravel,symfony,lumen,silex)
                  *
                  * If melis-module key does not exist,
-                 * then we expect it is a zend module
+                 * then we expect it is a laminas module
                  */
                 if (isset($extra['melis-module'])) {
                     if($extra['melis-module']){
                         /**
-                         * Module is made in zend module
+                         * Module is made in laminas module
                          */
-                        $zendModule = true;
+                        $laminasModule = true;
                     }else{
                         /**
                          * Module is made form other framework
                          */
-                        $zendModule = false;
+                        $laminasModule = false;
                     }
                 } else {
                     /**
-                     * Module is made in zend module
+                     * Module is made in laminas module
                      */
-                    $zendModule = true;
+                    $laminasModule = true;
                 }
             }
         }
 
-        return $zendModule;
+        return $laminasModule;
     }
 
     /**
@@ -946,7 +946,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function getModuleTablesAction()
     {
@@ -955,7 +955,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $files = [];
 
         if ($this->getRequest()->isPost()) {
-            $svc = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $svc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
             $path = $svc->getModulePath($module, true);
             $dbDeployPath = $path . '/install/dbdeploy/';
             $tableInstall = '.sql';
@@ -1005,7 +1005,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel|\Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\JsonModel|\Laminas\View\Model\ViewModel
      */
     public function exportTablesAction()
     {
@@ -1148,7 +1148,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * Returns the instance of DbAdapter
      *
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     private function getAdapter()
     {
@@ -1166,26 +1166,13 @@ class MelisMarketPlaceController extends AbstractActionController
     private function setDbAdapter()
     {
         // access the database configuration
-        $config = $this->getServiceLocator()->get('config');
+        $config = $this->getServiceManager()->get('config');
         $db = $config['db'];
 
-        if ($db) {
+        if ($db)
+            $this->adapter = new DbAdapter($db);
 
-            $driver = $db['driver'];
-            $dsn = $db['dsn'];
-            $username = $db['username'];
-            $password = $db['password'];
-
-            $this->adapter = new DbAdapter([
-                'driver' => $driver,
-                'dsn' => $dsn,
-                'username' => $username,
-                'password' => $password,
-                'driver_options' => [
-                    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'",
-                ],
-            ]);
-        }
+        return $this;
     }
 
     /**
@@ -1199,7 +1186,7 @@ class MelisMarketPlaceController extends AbstractActionController
         $psr4 = 'psr-4';
 
         $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
-        $composerInstalledPckg = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+        $composerInstalledPckg = (array) \Laminas\Json\Json::decode(file_get_contents($composerFile));
 
         $packageRequire = array();
         foreach ($composerInstalledPckg As $pckgConfg){
@@ -1240,7 +1227,7 @@ class MelisMarketPlaceController extends AbstractActionController
             }
         }
 
-        $moduleMngr = $this->getServiceLocator()->get('ModuleManager');
+        $moduleMngr = $this->getServiceManager()->get('ModuleManager');
         $activeModules = array_keys($moduleMngr->getLoadedModules());
 
         if (!empty($packageRequire))
@@ -1254,7 +1241,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**frontIdPage
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function execDbDeployAction()
     {
@@ -1272,7 +1259,7 @@ class MelisMarketPlaceController extends AbstractActionController
                     $modules = array_merge($moduleDpndncs, $modules);
 
                 /** @var \MelisDbDeploy\Service\MelisDbDeployDiscoveryService $deployDiscoveryService */
-                $deployDiscoveryService = $this->getServiceLocator()->get('MelisDbDeployDiscoveryService');
+                $deployDiscoveryService = $this->getServiceManager()->get('MelisDbDeployDiscoveryService');
 
                 foreach ($modules as $key => $module) {
                     $deployDiscoveryService->processing($module);
@@ -1322,13 +1309,13 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * dashboard view of market place
      *
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function marketPlaceDashboardAction()
     {
         $url = $this->getMelisPackagistServer() . "/get-most-downloaded-packages";
         $melisKey = $this->getmelisKey();
-        $moduleService = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+        $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
         $data = [];
         $downloadedmodulesData = [];
         $packages = [];
@@ -1389,14 +1376,14 @@ class MelisMarketPlaceController extends AbstractActionController
 
     public function reDumpAutoloadAction()
     {
-        $composerSvc = $this->getServiceLocator()->get('MelisComposerService');
+        $composerSvc = $this->getServiceManager()->get('MelisComposerService');
         $composerSvc->dumpAutoload();
         exit;
     }
 
     public function executeComposerScriptsAction()
     {
-        \MelisCore\ModuleComposerScript::setServiceManager($this->getServiceLocator());
+        \MelisCore\ModuleComposerScript::setServiceManager($this->getServiceManager());
         \MelisCore\ModuleComposerScript::executeScripts();
 
         $view = new ViewModel();
@@ -1405,14 +1392,14 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\ViewModel
+     * @return \Laminas\View\Model\ViewModel
      */
     public function marketPlaceModuleHeaderAction()
     {
         $melisKey = $this->getMelisKey();
 
-        $moduleService = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
-        $marketplaceService = $this->getServiceLocator()->get('MelisMarketPlaceService');
+        $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
+        $marketplaceService = $this->getServiceManager()->get('MelisMarketPlaceService');
         $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/1/search//item_per_page/0/order/asc/order_by//status/2/group/';
         $serverPackages = [];
         $packagesData = [];
@@ -1517,7 +1504,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function plugModuleAction()
     {
@@ -1529,11 +1516,11 @@ class MelisMarketPlaceController extends AbstractActionController
             if ($module) {
 
                 // Retrieve current activated modules
-                $mm = $this->getServiceLocator()->get('ModuleManager');
+                $mm = $this->getServiceManager()->get('ModuleManager');
                 $currentModules = $mm->getLoadedModules();
 
-                //include module in the activation if it is zend module
-                if($this->isZendModule($module))
+                //include module in the activation if it is laminas module
+                if($this->isLaminasModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
@@ -1542,7 +1529,7 @@ class MelisMarketPlaceController extends AbstractActionController
 
                 if (!empty($moduleDpndncs))
                     foreach ($moduleDpndncs As $key => $mod)
-                        if($this->isZendModule($mod))
+                        if($this->isLaminasModule($mod))
                             if (!in_array($mod, $currentModules))
                                 $modules[] = $mod;
 
@@ -1568,18 +1555,18 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function isModuleActiveAction()
     {
         $active = false;
 
         if ($this->getRequest()->isPost()) {
-            /** @var  Zend\Http\Request $request */
+            /** @var  Laminas\Http\Request $request */
             $request = $this->getRequest();
             $module = $this->getTool()->sanitize($request->getPost('module'));
             /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $mm */
-            $mm = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $mm = $this->getServiceManager()->get('MelisAssetManagerModulesService');
             $active = $mm->isModuleLoaded($module);
         }
 
@@ -1589,7 +1576,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      */
     public function unplugModuleAction()
     {
@@ -1600,8 +1587,8 @@ class MelisMarketPlaceController extends AbstractActionController
             $module = $this->getRequest()->getPost('module');
             if ($module) {
 
-                //Check if module is zend module
-                if($this->isZendModule($module))
+                //Check if module is laminas module
+                if($this->isLaminasModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
@@ -1626,7 +1613,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel
+     * @return \Laminas\View\Model\JsonModel
      * @throws \ReflectionException
      */
     public function getSetupModuleFormAction()
@@ -1636,7 +1623,7 @@ class MelisMarketPlaceController extends AbstractActionController
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
         $form = null;
-        $moduleSite = $this->getServiceLocator()->get('MelisAssetManagerModulesService')->isSiteModule($module);
+        $moduleSite = $this->getServiceManager()->get('MelisAssetManagerModulesService')->isSiteModule($module);
 
         if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
             $form = $this->getMarketPlaceService()->getForm($module);
@@ -1646,7 +1633,7 @@ class MelisMarketPlaceController extends AbstractActionController
     }
 
     /**
-     * @return \Zend\View\Model\JsonModel|null
+     * @return \Laminas\View\Model\JsonModel|null
      * @throws \ReflectionException
      */
     public function validateSetupFormAction()
@@ -1674,7 +1661,7 @@ class MelisMarketPlaceController extends AbstractActionController
     /**
      * This will be used to finalize the POST data
      *
-     * @return \Zend\View\Model\JsonModel|null
+     * @return \Laminas\View\Model\JsonModel|null
      * @throws \ReflectionException
      */
     public function submitSetupFormAction()
@@ -1695,11 +1682,11 @@ class MelisMarketPlaceController extends AbstractActionController
             $result = $this->getMarketPlaceService()->submitForm($module, $post);
 
             /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $moduleService */
-            $moduleService = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+            $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
 
             if ($moduleSite = $moduleService->isSiteModule($module)) {
                 /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
-                $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
+                $service = $this->getServiceManager()->get('MelisMarketPlaceSiteService');
                 try {
                     $service->marketplaceInstallSite($this->getRequest())->invokeSetup();
                     if ($result['success'] === true) {
@@ -1722,13 +1709,13 @@ class MelisMarketPlaceController extends AbstractActionController
 
         $start = microtime(true);
         /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
-        $service = $this->getServiceLocator()->get('MelisMarketPlaceSiteService');
+        $service = $this->getServiceManager()->get('MelisMarketPlaceSiteService');
         $test = $service->installSite($this->getRequest())->invokeSetup();
         $timeElapsed = microtime(true) - $start;
         $test = $service->installSite($this->getRequest())->invokeSetup();
 
         /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $moduleService */
-//        $moduleService = $this->getServiceLocator()->get('MelisAssetManagerModulesService');
+//        $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
 //
 //        $data = $moduleService->isSiteModule($module);
 //        dd($data);

@@ -1,6 +1,11 @@
 <?php
 
 namespace MelisMarketPlace;
+use MelisMarketPlace\Support\MelisMarketPlace;
+use MelisMarketPlace\Service\MelisMarketPlaceService;
+use MelisCore\Service\Factory\AbstractFactory;
+use MelisMarketPlace\Service\MelisMarketPlaceSiteService;
+
 return [
     'router' => [
         'routes' => [
@@ -63,9 +68,6 @@ return [
                                 'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
                                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
                             ],
-                            'defaults' => [
-//
-                            ],
                         ],
                     ],
                     'setup' => [
@@ -82,37 +84,23 @@ return [
             ],
         ],
     ],
-
-    'translator' => [
-        'locale' => 'en_EN',
-    ],
-
     'service_manager' => [
-        'invokables' => [
-
+        'factories' => [
+            MelisMarketPlaceService::class => AbstractFactory::class,
+            MelisMarketPlaceSiteService::class => AbstractFactory::class,
         ],
         'aliases' => [
-            'translator' => 'MvcTranslator',
-        ],
-        'factories' => [
-            'MelisMarketPlaceService' => \MelisMarketPlace\Service\Factory\MelisMarketPlaceServiceFactory::class,
-            'MelisMarketPlaceSiteService' => \MelisMarketPlace\Service\Factory\MelisMarketPlaceSiteServiceFactory::class,
+            'MelisMarketPlaceService' => MelisMarketPlaceService::class,
+            'MelisMarketPlaceSiteService' => MelisMarketPlaceSiteService::class,
         ],
     ],
-
     'controllers' => [
         'invokables' => [
-            'MelisMarketPlace\Controller\MelisMarketPlace' => 'MelisMarketPlace\Controller\MelisMarketPlaceController',
-            'MelisMarketPlace\Controller\MelisSetup' => 'MelisMarketPlace\Controller\MelisSetupController',
+            'MelisMarketPlace\Controller\MelisMarketPlace' => \MelisMarketPlace\Controller\MelisMarketPlaceController::class,
+            'MelisMarketPlace\Controller\MelisSetup' => \MelisMarketPlace\Controller\MelisSetupController::class,
         ],
     ],
     'view_manager' => [
-        'display_not_found_reason' => true,
-        'display_exceptions' => true,
-        'doctype' => 'HTML5',
-        'template_map' => [
-
-        ],
         'template_path_stack' => [
             __DIR__ . '/../view',
         ],
