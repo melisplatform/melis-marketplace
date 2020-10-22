@@ -595,14 +595,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                         if (!in_array($module, $this->getModuleExceptions())) {
 
                             // Retrieve current activated modules
-                            $mm = $this->getServiceManager()->get('ModuleManager');
-                            $currentModules = $mm->getLoadedModules();
+                            $currentModules = $moduleSvc->getMelisActiveModules();
 
                             // Unset module target module
-                            if (isset($currentModules[$module]))
-                                unset($currentModules[$module]);
-
-                            $currentModules = array_keys($currentModules);
+                            if (($modKey = array_search($module, $currentModules)) !== false) 
+                                unset($currentModules[$modKey]);
 
                             // Target module dependencies
                             $moduleDep = $moduleSvc->getDependencies($module);
@@ -661,7 +658,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                             }
 
                             // Re-creating module.load
-                            $moduleSvc->createModuleLoader('config/', $currentModules, []);
+                            $moduleSvc->createModuleLoader('config/', $currentModules);
                             $composerSvc->remove($package);
                             // $composerSvc->dumpAutoload();
                         }
@@ -815,10 +812,12 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
             // Melis Modules required
             $arrayDependency = $this->packageRequire($module);
+
             //check if module is laminas module
-            if($this->isLaminasModule($module))
+            if($this->isLaminasModule($module)){
                 //include the module
                 array_push($arrayDependency, $module);
+            }
 
             // since we are still running the function, we cannot get the accurate modules that are being loaded
             // instead, we can read the module.load
@@ -841,8 +840,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                     }
                 }
 
+                // dd($modules);
+
                 // create the module.load file
-                $moduleSvc->createModuleLoader('config/', $modules, [], []);
+                $moduleSvc->createModuleLoader('config/', $modules);
                 $success = 1;
             }
         }
@@ -893,6 +894,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $repos = $moduleSrc->getComposer()->getRepositoryManager()->getLocalRepository();
         $packageName = $this->convertToPackageName($module);
         $packageInfo = $repos->findPackages("melisplatform/".$packageName);
+
         /**
          * Check if package exist
          */
