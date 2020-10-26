@@ -368,7 +368,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $isBundleOnly = false;
 
         if ($this->getRequest()->isPost()) {
-            $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), [], true);
+            $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost(), [], true);
 
             if($post['bundle'] == 1)
                 $isBundleOnly = true;
