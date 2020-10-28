@@ -323,7 +323,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $factory->setFormElementManager($formElements);
             $searchForm = $factory->createForm($searchForm);
 
-            $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), [], true);
+            $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost()->toArray(), [], true);
             //get only modules that are not bundle
             $post['bundle'] = 0;
             //get packages
