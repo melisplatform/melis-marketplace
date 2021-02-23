@@ -1526,6 +1526,9 @@
     }
 }
 
+.melis-marketplace-product-action[data-action="update"] .fa-download {
+    color: #466baf;
+}
 /* .melis-marketplace-product-action .fa-download {
     color: #72af46 !important;
 } */
