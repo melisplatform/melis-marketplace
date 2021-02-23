@@ -1526,9 +1526,9 @@
     }
 }
 
-.melis-marketplace-product-action .fa-download {
+/* .melis-marketplace-product-action .fa-download {
     color: #72af46 !important;
-}
+} */
 
 .melis-marketplace-product-action:hover .fa-download {
     color: #fff !important;
