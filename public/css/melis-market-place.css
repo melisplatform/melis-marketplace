@@ -1526,15 +1526,17 @@
     }
 }
 
-.melis-marketplace-product-action[data-action="update"] .fa-download {
-    color: #466baf;
+.btn.btn-success.melis-marketplace-product-action .fa-download {
+    color: #72af46;
 }
-/* .melis-marketplace-product-action .fa-download {
-    color: #72af46 !important;
-} */
 
-.melis-marketplace-product-action:hover .fa-download {
-    color: #fff !important;
+.btn.btn-info.melis-marketplace-product-action:hover .fa-download,
+.btn.btn-success.melis-marketplace-product-action:hover .fa-download {
+    color: #fff;
+}
+
+.btn.btn-info.melis-marketplace-product-action .fa-download {
+    color: #466baf;
 }
 
 div[class*=col-md-].no-bt-gutters {
