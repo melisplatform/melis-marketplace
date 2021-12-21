@@ -1190,6 +1190,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
         $composerInstalledPckg = (array) \Laminas\Json\Json::decode(file_get_contents($composerFile));
 
+        // forward compatibility for composer v2 installed.json
+        if (isset($composerInstalledPckg['packages'])) {
+            $composerInstalledPckg = $composerInstalledPckg['packages'];
+        }
+
         $packageRequire = array();
         foreach ($composerInstalledPckg As $pckgConfg){
 
