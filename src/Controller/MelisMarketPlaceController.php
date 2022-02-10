@@ -554,6 +554,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     public function melisMarketPlaceProductDoAction()
     {
 
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 0); 
+        
         $success = 0;
         $message = 'melis_market_place_tool_package_do_event_message_ko';
         $errors = [];
