@@ -52,6 +52,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 0); 
         $response = @file_get_contents($url . '/get-most-downloaded-packages');
         try {
             $packages = Json::decode($response, Json::TYPE_ARRAY);
@@ -134,6 +135,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 0); 
         $marketPlaceStatus = $this->checkStatusMarketPlace();
         $response = @file_get_contents($url . '/get-package/' . $packageId);
         try {
@@ -421,6 +423,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 0); 
         $search = urlencode($search);
         $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/' . $page . '/search/' . $search
             . '/item_per_page/' . $itemPerPage . '/order/' . $order . '/order_by/' . $orderBy . '/status/1' . '/group/' . $group
@@ -844,8 +847,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                     }
                 }
 
-                // dd($modules);
-
                 // create the module.load file
                 $moduleSvc->createModuleLoader('config/', $modules);
                 $success = 1;
@@ -985,6 +986,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
                 set_time_limit(0);
                 ini_set('memory_limit', '-1');
+                ini_set('max_execution_time', 0); 
 
                 $dbDeployFile = @file_get_contents($dbDeployFile);
                 if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $dbDeployFile, $matches)) {
@@ -1035,6 +1037,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
             set_time_limit(0);
             ini_set('memory_limit', -1);
+            ini_set('max_execution_time', 0); 
 
             // check again if the tables are not empty
             if (is_array($tables)) {
@@ -1333,6 +1336,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 0); 
         $downloadedmodulesData = @file_get_contents($url);
         try {
             $packages = json_decode($downloadedmodulesData, true);
