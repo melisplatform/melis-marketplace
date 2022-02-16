@@ -323,22 +323,26 @@ class MelisMarketPlaceService extends MelisGeneralService
         $moduleSvc = $this->moduleManager();
         $tmpModName = ($arrayParameters['moduleName'] == "MelisMarketplace") ? "MelisMarketPlace" : $arrayParameters['moduleName'];
         $modulesInfo = $moduleSvc->getModulesAndVersions($tmpModName);
-        $localVersion = $modulesInfo['version'];
 
-        //check if local version is advance or not
-        if (substr(strtolower($localVersion), 0, 4) === self::DEV) {
-            $status = self::IN_ADVANCE;
-        } else {
-            //remove the v from the version and convert to float
-            //to compare the version number
-            $localV = str_replace('v', "", strtolower($localVersion));
-            $latestV = str_replace('v', "", strtolower($arrayParameters['moduleVersion']));
+        if (!empty($modulesInfo['version'])) {
 
-            //check if  local version is updated than the version in repo
-            if ($latestV <= $localV) {
-                $status = self::UP_TO_DATE;
+            $localVersion = $modulesInfo['version'];
+    
+            //check if local version is advance or not
+            if (substr(strtolower($localVersion), 0, 4) === self::DEV) {
+                $status = self::IN_ADVANCE;
             } else {
-                $status = self::NEED_UPDATE;
+                //remove the v from the version and convert to float
+                //to compare the version number
+                $localV = str_replace('v', "", strtolower($localVersion));
+                $latestV = str_replace('v', "", strtolower($arrayParameters['moduleVersion']));
+    
+                //check if  local version is updated than the version in repo
+                if ($latestV <= $localV) {
+                    $status = self::UP_TO_DATE;
+                } else {
+                    $status = self::NEED_UPDATE;
+                }
             }
         }
 

@@ -52,6 +52,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+        
         $response = @file_get_contents($url . '/get-most-downloaded-packages');
         try {
             $packages = Json::decode($response, Json::TYPE_ARRAY);
@@ -134,6 +135,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+         
         $marketPlaceStatus = $this->checkStatusMarketPlace();
         $response = @file_get_contents($url . '/get-package/' . $packageId);
         try {
@@ -323,7 +325,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $factory->setFormElementManager($formElements);
             $searchForm = $factory->createForm($searchForm);
 
-            $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), [], true);
+            $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost()->toArray(), [], true);
             //get only modules that are not bundle
             $post['bundle'] = 0;
             //get packages
@@ -368,7 +370,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $isBundleOnly = false;
 
         if ($this->getRequest()->isPost()) {
-            $post = $this->getTool()->sanitizeRecursive(get_object_vars($this->getRequest()->getPost()), [], true);
+            $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost(), [], true);
 
             if($post['bundle'] == 1)
                 $isBundleOnly = true;
@@ -421,6 +423,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+         
         $search = urlencode($search);
         $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/' . $page . '/search/' . $search
             . '/item_per_page/' . $itemPerPage . '/order/' . $order . '/order_by/' . $orderBy . '/status/1' . '/group/' . $group
@@ -552,8 +555,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      * @return \Laminas\View\Model\ViewModel
      */
     public function melisMarketPlaceProductDoAction()
-    {
-
+    {   
+        session_write_close();
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+                
         $success = 0;
         $message = 'melis_market_place_tool_package_do_event_message_ko';
         $errors = [];
@@ -595,14 +601,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                         if (!in_array($module, $this->getModuleExceptions())) {
 
                             // Retrieve current activated modules
-                            $mm = $this->getServiceManager()->get('ModuleManager');
-                            $currentModules = $mm->getLoadedModules();
+                            $currentModules = $moduleSvc->getMelisActiveModules();
 
                             // Unset module target module
-                            if (isset($currentModules[$module]))
-                                unset($currentModules[$module]);
-
-                            $currentModules = array_keys($currentModules);
+                            if (($modKey = array_search($module, $currentModules)) !== false) 
+                                unset($currentModules[$modKey]);
 
                             // Target module dependencies
                             $moduleDep = $moduleSvc->getDependencies($module);
@@ -661,7 +664,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                             }
 
                             // Re-creating module.load
-                            $moduleSvc->createModuleLoader('config/', $currentModules, []);
+                            $moduleSvc->createModuleLoader('config/', $currentModules);
                             $composerSvc->remove($package);
                             // $composerSvc->dumpAutoload();
                         }
@@ -815,10 +818,12 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
             // Melis Modules required
             $arrayDependency = $this->packageRequire($module);
+
             //check if module is laminas module
-            if($this->isLaminasModule($module))
+            if($this->isLaminasModule($module)){
                 //include the module
                 array_push($arrayDependency, $module);
+            }
 
             // since we are still running the function, we cannot get the accurate modules that are being loaded
             // instead, we can read the module.load
@@ -842,7 +847,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 }
 
                 // create the module.load file
-                $moduleSvc->createModuleLoader('config/', $modules, [], []);
+                $moduleSvc->createModuleLoader('config/', $modules);
                 $success = 1;
             }
         }
@@ -893,6 +898,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $repos = $moduleSrc->getComposer()->getRepositoryManager()->getLocalRepository();
         $packageName = $this->convertToPackageName($module);
         $packageInfo = $repos->findPackages("melisplatform/".$packageName);
+
         /**
          * Check if package exist
          */
@@ -978,7 +984,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 $dbDeployFile = $dbDeployPath . $dbDeployFile;
 
                 set_time_limit(0);
-                ini_set('memory_limit', '-1');
+                ini_set('memory_limit', '-1');                
 
                 $dbDeployFile = @file_get_contents($dbDeployFile);
                 if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $dbDeployFile, $matches)) {
@@ -1028,7 +1034,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $export = "";
 
             set_time_limit(0);
-            ini_set('memory_limit', -1);
+            ini_set('memory_limit', -1);            
 
             // check again if the tables are not empty
             if (is_array($tables)) {
@@ -1188,6 +1194,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
         $composerInstalledPckg = (array) \Laminas\Json\Json::decode(file_get_contents($composerFile));
 
+        // forward compatibility for composer v2 installed.json
+        if (isset($composerInstalledPckg['packages'])) {
+            $composerInstalledPckg = $composerInstalledPckg['packages'];
+        }
+
         $packageRequire = array();
         foreach ($composerInstalledPckg As $pckgConfg){
 
@@ -1322,6 +1333,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
+       
         $downloadedmodulesData = @file_get_contents($url);
         try {
             $packages = json_decode($downloadedmodulesData, true);
