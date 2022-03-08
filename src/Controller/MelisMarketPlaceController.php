@@ -1264,8 +1264,24 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             if ($module) {
 
                 $modules[] = $module;
-
                 $moduleDpndncs = $this->packageRequire($module);
+
+                //get the required modules of each dependency recursively
+                $allRequiredModules = [];
+                if (!empty($moduleDpndncs)) {
+                    foreach ($moduleDpndncs as &$mod) {                    
+                        $allRequiredModules = $this->packageRequire($mod);
+
+                        if ($allRequiredModules) {
+                            foreach ($allRequiredModules as $reqMod) {
+                                if (!in_array($reqMod, $moduleDpndncs)) {
+                                    $moduleDpndncs[] = $reqMod;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (!empty($moduleDpndncs))
                     $modules = array_merge($moduleDpndncs, $modules);
 
