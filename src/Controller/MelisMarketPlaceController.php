@@ -1083,16 +1083,20 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                                 }
                             }
 
-                            $dropQueryTable .= "DROP TABLE IF EXISTS `{$table}`;" . PHP_EOL;
-                        } catch (\PDOException $e) {
+                            $dropQueryTable .= !empty($dropQueryTable) ? ",`{$table}`" : "`{$table}`";
+
+                        } catch (\PDOException $e) {                           
                             $message .= ' ' . PHP_EOL . $e->getMessage() . PHP_EOL;
                         }
                     }
+                    
 
                     if ($dropQueryTable) {
+                        $dropQueryTable = "DROP TABLE IF EXISTS ".$dropQueryTable.";";                       
+
                         // execute drop table
                         $adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
-                    }
+                    } 
 
                     // delete the dbdeploy file in the changelog table
                     if ($files) {
