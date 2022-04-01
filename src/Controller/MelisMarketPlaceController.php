@@ -762,7 +762,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $response = [
             'success' => $success,
             'title' => $this->getTool()->getTranslation($title),
-            'message' => $this->getTool()->getTranslation($message, $module),
+            'message' => $this->getTool()->getTranslation($message, array($module)),
         ];
 
         return new JsonModel($response);
