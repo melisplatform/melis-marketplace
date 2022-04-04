@@ -453,9 +453,12 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                         // loop through all the fields and values in the data
                         foreach ($payload as $field => $value) {
                             $recursionSql = '';
-                            // escape
-                            $value = str_replace(["'", '"'], ["\'", '\"'], $value);
 
+                            // escape
+                            if (!is_array($value)) {
+                                $value = str_replace(["'", '"'], ["\'", '\"'], $value);
+                            }
+                          
                             if (!in_array($field, [Melis::RELATION, Site::THEN, Melis::PRIMARY_KEY])) {
 
                                 if ($table === Melis::CMS_PAGE_PUBLISHED) {
