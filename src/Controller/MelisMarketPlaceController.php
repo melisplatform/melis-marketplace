@@ -556,7 +556,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function melisMarketPlaceProductDoAction()
     {   
-        session_write_close();
         set_time_limit(0);
         ini_set('memory_limit', '-1');
                 
@@ -762,7 +761,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $response = [
             'success' => $success,
             'title' => $this->getTool()->getTranslation($title),
-            'message' => $this->getTool()->getTranslation($message, $module),
+            'message' => $this->getTool()->getTranslation($message, array($module)),
         ];
 
         return new JsonModel($response);
