@@ -590,7 +590,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                              * then it should use the \MelisMarketPlace\Service\MelisMarketPlaceSiteInstallService
                              * else, then use the regular composer download
                              */
-                            $composerSvc->download($package);
+                            $composerSvc->download($package, 'dev-update/php83');
                         }
                         break;
                     case $composerSvc::UPDATE:
