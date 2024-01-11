@@ -48,6 +48,11 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
     const ACTION_REQUIRE = 'require';
 
     /**
+     * @var array
+     */
+    public $pageMap = [];
+
+    /**
      * @param \Laminas\Http\PhpEnvironment\Request $request
      *
      * @return $this
