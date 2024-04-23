@@ -31,7 +31,7 @@ $data_melisKey = $this->melisKey;
         ?>
         <?php if ($this->needToUpdateModuleCount > 0) { ?>
             <?php foreach ($this->modules as $module => $moduleValue) {
-                $typeName = substr($moduleValue['groupName'], 5);
+                $typeName = !empty($moduleValue['groupName']) ? substr($moduleValue['groupName'], 5) : null;
                 ?>
                 <?php if ($moduleValue['status'] == -1) { ?>
                     <li>
