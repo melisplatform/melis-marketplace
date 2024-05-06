@@ -74,6 +74,9 @@ return [
             ],
             'ressources' => [
                 'css' => [
+                    '/MelisMarketPlace/css/slick.css',
+                    '/MelisMarketPlace/css/custom-slick.css',
+                    '/MelisMarketPlace/css/slick-theme.css',
                     '/MelisMarketPlace/css/melis-market-place.css',
                 ],
                 'js' => [

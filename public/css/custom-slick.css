@@ -1,0 +1,82 @@
+/* 
+ * Custom css addtional 
+ * Others can be found in melis-market-place.css specially css media queries
+ */
+.slider-single {
+    margin-bottom: 10px;
+    height: 600px;
+    background: rgba(144, 49, 46, 0.6);
+    overflow: hidden;
+}
+
+.slider-single:hover .slick-arrow {
+    opacity: 1;
+}
+
+.slider-nav {
+    margin-bottom: 30px;
+    height: 105px;
+}
+.dl-packagist-icon{
+    display: initial !important;
+}
+
+.slider-nav .slick-track,
+.slider-nav .slick-list.draggable {
+    height: 105px;
+}
+
+.slider-nav .slick-track .slick-slide {
+    position: relative;
+    cursor: pointer;
+    height: 105px;
+    color: #fff;
+    text-align: center;
+    background: #932e2a;
+    opacity: 0.4;
+    overflow: hidden;
+    -webkit-transition: all 0.3s ease-in;
+    -moz-transition: all 0.3s ease-in;
+    -ms-transition: all 0.3s ease-in;
+    transition: all 0.3s ease-in;
+}
+
+.slider-nav .slick-track .slick-slide.is-active {
+    opacity: 1;
+}
+.slider-nav .slick-track .slick-slide.slick-current {
+    opacity: 1;
+}
+
+.slider-nav .slick-track .slick-slide:before,
+.slider-nav .slick-track .slick-slide:after {
+    content: ' ';
+    position: absolute;
+    top: 0px;
+    right: 15px;
+    bottom: 0px;
+    left: 15px;
+    opacity: 0;
+    -webkit-transition: opacity 0.35s, -webkit-transform 0.55s;
+    transition: opacity 0.35s, transform 0.55s;
+    display: block;
+}
+
+.slider-nav .slick-track .slick-slide:before {
+    border-top: 1px solid #932e2a;
+    border-bottom: 1px solid #932e2a;
+    -webkit-transform: scale(0,1);
+    transform: scale(0,1);
+}
+
+.slider-nav .slick-track .slick-slide:after {
+    border-right: 1px solid #932e2a;
+    border-left: 1px solid #932e2a;
+    -webkit-transform: scale(1,0);
+    transform: scale(1,0);
+}
+
+.slider-nav img {
+    padding: 5%;
+    width: 100%;
+}
