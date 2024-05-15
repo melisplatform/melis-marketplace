@@ -7,10 +7,11 @@ if (!empty($this->zoneconfig['conf']['id'])) {
 $data_melisKey = $this->melisKey;
 
 ?>
-<div<?= $id; ?> data-melisKey='<?= $data_melisKey; ?>' class="widget-parent">
+<div <?= $id; ?> data-melisKey='<?= $data_melisKey; ?>' class="widget-parent">
     <div class="widget-head">
         <div class="btn-group float-right btn-group-xs">
-            <a class="btn btn-default dashboard-downloaded-packages" data-bs-toggle="tab"><i class="fa fa-refresh"></i></a>
+            <!-- data-bs-toggle="tab", commented not an actual tab -->
+            <a class="btn btn-default dashboard-downloaded-packages"><i class="fa fa-refresh"></i></a>
         </div>
         <h3 class="heading">
             <i class="icon-stocks-up fa fa-fw"></i> <?= $this->translate('tr_market_place_most_downloaded_package'); ?>

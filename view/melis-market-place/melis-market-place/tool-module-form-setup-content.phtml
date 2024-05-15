@@ -14,8 +14,8 @@ if (!empty($this->zoneconfig['conf']['id'])) {
             <div class="widget widget-tabs widget-tabs-double widget-tabs-responsive margin-none border-none">
                 <div class="widget-head">
                     <ul class="nav nav-tabs">
-                        <li class="active">
-                            <a href="#<?php echo $this->zoneconfig['conf']['id'] ?>" class="glyphicons package" data-bs-toggle="tab" aria-expanded="true">
+                        <li class="nav-item active">
+                            <a data-bs-target="#<?php echo $this->zoneconfig['conf']['id'] ?>" href="#<?php echo $this->zoneconfig['conf']['id'] ?>" class="nav-link glyphicons package" data-bs-toggle="tab" aria-expanded="true">
                                 <i></i><?= $this->title ?>
                             </a>
                         </li>
