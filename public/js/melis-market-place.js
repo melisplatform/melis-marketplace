@@ -827,7 +827,6 @@ $(function () {
         updateCmdText('<span style="color: #ff190d;">' + message + '</span>');
     }
 
-
     function addLazyCmdText(id, message) {
         updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i> ' + message + '</span> <br/>');
     }
@@ -880,7 +879,7 @@ function initSlick() {
 }
 
 /*Dashboard slider*/
-$(document).ready(function () {
+$(function () {
     function initDashboardSlider() {
         $(".slider-dashboard-downloaded-packages").slick({
 
