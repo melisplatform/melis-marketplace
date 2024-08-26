@@ -1,6 +1,7 @@
 <?php
 $packages = $this->packages;
 $pagination = $this->pagination;
+if(!$this->marketNotAccessible){
 ?>
 
 <hr>
@@ -143,3 +144,4 @@ $pagination = $this->pagination;
         </div>
     </div>
 </div>
+<?php }?>

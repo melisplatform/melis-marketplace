@@ -17,6 +17,7 @@ return array(
     'tr_market_place_tags' => 'Tags',
 
     'tr_market_place_not_allowed' => 'Cette plateforme n\'a pas le droit de télécharger sur le marketplace. Merci de voir avec un admin si vous voulez le faire.',
+    'tr_market_place_could_not_connect' => 'Impossible de se connecter à la marketplace ! Veuillez réessayer plus tard.',
 
     'tr_market_place_modal_download_title' => 'Télécharger le module',
     'tr_market_place_modal_download_content' => 'Êtes-vous sûr de vouloir télécharger %s ?',

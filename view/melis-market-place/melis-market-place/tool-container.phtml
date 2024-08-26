@@ -1,3 +1,4 @@
+
 <?php
 $id = '';
 if (!empty($this->zoneconfig['conf']['id'])) {
@@ -19,7 +20,7 @@ $packageGroupData = $this->packageGroupData;
                                     <h2 class="content-heading">
                                         <strong><?= $this->translate('tr_market_place'); ?></strong></h2>
                                     <p><?= $this->translate('tr_market_place_subtitle'); ?></p>
-                                    <?php if (!$this->isUpdatablePlatform): ?>
+                                    <?php if (!$this->marketNotAccessible && !$this->isUpdatablePlatform): ?>
                                         <p class="text-danger">
                                             <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?>
                                         </p>
@@ -37,6 +38,12 @@ $packageGroupData = $this->packageGroupData;
                                 </select>
                             </div>
                         </div>
+                        <?php 
+                        if($this->marketNotAccessible){?>
+                            <p class="text-danger">
+                                <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_could_not_connect') ?>
+                            </p>
+                        <?php }else{?>
                         <div class="row">
                             <div class="col-12 col-xl-4">
                                 <div class="input-group">
@@ -46,6 +53,7 @@ $packageGroupData = $this->packageGroupData;
                                 </span>
                                 </div>
                             </div>
+                          
                             <div class="col-12 col-xl-8 market-place-btn-filter-group-btns">
                                 <div class="market-place-btn-filter-group">
                                     <div class="row">
@@ -94,7 +102,9 @@ $packageGroupData = $this->packageGroupData;
                                     </div>
                                 </div>
                             </div>
+                           
                         </div>
+                        <?php }?>
                         <div class="package-list">
                             <div id="melis-market-place-bundle-list"></div>
                             <div id="melis-market-place-module-list"></div>
@@ -118,6 +128,11 @@ $packageGroupData = $this->packageGroupData;
                         <p><?= $this->translate('tr_market_place_composer_instruction'); ?></p>
                         <hr/>
                         <h5 class="widget-title"><?= $this->translate('tr_market_place_most_downloaded_package'); ?></h5>
+                        <?php if($this->marketNotAccessible){?>
+                            <p class="text-danger">
+                                <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_could_not_connect') ?>
+                            </p>
+                        <?php }else{?>
                         <div id="market-place-most-downloaded-package-list">
                             <ul class="simple-post-list">
                                 <?php
@@ -148,9 +163,11 @@ $packageGroupData = $this->packageGroupData;
                                 ?>
                             </ul>
                         </div>
+                        <?php }?>
                     </aside>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
