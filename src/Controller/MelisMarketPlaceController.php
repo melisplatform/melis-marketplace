@@ -34,6 +34,17 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     {
         $url = $this->getMelisPackagistServer();
         $melisKey = $this->getMelisKey();
+
+        $view = new ViewModel();
+        $view->melisKey = $melisKey;
+        $view->isUpdatablePlatform = $this->allowUpdate();
+
+        if(!$this->isMarketplaceAccessible()){
+            $view->searchForm = null;
+            $view->packageGroupData = null;
+            $view->marketNotAccessible = true;
+            return $view;
+        }
         $config = $this->getServiceManager()->get('MelisConfig');
         $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
@@ -60,13 +71,9 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $packages = null;
         }
 
-        $view = new ViewModel();
-
-        $view->melisKey = $melisKey;
         $view->melisPackagistServer = $url;
         $view->packages = $packages;
         $view->packageGroupData = $packageGroupData;
-        $view->isUpdatablePlatform = $this->allowUpdate();
 
         $view->setVariable('searchForm', $searchForm);
 
@@ -132,7 +139,16 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $url = $this->getMelisPackagistServer();
         $melisKey = $this->getMelisKey();
         $packageId = (int) $this->params()->fromQuery('packageId', null);
-
+        
+        if($this->isMarketplaceAccessible()){
+            $view = new ViewModel();
+            $view->melisKey = $melisKey;
+            $view->packageId = $packageId;
+            $view->melisPackagistServer = $url;
+            $view->isUpdatablePlatform = $this->allowUpdate();
+            $view->marketPlaceStatus = 0;
+            return $view;
+        }
         set_time_limit(0);
         ini_set('memory_limit', '-1');
          
@@ -304,13 +320,21 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function moduleListAction()
     {
+        $view = new ViewModel();
+        $view->isUpdatablePlatform = $this->allowUpdate();
+
+        if(!$this->isMarketplaceAccessible()){
+            $view->marketNotAccessible = true;
+            return $view;
+        }
         $packages = [];
         $itemCountPerPage = 1;
         $pageCount = 1;
         $currentPageNumber = 1;
         $pagination = null;
-
-        if ($this->getRequest()->isPost()) {
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        if ($request->isPost()) {
 
             /*
              *  For verifying the moduleList
@@ -324,8 +348,9 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $formElements = $this->getServiceManager()->get('FormElementManager');
             $factory->setFormElementManager($formElements);
             $searchForm = $factory->createForm($searchForm);
-
-            $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost()->toArray(), [], true);
+            /**@var HttpRequest $request*/
+            $request = $this->getRequest();
+            $post = $this->getTool()->sanitizeRecursive($request->getPost()->toArray(), [], true);
             //get only modules that are not bundle
             $post['bundle'] = 0;
             //get packages
@@ -339,8 +364,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         }
 
-        $view = new ViewModel();
-
         $view->setTerminal(true);
 
         $view->packages = $packages;
@@ -348,7 +371,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $view->pageCount = $pageCount;
         $view->currentPageNumber = $currentPageNumber;
         $view->pagination = $pagination;
-        $view->isUpdatablePlatform = $this->allowUpdate();
         $view->setVariable('searchForm', $searchForm);
 
         return $view;
@@ -368,9 +390,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $currentPageNumber = 1;
         $pagination = null;
         $isBundleOnly = false;
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
 
-        if ($this->getRequest()->isPost()) {
-            $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost(), [], true);
+        if ($request->isPost()) {
+            $post = $this->getTool()->sanitizeRecursive($request->getPost(), [], true);
 
             if($post['bundle'] == 1)
                 $isBundleOnly = true;
@@ -412,12 +436,14 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     private function fetchPackages($post)
     {
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
         $page = isset($post['page']) ? (int) $post['page'] : 1;
         $search = isset($post['search']) ? $post['search'] : '';
         $orderBy = isset($post['orderBy']) ? $post['orderBy'] : 'mp_total_downloads';
         $order = isset($post['order']) ? $post['order'] : 'desc';
         $itemPerPage = isset($post['itemPerPage']) ? (int) $post['itemPerPage'] : 8;
-        $group = isset($this->getRequest()->getQuery()['group']) ? (string) $this->getRequest()->getQuery()['group'] : null;
+        $group = isset($request->getQuery()['group']) ? (string) $request->getQuery()['group'] : null;
         $bundle = isset($post['bundle']) ? $post['bundle'] : null;
 
 
@@ -562,6 +588,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $success = 0;
         $message = 'melis_market_place_tool_package_do_event_message_ko';
         $errors = [];
+        /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $title = 'tr_market_place';
         $post = [];
@@ -741,6 +768,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     {
         $success = 0;
         $message = 'tr_melis_marketplace_package_directory_removable_ko';
+        /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $title = 'tr_market_place';
         $module = 'Package';
@@ -774,6 +802,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     {
         $success = 0;
         $message = 'tr_melis_marketplace_package_directory_change_permission_ko';
+        /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $title = 'tr_market_place';
         $module = 'Package';
@@ -808,6 +837,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     public function activateModuleAction()
     {
         $success = 0;
+        /**@var HttpRequest $request*/
         $request = $this->getRequest();
 
         if ($request->isPost()) {
@@ -866,6 +896,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     {
         $isExist = 0;
         $module = '';
+        /**@var HttpRequest $request*/
         $request = $this->getRequest();
 
         if ($request->isPost()) {
@@ -955,11 +986,13 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function getModuleTablesAction()
     {
-        $module = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        $module = $this->getTool()->sanitize($request->getPost('module'));
         $tables = [];
         $files = [];
 
-        if ($this->getRequest()->isPost()) {
+        if ($request->isPost()) {
             $svc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
             $path = $svc->getModulePath($module, true);
             $dbDeployPath = $path . '/install/dbdeploy/';
@@ -1014,12 +1047,15 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function exportTablesAction()
     {
-        $module = $this->getTool()->sanitize($this->getRequest()->getPost('module'));
-        $tables = $this->getTool()->sanitize($this->getRequest()->getPost('tables'));
-        $files = $this->getTool()->sanitize($this->getRequest()->getPost('files'));
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        $module = $this->getTool()->sanitize($request->getPost('module'));
+        $tables = $this->getTool()->sanitize($request->getPost('tables'));
+        $files = $this->getTool()->sanitize($request->getPost('files'));
 
         $success = 0;
         $message = $this->getTool()->getTranslation('tr_melis_market_place_export_table_empty');
+        /** @var HttpResponse $response */
         $response = $this->getResponse();
         if ($module) {
 
@@ -1260,6 +1296,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     public function execDbDeployAction()
     {
         $success = false;
+        /**@var HttpRequest $request*/
         $request = $this->getRequest();
 
         if ($request->isPost()) {
@@ -1350,6 +1387,24 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $downloadedmodulesData = [];
         $packages = [];
 
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        $uri = $request->getUri();
+        $domain = $uri->getHost();
+        $scheme = $uri->getScheme();
+        $moduleList = $moduleService->getAllModules();
+        
+        $view = new ViewModel();
+        $view->melisKey = $melisKey;
+        $view->scheme = $scheme;
+        $view->domain = $domain;
+        $view->modules = serialize($moduleList);
+        $view->downloadedPackages = $data;
+
+        if(!$this->isMarketplaceAccessible()){
+            return $view;
+        }
+
         set_time_limit(0);
         ini_set('memory_limit', '-1');
        
@@ -1360,12 +1415,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $packages = null;
         }
 
-        $moduleList = $moduleService->getAllModules();
-
-        $request = $this->getRequest();
-        $uri = $request->getUri();
-        $domain = $uri->getHost();
-        $scheme = $uri->getScheme();
 
         if (isset($packages['packages'])) {
             foreach ($packages['packages'] as $packagesData => $packagesValue) {
@@ -1392,13 +1441,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 ];
             }
         }
-
-        $view = new ViewModel();
-
-        $view->melisKey = $melisKey;
-        $view->modules = serialize($moduleList);
-        $view->scheme = $scheme;
-        $view->domain = $domain;
 
         $view->downloadedPackages = $data;
 
@@ -1428,13 +1470,22 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     public function marketPlaceModuleHeaderAction()
     {
         $melisKey = $this->getMelisKey();
-
         $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
         $marketplaceService = $this->getServiceManager()->get('MelisMarketPlaceService');
-        $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/1/search//item_per_page/0/order/asc/order_by//status/2/group/';
         $serverPackages = [];
         $packagesData = [];
         $tmpData = [];
+        $data = [];
+        $count = 0;
+        $view = new ViewModel();
+        $view->melisKey = $melisKey;
+        $view->modules = $data;
+        $view->needToUpdateModuleCount = $count;
+        $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/1/search//item_per_page/0/order/asc/order_by//status/2/group/';
+
+        if(!$this->isMarketplaceAccessible()){
+            return $view;
+        }
         $excludedModules = [
             'MelisAssetManager',
             'MelisComposerDeploy',
@@ -1473,8 +1524,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $moduleList = $moduleService->getVendorModules();
         $moduleList = array_diff($moduleList, $excludedModules);
 
-        $data = [];
-        $count = 0;
 
         foreach ($moduleList as $module => $moduleName) {
 
@@ -1541,9 +1590,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     {
         $success = false;
         $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
-
-        if ($this->getRequest()->isPost()) {
-            $module = $this->getRequest()->getPost('module');
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            $module = $request->getPost('module');
             if ($module) {
 
                 // Retrieve current activated modules
@@ -1591,10 +1641,9 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     public function isModuleActiveAction()
     {
         $active = false;
-
-        if ($this->getRequest()->isPost()) {
-            /** @var  Laminas\Http\Request $request */
-            $request = $this->getRequest();
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        if ($request->isPost()) {
             $module = $this->getTool()->sanitize($request->getPost('module'));
             /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $mm */
             $mm = $this->getServiceManager()->get('MelisAssetManagerModulesService');
@@ -1613,9 +1662,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     {
         $success = false;
         $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
-
-        if ($this->getRequest()->isPost()) {
-            $module = $this->getRequest()->getPost('module');
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            $module = $request->getPost('module');
             if ($module) {
 
                 //Check if module is laminas module
@@ -1649,8 +1699,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function getSetupModuleFormAction()
     {
-        $module = $this->getRequest()->getPost('module', $this->params()->fromRoute('module'));
-        $action = $this->getRequest()->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        $module = $request->getPost('module', $this->params()->fromRoute('module'));
+        $action = $request->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
         $form = null;
@@ -1669,14 +1721,16 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function validateSetupFormAction()
     {
-        $module = $this->getRequest()->getPost('module', $this->params()->fromRoute('module'));
-        $action = $this->getRequest()->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        $module = $request->getPost('module', $this->params()->fromRoute('module'));
+        $action = $request->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
         $result = null;
-        $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+        $post = $this->getTool()->sanitizeRecursive($request->getPost());
 
-        if ($this->getRequest()->getMethod() === 'POST') {
+        if ($request->getMethod() === 'POST') {
             if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
                 $result = $this->getMarketPlaceService()->validateForm($module, $post);
 
@@ -1697,15 +1751,17 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function submitSetupFormAction()
     {
-        $module = $this->getRequest()->getPost('module', $this->params()->fromRoute('module'));
-        $action = $this->getRequest()->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        $module = $request->getPost('module', $this->params()->fromRoute('module'));
+        $action = $request->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
         $result = null;
-        $post = $this->getTool()->sanitizeRecursive($this->getRequest()->getPost());
+        $post = $this->getTool()->sanitizeRecursive($request->getPost());
         $moduleSite = false;
 
-        if ($this->getRequest()->getMethod() != 'POST') {
+        if ($request->getMethod() != 'POST') {
             return new JsonModel(get_defined_vars());
         }
 
@@ -1735,8 +1791,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
     public function siteInstallAction()
     {
-        $module = $this->getRequest()->getPost('module', 'MelisDemoCms');
-        $action = $this->getRequest()->getPost('action', 'download');
+        /**@var HttpRequest $request*/
+        $request = $this->getRequest();
+        $module = $request->getPost('module', 'MelisDemoCms');
+        $action = $request->getPost('action', 'download');
 
         $start = microtime(true);
         /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
@@ -1752,5 +1810,23 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 //        dd($data);
 
         dd("$timeElapsed sec");
+    }
+    public function isMarketplaceAccessible(){
+        $url = $this->getMelisPackagistServer().'/get-package-group';
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = curl_exec($ch);
+        
+        
+        curl_close($ch);
+        if ($response === false) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
