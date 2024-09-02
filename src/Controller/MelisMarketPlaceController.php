@@ -39,7 +39,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $view->melisKey = $melisKey;
         $view->isUpdatablePlatform = $this->allowUpdate();
 
-        if(!$this->isMarketplaceAccessible()){
+        if (!$this->isMarketplaceAccessible()) {
             $view->searchForm = null;
             $view->packageGroupData = null;
             $view->marketNotAccessible = true;
@@ -63,7 +63,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-        
+
         $response = @file_get_contents($url . '/get-most-downloaded-packages');
         try {
             $packages = Json::decode($response, Json::TYPE_ARRAY);
@@ -139,8 +139,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $url = $this->getMelisPackagistServer();
         $melisKey = $this->getMelisKey();
         $packageId = (int) $this->params()->fromQuery('packageId', null);
-        
-        if($this->isMarketplaceAccessible()){
+
+        if ($this->isMarketplaceAccessible()) {
             $view = new ViewModel();
             $view->melisKey = $melisKey;
             $view->packageId = $packageId;
@@ -151,12 +151,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         }
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-         
+
         $marketPlaceStatus = $this->checkStatusMarketPlace();
         $response = @file_get_contents($url . '/get-package/' . $packageId);
         try {
             $package = Json::decode($response, Json::TYPE_ARRAY);
-
         } catch (\Exception $e) {
             $package = null;
         }
@@ -230,7 +229,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $currentEnv = getenv('MELIS_PLATFORM');
         try {
             $marketPlaceStatus = $platformTbl->getEntryByField('plf_name', $currentEnv)->current();
-
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
@@ -323,7 +321,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $view = new ViewModel();
         $view->isUpdatablePlatform = $this->allowUpdate();
 
-        if(!$this->isMarketplaceAccessible()){
+        if (!$this->isMarketplaceAccessible()) {
             $view->marketNotAccessible = true;
             return $view;
         }
@@ -361,7 +359,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $pageCount = isset($serverPackages['pageCount']) ? $serverPackages['pageCount'] : null;
             $currentPageNumber = isset($serverPackages['currentPageNumber']) ? $serverPackages['currentPageNumber'] : null;
             $pagination = isset($serverPackages['pagination']) ? $serverPackages['pagination'] : null;
-
         }
 
         $view->setTerminal(true);
@@ -396,10 +393,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         if ($request->isPost()) {
             $post = $this->getTool()->sanitizeRecursive($request->getPost(), [], true);
 
-            if($post['bundle'] == 1)
+            if ($post['bundle'] == 1)
                 $isBundleOnly = true;
             else
-                $post['itemPerPage'] = 3;//limit the bundle if modules list is also displayed
+                $post['itemPerPage'] = 3; //limit the bundle if modules list is also displayed
 
             //get only modules that are bundle
             $post['bundle'] = 1;
@@ -412,7 +409,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $pageCount = isset($serverPackages['pageCount']) ? $serverPackages['pageCount'] : null;
             $currentPageNumber = isset($serverPackages['currentPageNumber']) ? $serverPackages['currentPageNumber'] : null;
             $pagination = isset($serverPackages['pagination']) ? $serverPackages['pagination'] : null;
-
         }
 
         $view = new ViewModel();
@@ -449,7 +445,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-         
+
         $search = urlencode($search);
         $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/' . $page . '/search/' . $search
             . '/item_per_page/' . $itemPerPage . '/order/' . $order . '/order_by/' . $orderBy . '/status/1' . '/group/' . $group
@@ -581,10 +577,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      * @return \Laminas\View\Model\ViewModel
      */
     public function melisMarketPlaceProductDoAction()
-    {   
+    {
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-                
+
         $success = 0;
         $message = 'melis_market_place_tool_package_do_event_message_ko';
         $errors = [];
@@ -630,7 +626,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                             $currentModules = $moduleSvc->getMelisActiveModules();
 
                             // Unset module target module
-                            if (($modKey = array_search($module, $currentModules)) !== false) 
+                            if (($modKey = array_search($module, $currentModules)) !== false)
                                 unset($currentModules[$modKey]);
 
                             // Target module dependencies
@@ -679,7 +675,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                             $composerJson = json_decode(@file_get_contents($composerJsonFile), true);
                             $composerReqs = $composerJson['require'];
 
-                            foreach ($tempToBeRemove As $tMod){
+                            foreach ($tempToBeRemove as $tMod) {
                                 // Retrieving module composer.json to get na package name
                                 $moduleJson = json_decode(@file_get_contents($moduleSvc->getModulePath($tMod) . '/composer.json'), true);
                                 $modulePackageName = $moduleJson['name'];
@@ -783,7 +779,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 $success = 1;
                 $message = 'tr_melis_marketplace_package_directory_removable_ok';
             }
-
         }
 
         $response = [
@@ -819,7 +814,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 $success = 1;
                 $message = 'tr_melis_marketplace_package_directory_change_permission_ko';
             }
-
         }
 
         $response = [
@@ -849,7 +843,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $arrayDependency = $this->packageRequire($module);
 
             //check if module is laminas module
-            if($this->isLaminasModule($module)){
+            if ($this->isLaminasModule($module)) {
                 //include the module
                 array_push($arrayDependency, $module);
             }
@@ -865,8 +859,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 /**
                  * Process module activation
                  */
-                foreach($arrayDependency as $mod) {
-                    if($this->isLaminasModule($mod)){
+                foreach ($arrayDependency as $mod) {
+                    if ($this->isLaminasModule($mod)) {
                         if (!in_array($mod, $activeModules)) {
                             $moduleCount = count($modules);
                             $insertAtIdx = $moduleCount - 1;
@@ -913,7 +907,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         ];
 
         return new JsonModel($response);
-
     }
 
     /**
@@ -927,16 +920,16 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $moduleSrc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
         $repos = $moduleSrc->getComposer()->getRepositoryManager()->getLocalRepository();
         $packageName = $this->convertToPackageName($module);
-        $packageInfo = $repos->findPackages("melisplatform/".$packageName);
+        $packageInfo = $repos->findPackages("melisplatform/" . $packageName);
 
         /**
          * Check if package exist
          */
-        if(!empty($packageInfo[0])){
+        if (!empty($packageInfo[0])) {
             /**
              * Check if package is melis platform module
              */
-            if($packageInfo[0]->getType() == 'melisplatform-module') {
+            if ($packageInfo[0]->getType() == 'melisplatform-module') {
                 $extra = $packageInfo[0]->getExtra();
                 /**
                  * Check if module is laminas module
@@ -946,12 +939,12 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                  * then we expect it is a laminas module
                  */
                 if (isset($extra['melis-module'])) {
-                    if($extra['melis-module']){
+                    if ($extra['melis-module']) {
                         /**
                          * Module is made in laminas module
                          */
                         $laminasModule = true;
-                    }else{
+                    } else {
                         /**
                          * Module is made form other framework
                          */
@@ -1016,7 +1009,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 $dbDeployFile = $dbDeployPath . $dbDeployFile;
 
                 set_time_limit(0);
-                ini_set('memory_limit', '-1');                
+                ini_set('memory_limit', '-1');
 
                 $dbDeployFile = @file_get_contents($dbDeployFile);
                 if (preg_match_all('/CREATE\sTABLE\sIF\sNOT\sEXISTS\s\`(.*?)+\`/', $dbDeployFile, $matches)) {
@@ -1030,7 +1023,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
                     sort($tables);
                     sort($files);
-
                 }
             }
         }
@@ -1069,7 +1061,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $export = "";
 
             set_time_limit(0);
-            ini_set('memory_limit', -1);            
+            ini_set('memory_limit', -1);
 
             // check again if the tables are not empty
             if (is_array($tables)) {
@@ -1119,19 +1111,18 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                             }
 
                             $dropQueryTable .= !empty($dropQueryTable) ? ",`{$table}`" : "`{$table}`";
-
-                        } catch (\PDOException $e) {                           
+                        } catch (\PDOException $e) {
                             $message .= ' ' . PHP_EOL . $e->getMessage() . PHP_EOL;
                         }
                     }
-                    
+
 
                     if ($dropQueryTable) {
-                        $dropQueryTable = "DROP TABLE IF EXISTS ".$dropQueryTable.";";                       
+                        $dropQueryTable = "DROP TABLE IF EXISTS " . $dropQueryTable . ";";
 
                         // execute drop table
                         $adapter->query($dropQueryTable, DbAdapter::QUERY_MODE_EXECUTE);
-                    } 
+                    }
 
                     // delete the dbdeploy file in the changelog table
                     if ($files) {
@@ -1239,26 +1230,26 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         }
 
         $packageRequire = array();
-        foreach ($composerInstalledPckg As $pckgConfg){
+        foreach ($composerInstalledPckg as $pckgConfg) {
 
-            if (!empty($pckgConfg->autoload->$psr4)){
+            if (!empty($pckgConfg->autoload->$psr4)) {
                 $moduleName = null;
-                foreach ($pckgConfg->autoload->$psr4 As $modName => $v)
+                foreach ($pckgConfg->autoload->$psr4 as $modName => $v)
                     $moduleName = $modName;
 
                 $moduleName = rtrim($moduleName, '\\');
 
-                if ($moduleName === $module){
-                    if (!empty($pckgConfg->require)){
-                        foreach ($pckgConfg->require As $pckgName => $v){
-                            if (!is_bool(strpos($pckgName, 'melisplatform'))){
+                if ($moduleName === $module) {
+                    if (!empty($pckgConfg->require)) {
+                        foreach ($pckgConfg->require as $pckgName => $v) {
+                            if (!is_bool(strpos($pckgName, 'melisplatform'))) {
 
-                                foreach ($composerInstalledPckg As $reqPckg => $reqPckgConf){
+                                foreach ($composerInstalledPckg as $reqPckg => $reqPckgConf) {
 
-                                    if ($reqPckgConf->name == $pckgName){
+                                    if ($reqPckgConf->name == $pckgName) {
 
                                         $moduleName = $pckgName;
-                                        foreach ($reqPckgConf->autoload->$psr4 As $modName => $v)
+                                        foreach ($reqPckgConf->autoload->$psr4 as $modName => $v)
                                             $moduleName = $modName;
 
                                         $moduleName = rtrim($moduleName, '\\');
@@ -1281,7 +1272,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $activeModules = array_keys($moduleMngr->getLoadedModules());
 
         if (!empty($packageRequire))
-            foreach ($packageRequire As $key => $reqMod)
+            foreach ($packageRequire as $key => $reqMod)
                 if (in_array($reqMod, $activeModules))
                     unset($packageRequire[$key]);
 
@@ -1309,7 +1300,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 //get the required modules of each dependency recursively
                 $allRequiredModules = [];
                 if (!empty($moduleDpndncs)) {
-                    foreach ($moduleDpndncs as &$mod) {                    
+                    foreach ($moduleDpndncs as &$mod) {
                         $allRequiredModules = $this->packageRequire($mod);
 
                         if ($allRequiredModules) {
@@ -1334,7 +1325,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
                 if ($this->reprocessDbDeploy()) {
                     $success = true;
-                }else{
+                } else {
                     $success = -1;
                 }
             }
@@ -1393,7 +1384,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $domain = $uri->getHost();
         $scheme = $uri->getScheme();
         $moduleList = $moduleService->getAllModules();
-        
+
         $view = new ViewModel();
         $view->melisKey = $melisKey;
         $view->scheme = $scheme;
@@ -1401,13 +1392,13 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $view->modules = serialize($moduleList);
         $view->downloadedPackages = $data;
 
-        if(!$this->isMarketplaceAccessible()){
+        if (!$this->isMarketplaceAccessible()) {
             return $view;
         }
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
-       
+
         $downloadedmodulesData = @file_get_contents($url);
         try {
             $packages = json_decode($downloadedmodulesData, true);
@@ -1483,7 +1474,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $view->needToUpdateModuleCount = $count;
         $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/1/search//item_per_page/0/order/asc/order_by//status/2/group/';
 
-        if(!$this->isMarketplaceAccessible()){
+        if (!$this->isMarketplaceAccessible()) {
             return $view;
         }
         $excludedModules = [
@@ -1601,7 +1592,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 $currentModules = $mm->getLoadedModules();
 
                 //include module in the activation if it is laminas module
-                if($this->isLaminasModule($module))
+                if ($this->isLaminasModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
@@ -1609,8 +1600,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 $moduleDpndncs = $this->packageRequire($module);
 
                 if (!empty($moduleDpndncs))
-                    foreach ($moduleDpndncs As $key => $mod)
-                        if($this->isLaminasModule($mod))
+                    foreach ($moduleDpndncs as $key => $mod)
+                        if ($this->isLaminasModule($mod))
                             if (!in_array($mod, $currentModules))
                                 $modules[] = $mod;
 
@@ -1669,7 +1660,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             if ($module) {
 
                 //Check if module is laminas module
-                if($this->isLaminasModule($module))
+                if ($this->isLaminasModule($module))
                     $modules[] = $module;
                 else
                     $modules = [];
@@ -1677,7 +1668,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 // Deactivating temporary activated modules
                 $reqModSessTemp = new Container('melismarketplace');
 
-                if (!empty($reqModSessTemp['temp_mod_actvt'])){
+                if (!empty($reqModSessTemp['temp_mod_actvt'])) {
                     $modules = array_merge($reqModSessTemp['temp_mod_actvt'], $modules);
                 }
 
@@ -1702,7 +1693,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $module = $request->getPost('module', $this->params()->fromRoute('module'));
-        $action = $request->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+        $action = $request->getPost('action', $this->params()->fromRoute('module', static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
         $form = null;
@@ -1724,7 +1715,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $module = $request->getPost('module', $this->params()->fromRoute('module'));
-        $action = $request->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+        $action = $request->getPost('action', $this->params()->fromRoute('module', static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
         $result = null;
@@ -1733,7 +1724,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         if ($request->getMethod() === 'POST') {
             if ($this->getMarketPlaceService()->hasPostSetup($module, $action)) {
                 $result = $this->getMarketPlaceService()->validateForm($module, $post);
-
             }
         }
 
@@ -1754,7 +1744,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $module = $request->getPost('module', $this->params()->fromRoute('module'));
-        $action = $request->getPost('action', $this->params()->fromRoute('module',static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
+        $action = $request->getPost('action', $this->params()->fromRoute('module', static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
         $result = null;
@@ -1782,7 +1772,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                 } catch (\Exception $e) {
                     $result['message'] = $e->getMessage();
                 }
-
             }
         }
 
@@ -1804,29 +1793,46 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $test = $service->installSite($this->getRequest())->invokeSetup();
 
         /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $moduleService */
-//        $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
-//
-//        $data = $moduleService->isSiteModule($module);
-//        dd($data);
+        //        $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
+        //
+        //        $data = $moduleService->isSiteModule($module);
+        //        dd($data);
 
         dd("$timeElapsed sec");
     }
-    public function isMarketplaceAccessible(){
-        $url = $this->getMelisPackagistServer().'/get-package-group';
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-        
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
-        $response = curl_exec($ch);
-        
-        
+
+    public function isMarketplaceAccessible()
+    {
+        // URL: http://marketplace.melisplatform.com/melis-packagist
+        $url = $this->getMelisPackagistServer() . '/get-package-group';
+        $ch = curl_init($url);
+
+        curl_setopt_array($ch, [
+            // return transfer as string
+            CURLOPT_RETURNTRANSFER => true,
+            // Set timeout to "5" seconds
+            CURLOPT_TIMEOUT => 5,
+            // Retry in 3 seconds if it fails
+            CURLOPT_CONNECTTIMEOUT => 3,
+            // No need for the content, we just need the headers response
+            CURLOPT_NOBODY => true,
+            // make sure every request is a new request, making sure that the status is accurate
+            CURLOPT_FRESH_CONNECT => true,
+            // multi-thread, so that it won't block the current process
+            CURLOPT_NOSIGNAL => 1,
+        ]);
+
+        // Use non-blocking I/O
+        curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+        curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, function () {
+            return 0;
+        });
+
+        curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
         curl_close($ch);
-        if ($response === false) {
-            return false;
-        } else {
-            return true;
-        }
+
+        return $httpCode >= 400;
     }
 }
