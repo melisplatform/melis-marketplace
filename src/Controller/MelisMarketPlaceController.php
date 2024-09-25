@@ -1838,6 +1838,6 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         curl_close($ch);
 
-        return $httpCode >= 400;
+        return $httpCode < 400;
     }
 }
