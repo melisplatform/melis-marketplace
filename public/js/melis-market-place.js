@@ -40,8 +40,9 @@ function getModules(url, data, removeOverlay)
         dataType: "html"
     }).done(function(data){
         $("body").find("div#melis-market-place-module-list").html(data);
-        $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
-        $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
+        //$(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
+        $(".market-place-btn-filter-group button").prop("disabled", false);
+        $("#btnMarketPlaceSearch").prop("disabled", false);
         //update title of the package to add the selected group name
         changePackageHeaderTitle();
         if(removeOverlay)
@@ -58,8 +59,8 @@ function getBundles(url, data, removeOverlay)
         dataType: "html"
     }).done(function(data){
         $("body").find("div#melis-market-place-bundle-list").html(data);
-        $(".market-place-btn-filter-group button").removeAttr("disabled", "disabled");
-        $("#btnMarketPlaceSearch").removeAttr("disabled", "disabled");
+        $(".market-place-btn-filter-group button").prop("disabled", false);
+        $("#btnMarketPlaceSearch").prop("disabled", false);
         //update title of the package to add the selected group name
         changePackageHeaderTitle();
         if(removeOverlay)
@@ -698,7 +699,7 @@ $(function () {
                                 vConsole.animate({
                                     scrollTop: vConsole.prop("scrollHeight")
                                 }, 1115);
-                                $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
+                                $("#melis-marketplace-product-modal-hide").prop("disabled", false);
                                 $("#melis-marketplace-product-modal-hide").removeClass("disabled");
                                 $("body").find("p#melis-marketplace-console-loading").remove();
                                 if (callback !== undefined || callback !== null) {
@@ -712,7 +713,7 @@ $(function () {
                 }).fail(function (e) {
                 var vConsole = $("body").find("#melis-marketplace-event-do-response");
                 vConsole.html("An error has occured, please try again");
-                $("#melis-marketplace-product-modal-hide").removeAttr("disabled");
+                $("#melis-marketplace-product-modal-hide").prop("disabled", false);
                 $("#melis-marketplace-product-modal-hide").removeClass("disabled");
             });
 
@@ -826,7 +827,6 @@ $(function () {
         updateCmdText('<span style="color: #ff190d;">' + message + '</span>');
     }
 
-
     function addLazyCmdText(id, message) {
         updateCmdText('<br/><span id="' + id + '"><i class="fa fa-spinner fa-spin"></i> ' + message + '</span> <br/>');
     }
@@ -879,7 +879,7 @@ function initSlick() {
 }
 
 /*Dashboard slider*/
-$(document).ready(function () {
+$(function () {
     function initDashboardSlider() {
         $(".slider-dashboard-downloaded-packages").slick({
 

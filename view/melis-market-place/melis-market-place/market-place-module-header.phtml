@@ -30,8 +30,7 @@ $data_melisKey = $this->melisKey;
         <?php }
         ?>
         <?php if ($this->needToUpdateModuleCount > 0) { ?>
-            <?php foreach ($this->modules as $module => $moduleValue) {
-                ?>
+            <?php foreach ($this->modules as $module => $moduleValue) { ?>
                 <?php if ($moduleValue['status'] == -1) { ?>
                     <li>
                         <span class="img-circle media-object"></span>
