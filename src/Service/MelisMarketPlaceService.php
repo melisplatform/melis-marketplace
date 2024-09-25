@@ -334,8 +334,8 @@ class MelisMarketPlaceService extends MelisGeneralService
             } else {
                 //remove the v from the version and convert to float
                 //to compare the version number
-                $localV = str_replace('v', "", strtolower($localVersion ?? ''));
-                $latestV = str_replace('v', "", strtolower($arrayParameters['moduleVersion'] ?? ''));
+                $localV = $localVersion ? str_replace('v', "", strtolower($localVersion)) : 0;
+                $latestV = $arrayParameters['moduleVersion'] ? str_replace('v', "", strtolower($arrayParameters['moduleVersion'])) : 0;
     
                 //check if  local version is updated than the version in repo
                 if ($latestV <= $localV) {
