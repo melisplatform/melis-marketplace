@@ -1801,6 +1801,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         dd("$timeElapsed sec");
     }
 
+    public function isMarketplaceAccessibleAction()
+    {
+        return new JsonModel(['isMarketplaceAccessible' => $this->isMarketplaceAccessible()]);
+    }
+
     public function isMarketplaceAccessible()
     {
         // URL: http://marketplace.melisplatform.com/melis-packagist
