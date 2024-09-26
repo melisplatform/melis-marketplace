@@ -140,13 +140,14 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $melisKey = $this->getMelisKey();
         $packageId = (int) $this->params()->fromQuery('packageId', null);
 
-        if ($this->isMarketplaceAccessible()) {
+        if (!$this->isMarketplaceAccessible()) {
             $view = new ViewModel();
             $view->melisKey = $melisKey;
             $view->packageId = $packageId;
-            $view->melisPackagistServer = $url;
-            $view->isUpdatablePlatform = $this->allowUpdate();
-            $view->marketPlaceStatus = 0;
+            // $view->melisPackagistServer = $url;
+            // $view->isUpdatablePlatform = $this->allowUpdate();
+            // $view->marketPlaceStatus = 0;
+            $view->marketNotAccessible = false;
             return $view;
         }
         set_time_limit(0);
@@ -214,6 +215,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $view->isUpdatablePlatform = $this->allowUpdate();
         $view->currentVersion = $currentVersion;
         $view->marketPlaceStatus = $marketPlaceStatus;
+        $view->marketNotAccessible = true;
+
 
         return $view;
     }
@@ -335,8 +338,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         if ($request->isPost()) {
 
             /*
-             *  For verifying the moduleList
-             */
+            *  For verifying the moduleList
+            */
             $config = $this->getServiceManager()->get('MelisConfig');
             $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
@@ -1510,8 +1513,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         }
 
         /*
-         * verify modules of their current versions
-         */
+        * verify modules of their current versions
+        */
         $moduleList = $moduleService->getVendorModules();
         $moduleList = array_diff($moduleList, $excludedModules);
 

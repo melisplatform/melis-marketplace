@@ -6,6 +6,12 @@ if (!empty($this->zoneconfig['conf']['id'])) {
 ?>
 <div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId . '_' . $id; ?>" class="tab-pane container-level-a">
     <div class="innerAll spacing-x2">
+
+    <?php if(!$this->marketNotAccessible){?>
+        <p class="text-danger">
+            <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_could_not_connect') ?>
+        </p>
+    <?php } else {?>
         <div class="melis-store">
             <div class="row">
                 <div class="col-md-9">
@@ -107,8 +113,7 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                             $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                             ?>
                                             <div>
-                                                <img class="" src="<?= $image; ?>"
-                                                     alt="">
+                                                <img class="" src="<?= $image; ?>" alt="">
                                                 <span class="img-title"><?= $images['imageTitle']; ?></span>
                                             </div>
                                             <?php
@@ -193,8 +198,10 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                 </div>
             </div>
         </div>
+    <?php }?>
     </div>
-
-
 </div>
-<script> initSlick(activeTabId); </script>
+
+<?php if($this->marketNotAccessible){?>
+    <script> initSlick(activeTabId); </script>
+<?php }?>
