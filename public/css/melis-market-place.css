@@ -611,7 +611,7 @@
 }
 
 .meliscore .melis-svg svg .light-color {
-    fill: #f7962c;
+    fill: #fff;
 }
 
 /*CMS*/
@@ -642,7 +642,7 @@
 }
 
 .meliscms .melis-svg svg .light-color {
-    fill: #85c556;
+    fill: #fff;
 }
 
 /*MARKETING*/
@@ -673,7 +673,7 @@
 }
 
 .melismarketing .melis-svg svg .light-color {
-    fill: #8865ac;
+    fill: #fff;
 }
 
 /*COMMERCE*/
@@ -705,7 +705,7 @@
 }
 
 .meliscommerce .melis-svg svg .light-color {
-    fill: #3998d3;
+    fill: #fff;
 }
 
 /*PLATFORM*/
@@ -736,7 +736,7 @@
 }
 
 .melisplatform .melis-svg svg .light-color {
-    fill: #e91e27;
+    fill: #fff;
 }
 
 .melis-svg {
@@ -1001,28 +1001,28 @@
 }
 
 .market-place-btn-filter-group .core .melis-svg .light-color {
-    fill: #f7962c;
+    fill: #fff;
 }
 .market-place-btn-filter-group .cms .melis-svg .bg-color {
     fill: #67b345;
 }
 
 .market-place-btn-filter-group .cms .melis-svg .light-color {
-    fill: #85c556;
+    fill: #fff;
 }
 .market-place-btn-filter-group .marketing .melis-svg .bg-color {
     fill: #70479c;
 }
 
 .market-place-btn-filter-group .marketing .melis-svg .light-color {
-    fill: #8865ac;
+    fill: #fff;
 }
 .market-place-btn-filter-group .commerce .melis-svg .bg-color {
     fill: #159cd4;
 }
 
 .market-place-btn-filter-group .commerce .melis-svg .light-color {
-    fill: #1ebeea;
+    fill: #fff;
 }
 #outdated-module-link{
     cursor: pointer;
