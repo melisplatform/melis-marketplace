@@ -47,7 +47,7 @@ if(!$this->marketNotAccessible){
                                 </a>
                                 <div class="clearfix product-mini-sub">
                                     <span class="melis-module-version <?= $opacity ?>"> <?= $package['packageVersion']; ?></span>
-                                    <span class="melis-module-downloads <?= $opacity ?>"><i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?></span>
+                                    <span class="melis-module-downloads <?= $opacity ?>"><i class="fa fa-download"></i> <?= number_format((int) $package['packageTotalDownloads']); ?></span>
                                 </div>
 
                                 <div class="melis-svg">

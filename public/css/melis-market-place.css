@@ -1119,3 +1119,10 @@ div[class*=col-md-].no-bt-gutters {
     padding-right: 0;
     padding-left: 0;
 }
+/* jQuery migration */
+.pagination > li > a:hover {
+    color: #fff;
+}
+.product-status {
+    height: 31px;
+}
