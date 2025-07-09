@@ -80,6 +80,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                 'site_name' => $module,
                 'site_label' => $name,
                 'site_main_page_id' => $siteId,
+                'site_dnd_render_mode' => 'bootstrap' //to use dynamic dnd
             ]);
 
             /**
@@ -132,6 +133,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                 'site_name' => $module,
                 'site_label' => $name,
                 'site_main_page_id' => $siteId,
+                'site_dnd_render_mode' => 'bootstrap' //to use dynamic dnd
             ]);
 
             $this->siteDomainTable()->save([
