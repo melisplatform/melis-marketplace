@@ -61,6 +61,8 @@ MelisMarketPlace is the **app store for the platform**. Open it and you get a ca
 official Melis modules (and any published as Melis packages), grouped and searchable. For each
 module you can see whether the version you have installed is **up to date**, and act on it directly:
 
+![Market Place landing page — search box, the Modules grid of cards (each with version and an INSTALL button), and the right sidebar with "Want your module listed?" and "Most downloaded packages".](./images/melismarketplace-tool-list.png)
+
 - **Download** a module you don't have yet (Composer fetches it, then it's plugged in).
 - **Update** a module to the latest published version.
 - **Remove** a module you no longer need (with a dependency-safety check first).
@@ -95,6 +97,11 @@ Open **Market Place**, find the module (browse the groups or use the search box)
 **Download**. Composer pulls the package and its dependencies; if the module ships a database delta
 it is applied; the module is then plugged in and ready.
 
+Opening a module shows its **product view** — version, homepage, package name and a preview, with
+the action button (Download, or **Remove** if already installed):
+
+![Single-module product view for "Melis Cms" — Remove button, Additional Information panel (latest version, current version, homepage, package name) and a platform preview underneath.](./images/melismarketplace-tool-module-detail.png)
+
 **…update a module that's out of date?**
 Either click the **header icon** (its badge tells you how many are behind) and update from the
 shortlist, or open the module in the store and click **Update**.
@@ -119,10 +126,9 @@ update (a per-platform flag). If the server is unreachable or your platform is l
 the store shows a "not accessible" message and the action buttons are hidden — browsing still works
 but downloads/updates are disabled. See B6.
 
-> **Screenshots** (recommended, to capture, under `./images/`): the store landing page with the
-> module groups and search, a single module's product view (with Download/Update/Remove), the
-> header update-badge dropdown, and the site-product setup form. None are captured for the AI doc
-> yet — the images under `etc/MarketPlace/` are the public promo shots, not this doc's screenshots.
+> **Screenshots.** See the [Screenshot index](#screenshot-index) at the end of this doc for the
+> file→content mapping. (The images under `etc/MarketPlace/` are the public promo shots, separate
+> from this doc's `./images/`.)
 
 ---
 ---
@@ -330,6 +336,15 @@ melis-marketplace/
 ├── view/ · public/ (slick, axios, melis-market-place.js, build bundle) · language/
 └── etc/  MarketPlace (promo) + MelisAI/doc (this doc)
 ```
+
+---
+
+## Screenshot index
+
+| File (`./images/`) | Content |
+|---|---|
+| `melismarketplace-tool-list.png` | Market Place landing page: search box, the **Modules** grid of cards (each card = a module with its version and an INSTALL button), and the right sidebar ("Want your module listed?" + "Most downloaded packages"). |
+| `melismarketplace-tool-module-detail.png` | Single-module **product view** ("Melis Cms"): Remove button, Additional Information panel (latest version, current version, homepage, package name) and a platform preview. |
 
 ---
 
