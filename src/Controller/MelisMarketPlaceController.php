@@ -1839,7 +1839,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        curl_close($ch);
+        // curl_close() is a no-op since PHP 8.0 (curl handles are CurlHandle objects,
+        // freed automatically) and is deprecated on 8.5 — omitted.
 
         return $httpCode < 400;
     }
