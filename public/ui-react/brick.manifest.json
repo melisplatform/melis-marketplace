@@ -1,0 +1,8 @@
+{
+  "id": "marketplace",
+  "route": "/melis-marketplace",
+  "label": "Market Place",
+  "forwardKey": "MelisMarketPlace/MelisMarketPlace",
+  "melisKey": "melis_market_place_tool_display",
+  "entry": "brick.js"
+}

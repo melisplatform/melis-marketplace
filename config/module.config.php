@@ -40,6 +40,55 @@ return [
                                     ],
                                 ],
                             ],
+                            /*
+                             * JSON API for the native React "Market Place" list (browse-only —
+                             * install/update/remove stay on the legacy tool). Own routes (not in
+                             * melis-react-api) so the module owns its React API end to end.
+                             */
+                            'react-api-packages' => [
+                                'type' => 'Literal',
+                                'options' => [
+                                    'route' => '/react-api/packages',
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'MelisMarketPlace\Controller',
+                                        'controller' => 'MelisMarketPlaceReactApi',
+                                        'action' => 'packages',
+                                    ],
+                                ],
+                            ],
+                            'react-api-groups' => [
+                                'type' => 'Literal',
+                                'options' => [
+                                    'route' => '/react-api/groups',
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'MelisMarketPlace\Controller',
+                                        'controller' => 'MelisMarketPlaceReactApi',
+                                        'action' => 'groups',
+                                    ],
+                                ],
+                            ],
+                            'react-api-stats' => [
+                                'type' => 'Literal',
+                                'options' => [
+                                    'route' => '/react-api/stats',
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'MelisMarketPlace\Controller',
+                                        'controller' => 'MelisMarketPlaceReactApi',
+                                        'action' => 'stats',
+                                    ],
+                                ],
+                            ],
+                            'react-api-status' => [
+                                'type' => 'Literal',
+                                'options' => [
+                                    'route' => '/react-api/status',
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'MelisMarketPlace\Controller',
+                                        'controller' => 'MelisMarketPlaceReactApi',
+                                        'action' => 'status',
+                                    ],
+                                ],
+                            ],
                         ],
                     ],
                 ],
@@ -98,6 +147,7 @@ return [
         'invokables' => [
             'MelisMarketPlace\Controller\MelisMarketPlace' => \MelisMarketPlace\Controller\MelisMarketPlaceController::class,
             'MelisMarketPlace\Controller\MelisSetup' => \MelisMarketPlace\Controller\MelisSetupController::class,
+            'MelisMarketPlace\Controller\MelisMarketPlaceReactApi' => \MelisMarketPlace\Controller\MelisMarketPlaceReactApiController::class,
         ],
     ],
     'view_manager' => [
