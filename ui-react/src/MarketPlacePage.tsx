@@ -323,7 +323,7 @@ export default function MarketPlacePage() {
   // that's what caused other tabs to go blank with several Marketplace-related tabs open.
   const [openId, setOpenId] = useState<number | null>(null)
 
-  if (openId != null) return <PackageDetail id={openId} onBack={() => setOpenId(null)} />
+  if (openId != null) return <PackageDetail id={openId} onBack={() => setOpenId(null)} onOpen={setOpenId} />
   return <PackageList onOpen={setOpenId} />
 }
 
@@ -743,7 +743,7 @@ function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action:
 }
 
 // ── Détail d'un package (natif) + gestion native (install/update/remove) ──────
-function PackageDetail({ id, onBack }: { id: number; onBack: () => void }) {
+function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void; onOpen: (id: number) => void }) {
   const t = useT()
   const [pkg, setPkg] = useState<PackageDetailData | null>(null)
   const [error, setError] = useState('')
@@ -764,7 +764,8 @@ function PackageDetail({ id, onBack }: { id: number; onBack: () => void }) {
 
   return (
     <div style={{ height: '100%', minHeight: 0, overflow: 'auto' }}>
-      <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 900 }}>
+      <div style={{ padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0, maxWidth: 900, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
           <button style={{ ...btnGhost, height: 32, padding: '0 10px', marginBottom: 12 }} onClick={onBack}>← {t('back')}</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -831,6 +832,9 @@ function PackageDetail({ id, onBack }: { id: number; onBack: () => void }) {
             </p>
           </div>
         )}
+        </div>
+
+        <Sidebar t={t} onOpen={onOpen} />
       </div>
 
       {/* Native manage flow — reproduces the legacy download/update/remove workflow (progress
