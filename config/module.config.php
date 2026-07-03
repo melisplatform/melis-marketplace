@@ -56,6 +56,18 @@ return [
                                     ],
                                 ],
                             ],
+                            'react-api-package-detail' => [
+                                'type' => 'Segment',
+                                'options' => [
+                                    'route' => '/react-api/packages/:id',
+                                    'constraints' => ['id' => '[0-9]+'],
+                                    'defaults' => [
+                                        '__NAMESPACE__' => 'MelisMarketPlace\Controller',
+                                        'controller' => 'MelisMarketPlaceReactApi',
+                                        'action' => 'get',
+                                    ],
+                                ],
+                            ],
                             'react-api-groups' => [
                                 'type' => 'Literal',
                                 'options' => [

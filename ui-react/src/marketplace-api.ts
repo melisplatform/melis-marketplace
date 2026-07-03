@@ -28,8 +28,17 @@ export interface PackageItem {
   groupId: number | null
   groupName: string
   isActive: boolean
+  /** true when the module is private (must be bought, not downloadable directly). */
+  isPrivate: boolean
   installed: boolean
   versionStatus: 'need_update' | 'up_to_date' | 'in_advance' | null
+}
+
+export interface PackageDetail extends PackageItem {
+  images: string[]
+  currentVersion: string | null
+  /** true when the module is protected (never removable/updatable via the marketplace). */
+  isExempted: boolean
 }
 
 export interface PackageGroup {
@@ -44,6 +53,7 @@ export interface PackageListParams {
   group?: string
   orderBy?: string
   order?: 'asc' | 'desc'
+  bundle?: boolean
 }
 
 export interface PackageListResult {
@@ -84,7 +94,12 @@ export async function fetchPackages(params: PackageListParams = {}): Promise<Pac
   if (params.group) qs.set('group', params.group)
   if (params.orderBy) qs.set('orderBy', params.orderBy)
   if (params.order) qs.set('order', params.order)
+  if (params.bundle) qs.set('bundle', '1')
   return apiFetch<PackageListResult>(`${BASE}/packages?${qs}`)
+}
+
+export async function fetchPackageById(id: number): Promise<PackageDetail> {
+  return apiFetch<PackageDetail>(`${BASE}/packages/${id}`)
 }
 
 export async function fetchPackageGroups(): Promise<{ groups: PackageGroup[]; marketAccessible: boolean }> {

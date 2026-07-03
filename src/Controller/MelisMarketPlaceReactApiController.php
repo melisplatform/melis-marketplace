@@ -45,6 +45,7 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             $group    = trim((string) ($this->params()->fromQuery('group', '') ?? ''));
             $orderBy  = trim((string) ($this->params()->fromQuery('orderBy', 'mp_total_downloads') ?? ''));
             $order    = trim((string) ($this->params()->fromQuery('order', 'desc') ?? ''));
+            $bundle   = (int) (bool) $this->params()->fromQuery('bundle', 0);
 
             $serverPackages = $this->fetchFromPackagist('/get-packages/page/' . $page
                 . '/search/' . urlencode($search)
@@ -52,7 +53,7 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
                 . '/order/' . $order
                 . '/order_by/' . $orderBy
                 . '/status/1/group/' . $group
-                . '/bundle/0');
+                . '/bundle/' . $bundle);
 
             $rawItems = $serverPackages['packages'] ?? [];
             $items = array_map([$this, 'formatPackage'], $rawItems);
@@ -84,13 +85,17 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
                 return $this->jsonResponse(['success' => true, 'data' => ['groups' => [], 'marketAccessible' => false]]);
             }
 
+            // Shape: [{ mp_group_id, mp_group_name (e.g. "MelisCore"), module_count }, ...]
             $groupData = $this->fetchFromPackagist('/get-package-group');
             $groups = [];
             foreach ((array) $groupData as $g) {
                 if (!is_array($g)) { continue; }
+                $rawName = (string) ($g['mp_group_name'] ?? '');
+                // Legacy display strips the "Melis" prefix (5 chars): "MelisCore" → "Core".
+                $displayName = str_starts_with($rawName, 'Melis') ? substr($rawName, 5) : $rawName;
                 $groups[] = [
-                    'id'   => isset($g['packageGroupId']) ? (int) $g['packageGroupId'] : null,
-                    'name' => (string) ($g['packageGroupName'] ?? ''),
+                    'id'   => isset($g['mp_group_id']) ? (int) $g['mp_group_id'] : null,
+                    'name' => $displayName !== '' ? $displayName : $rawName,
                 ];
             }
 
@@ -141,6 +146,43 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         }
     }
 
+    // ─── GET /packages/:id ────────────────────────────────────────────────────
+
+    public function getAction(): HttpResponse
+    {
+        if ($deny = $this->denyUnlessAccess()) { return $deny; }
+
+        $id = (int) $this->params()->fromRoute('id', 0);
+        if ($id <= 0) {
+            return $this->jsonResponse(['success' => false, 'error' => 'Invalid ID'], 400);
+        }
+
+        try {
+            if (!$this->isMarketplaceAccessible()) {
+                return $this->jsonResponse(['success' => false, 'error' => 'Marketplace unreachable'], 503);
+            }
+
+            $raw = $this->fetchFromPackagist('/get-package/' . $id);
+            if (!$raw || !isset($raw['packageId'])) {
+                return $this->jsonResponse(['success' => false, 'error' => 'Not found'], 404);
+            }
+
+            $item = $this->formatPackage($raw);
+
+            $currentVersion = null;
+            if ($item['moduleName'] !== '' && $item['installed']) {
+                $info = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulesAndVersions($item['moduleName']);
+                $currentVersion = $info['version'] ?? null;
+            }
+            $item['currentVersion'] = $currentVersion;
+            $item['isExempted'] = $item['moduleName'] !== '' && in_array($item['moduleName'], $this->getModuleExceptions(), true);
+
+            return $this->jsonResponse(['success' => true, 'data' => $item]);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
     // ─── GET /status ────────────────────────────────────────────────────────────
 
     public function statusAction(): HttpResponse
@@ -169,6 +211,8 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             };
         }
 
+        $rawGroupName = (string) ($p['packageGroupName'] ?? '');
+
         return [
             'id'             => (int) ($p['packageId'] ?? 0),
             'title'          => (string) ($p['packageTitle'] ?? ''),
@@ -176,7 +220,8 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             'subtitle'       => (string) ($p['packageSubtitle'] ?? ''),
             'moduleName'     => $moduleName,
             'description'    => (string) ($p['packageDescription'] ?? ''),
-            'image'          => $p['packageImages'][0] ?? null,
+            'image'          => $this->mainImage($p['packageImages'] ?? []),
+            'images'         => $this->allImages($p['packageImages'] ?? []),
             'url'            => $p['packageUrl'] ?? null,
             'repository'     => $p['packageRepository'] ?? null,
             'totalDownloads' => (int) ($p['packageTotalDownloads'] ?? 0),
@@ -187,8 +232,10 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             'dateAdded'      => $p['packageDateAdded'] ?? null,
             'lastUpdate'     => $p['packageLastUpdate'] ?? null,
             'groupId'        => isset($p['packageGroupId']) ? (int) $p['packageGroupId'] : null,
-            'groupName'      => (string) ($p['packageGroupName'] ?? ''),
+            // Legacy display strips the "Melis" prefix (5 chars): "MelisMarketing" → "Marketing".
+            'groupName'      => str_starts_with($rawGroupName, 'Melis') ? substr($rawGroupName, 5) : $rawGroupName,
             'isActive'       => (bool) ($p['packageIsActive'] ?? false),
+            'isPrivate'      => (bool) ($p['packageIsPrivate'] ?? false),
             'installed'      => $installed,
             'versionStatus'  => $versionStatus,
         ];
@@ -197,6 +244,31 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
     private function isModuleInstalled(string $module): bool
     {
         return (bool) $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulePath($module);
+    }
+
+    /** @param array<mixed> $images */
+    private function mainImage(array $images): ?string
+    {
+        foreach ($images as $img) {
+            if (is_array($img) && (string) ($img['imageIsMain'] ?? '') === '1') {
+                return $img['imageFile'] ?? null;
+            }
+        }
+        return $images[0]['imageFile'] ?? null;
+    }
+
+    /** @param array<mixed> $images @return string[] */
+    private function allImages(array $images): array
+    {
+        return array_values(array_filter(array_map(fn ($img) => is_array($img) ? ($img['imageFile'] ?? null) : null, $images)));
+    }
+
+    /** Modules that cannot be removed/updated via the marketplace (config: …/datas/exceptions). */
+    private function getModuleExceptions(): array
+    {
+        $config = $this->getServiceManager()->get('MelisConfig');
+        $datas  = $config->getItem('melismarketplace_toolstree_section/datas/');
+        return $datas['exceptions'] ?? [];
     }
 
     private function getMarketPlaceService(): \MelisMarketPlace\Service\MelisMarketPlaceService
