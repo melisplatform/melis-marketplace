@@ -34,6 +34,7 @@ class Module
             include __DIR__ . '/../config/app.interface.php',
             include __DIR__ . '/../config/app.tools.php',
             include __DIR__ . '/../config/app.forms.php',
+            include __DIR__ . '/../config/react.capabilities.php',
             include __DIR__ . '/../config/diagnostic.config.php',
         ];
 

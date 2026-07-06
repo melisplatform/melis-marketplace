@@ -4,6 +4,7 @@ import {
   type PackageItem, type PackageDetail as PackageDetailData,type PackageGroup, type MarketPlaceStats,
 } from './marketplace-api'
 import { ViewToggle, type ViewMode } from './ViewToggle'
+import { useCaps } from './shared/useCaps'
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Brique « Market Place » (MelisMarketPlace). La LISTE (parcours du catalogue de
@@ -30,6 +31,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     installed_badge: 'Installé', need_update_badge: 'Mise à jour disponible',
     end_of_list: 'Fin de la liste',
     not_accessible: 'Le serveur Melis Packagist est inaccessible pour le moment.',
+    no_list_access: "Vous n'avez pas le droit de consulter le catalogue Market Place.",
     downloads: '{n} téléchargements',
     listed_title: 'Vous voulez votre module listé sur cette page ?',
     listed_body: 'Ajoutez cette ligne dans votre composer.json',
@@ -82,6 +84,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     installed_badge: 'Installed', need_update_badge: 'Update available',
     end_of_list: 'End of list',
     not_accessible: 'The Melis Packagist server is currently unreachable.',
+    no_list_access: 'You are not allowed to browse the Market Place catalog.',
     downloads: '{n} downloads',
     listed_title: 'Want your module listed on this page?',
     listed_body: 'Add this line to your composer.json',
@@ -330,6 +333,9 @@ export default function MarketPlacePage() {
 // ── Liste (native) ──────────────────────────────────────────────────────────
 function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
   const t = useT()
+  // Capacité `list` (droit avancé, cf. config/react.capabilities.php) : parcourir le catalogue.
+  // Default-allow (admin / cap non déclarée → permis). Refusée → on masque la vue React native.
+  const { can } = useCaps(MELIS_KEY)
   const [items, setItems] = useState<PackageItem[]>([])
   const [stats, setStats] = useState<MarketPlaceStats | null>(null)
   const [groups, setGroups] = useState<PackageGroup[]>([])
@@ -409,7 +415,9 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
 
       {/* Vue « New » : liste React native */}
       <div style={{ display: mode === 'react' ? 'flex' : 'none', flexDirection: 'column', gap: 20 }}>
-        {!marketAccessible ? (
+        {!can('list') ? (
+          <div style={{ ...card, padding: '40px 16px', textAlign: 'center', fontSize: 14, color: 'var(--color-muted-foreground)' }}>{t('no_list_access')}</div>
+        ) : !marketAccessible ? (
           <div style={{ ...card, padding: '40px 16px', textAlign: 'center', fontSize: 14, color: 'var(--color-muted-foreground)' }}>{t('not_accessible')}</div>
         ) : (
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
@@ -742,9 +750,71 @@ function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action:
   )
 }
 
+// ── Galerie d'images (slider) pour le détail d'un package ─────────────────────
+function ImageGallery({ images }: { images: string[] }) {
+  const [active, setActive] = useState(0)
+
+  useEffect(() => { setActive(0) }, [images])
+
+  if (images.length === 0) return null
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ position: 'relative' }}>
+        <img
+          src={images[active]}
+          alt=""
+          style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border)' }}
+        />
+        {images.length > 1 && (<>
+          <button
+            aria-label="Précédent"
+            onClick={() => setActive((i) => (i - 1 + images.length) % images.length)}
+            style={sliderArrow('left')}
+          >‹</button>
+          <button
+            aria-label="Suivant"
+            onClick={() => setActive((i) => (i + 1) % images.length)}
+            style={sliderArrow('right')}
+          >›</button>
+        </>)}
+      </div>
+      {images.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
+          {images.map((img, i) => (
+            <img
+              key={i}
+              src={img}
+              alt=""
+              onClick={() => setActive(i)}
+              style={{
+                width: 72, height: 48, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', flexShrink: 0,
+                border: `2px solid ${i === active ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                opacity: i === active ? 1 : 0.7,
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function sliderArrow(side: 'left' | 'right'): CSSProperties {
+  return {
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)', [side]: 8,
+    width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: 'pointer',
+    background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: 18, lineHeight: '32px', padding: 0,
+  } as CSSProperties
+}
+
 // ── Détail d'un package (natif) + gestion native (install/update/remove) ──────
 function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void; onOpen: (id: number) => void }) {
   const t = useT()
+  // Droits « capacités » (onglet Rights du formulaire Utilisateur, cf. config/react.capabilities.php) :
+  //   download → Télécharger (installer) ET Mettre à jour (même geste composer) · remove → Supprimer.
+  // Default-allow (admin ou cap non déclarée → permis). Masquage UI seulement — actions legacy.
+  const { can } = useCaps(MELIS_KEY)
   const [pkg, setPkg] = useState<PackageDetailData | null>(null)
   const [error, setError] = useState('')
   const [manage, setManage] = useState<ManageAction | null>(null)
@@ -776,15 +846,15 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
             {pkg.isPrivate ? (
               <button style={{ ...btnGhost, cursor: 'not-allowed', opacity: 0.75 }} disabled>🔒 {t('btn_private')}</button>
             ) : (<>
-              {!pkg.installed && (
+              {!pkg.installed && can('download') && (
                 <button style={{ ...btnGhost, background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)', borderColor: 'transparent' }}
                   onClick={() => setManage('require')}>↓ {t('btn_download')}</button>
               )}
-              {pkg.installed && pkg.versionStatus === 'need_update' && (
+              {pkg.installed && pkg.versionStatus === 'need_update' && can('download') && (
                 <button style={{ ...btnGhost, background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)', borderColor: 'transparent' }}
                   onClick={() => setManage('update')}>↑ {t('btn_update')}</button>
               )}
-              {pkg.installed && !pkg.isExempted && (
+              {pkg.installed && !pkg.isExempted && can('remove') && (
                 <button style={{ ...btnGhost, color: 'var(--color-destructive,#ef4444)', borderColor: 'var(--color-destructive,#ef4444)' }}
                   onClick={() => setManage('remove')}>✕ {t('btn_remove')}</button>
               )}
@@ -793,9 +863,7 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
           <p style={{ fontSize: 14, color: 'var(--color-muted-foreground)', margin: '4px 0 0' }}>{stripHtml(pkg.subtitle)}</p>
         </div>
 
-        {pkg.image && (
-          <img src={pkg.image} alt="" style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border)' }} />
-        )}
+        <ImageGallery images={pkg.images && pkg.images.length > 0 ? pkg.images : (pkg.image ? [pkg.image] : [])} />
 
         <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-foreground)', margin: 0, whiteSpace: 'pre-line' }}>{stripHtml(pkg.description)}</p>
 
