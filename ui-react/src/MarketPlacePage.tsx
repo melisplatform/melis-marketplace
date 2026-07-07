@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import {
   fetchPackages, fetchPackageGroups, fetchMarketPlaceStats, fetchPackageById,
   type PackageItem, type PackageDetail as PackageDetailData,type PackageGroup, type MarketPlaceStats,
@@ -750,37 +750,54 @@ function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action:
   )
 }
 
-// ── Galerie d'images (slider) pour le détail d'un package ─────────────────────
+// ── Galerie d'images (slider + lightbox) pour le détail d'un package ──────────
 function ImageGallery({ images }: { images: string[] }) {
   const [active, setActive] = useState(0)
+  const [zoom, setZoom] = useState(false)   // lightbox plein écran ouvert ?
 
-  useEffect(() => { setActive(0) }, [images])
+  useEffect(() => { setActive(0); setZoom(false) }, [images])
+
+  const prev = useCallback(() => setActive((i) => (i - 1 + images.length) % images.length), [images.length])
+  const next = useCallback(() => setActive((i) => (i + 1) % images.length), [images.length])
+
+  // Navigation clavier quand le lightbox est ouvert (← → Échap), et blocage du scroll de fond.
+  useEffect(() => {
+    if (!zoom) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setZoom(false)
+      else if (e.key === 'ArrowLeft') prev()
+      else if (e.key === 'ArrowRight') next()
+    }
+    window.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prevOverflow }
+  }, [zoom, prev, next])
 
   if (images.length === 0) return null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Image principale — clic = ouvrir le lightbox */}
       <div style={{ position: 'relative' }}>
         <img
           src={images[active]}
           alt=""
-          style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border)' }}
+          onClick={() => setZoom(true)}
+          style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border)', cursor: 'zoom-in', display: 'block' }}
         />
+        {/* Indice « agrandir » en haut à droite */}
+        <div style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 8, background: 'rgba(0,0,0,0.5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, pointerEvents: 'none' }}>⤢</div>
         {images.length > 1 && (<>
-          <button
-            aria-label="Précédent"
-            onClick={() => setActive((i) => (i - 1 + images.length) % images.length)}
-            style={sliderArrow('left')}
-          >‹</button>
-          <button
-            aria-label="Suivant"
-            onClick={() => setActive((i) => (i + 1) % images.length)}
-            style={sliderArrow('right')}
-          >›</button>
+          <button aria-label="Précédent" onClick={prev} style={sliderArrow('left', 32)}>‹</button>
+          <button aria-label="Suivant" onClick={next} style={sliderArrow('right', 32)}>›</button>
+          <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', padding: '2px 10px', borderRadius: 999, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 11, fontWeight: 600, pointerEvents: 'none' }}>{active + 1} / {images.length}</div>
         </>)}
       </div>
+
+      {/* Miniatures */}
       {images.length > 1 && (
-        <div style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
           {images.map((img, i) => (
             <img
               key={i}
@@ -790,21 +807,56 @@ function ImageGallery({ images }: { images: string[] }) {
               style={{
                 width: 72, height: 48, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', flexShrink: 0,
                 border: `2px solid ${i === active ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                opacity: i === active ? 1 : 0.7,
+                opacity: i === active ? 1 : 0.6, transition: 'opacity .15s',
               }}
             />
           ))}
+        </div>
+      )}
+
+      {/* Lightbox plein écran */}
+      {zoom && (
+        <div
+          onClick={() => setZoom(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, animation: 'melisMpFadeIn .12s ease-out' }}
+        >
+          <style>{'@keyframes melisMpFadeIn{from{opacity:0}to{opacity:1}}'}</style>
+          {/* Fermer */}
+          <button aria-label="Fermer" onClick={() => setZoom(false)}
+            style={{ position: 'absolute', top: 16, right: 20, width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 22, lineHeight: '40px', padding: 0 }}>×</button>
+
+          {/* Image (clic dessus ne ferme pas) */}
+          <img
+            src={images[active]}
+            alt=""
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '90vw', maxHeight: '86vh', objectFit: 'contain', borderRadius: 8, boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }}
+          />
+
+          {images.length > 1 && (<>
+            <button aria-label="Précédent" onClick={(e) => { e.stopPropagation(); prev() }} style={lightboxArrow('left')}>‹</button>
+            <button aria-label="Suivant" onClick={(e) => { e.stopPropagation(); next() }} style={lightboxArrow('right')}>›</button>
+            <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', padding: '4px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.14)', color: '#fff', fontSize: 13, fontWeight: 600 }}>{active + 1} / {images.length}</div>
+          </>)}
         </div>
       )}
     </div>
   )
 }
 
-function sliderArrow(side: 'left' | 'right'): CSSProperties {
+function sliderArrow(side: 'left' | 'right', size: number): CSSProperties {
   return {
     position: 'absolute', top: '50%', transform: 'translateY(-50%)', [side]: 8,
-    width: 32, height: 32, borderRadius: '50%', border: 'none', cursor: 'pointer',
-    background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: 18, lineHeight: '32px', padding: 0,
+    width: size, height: size, borderRadius: '50%', border: 'none', cursor: 'pointer',
+    background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: 18, lineHeight: `${size}px`, padding: 0,
+  } as CSSProperties
+}
+
+function lightboxArrow(side: 'left' | 'right'): CSSProperties {
+  return {
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)', [side]: 16,
+    width: 48, height: 48, borderRadius: '50%', border: 'none', cursor: 'pointer',
+    background: 'rgba(255,255,255,0.14)', color: '#fff', fontSize: 30, lineHeight: '48px', padding: 0,
   } as CSSProperties
 }
 
