@@ -5,6 +5,7 @@ import {
 } from './marketplace-api'
 import { ViewToggle, type ViewMode } from './ViewToggle'
 import { useCaps } from './shared/useCaps'
+import { useDebounce } from './shared/useDebounce'
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Brique « Market Place » (MelisMarketPlace). La LISTE (parcours du catalogue de
@@ -375,6 +376,13 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
   // nouveaux filtres avant que le reset ne prenne effet.
   function resetList() { setItems([]); setPage(1) }
   function changeSearch(v: string) { setSearch(v); resetList() }
+
+  const debouncedSearchInput = useDebounce(searchInput, 300)
+  useEffect(() => {
+    const trimmed = debouncedSearchInput.trim()
+    if (trimmed === search) return
+    changeSearch(trimmed)
+  }, [debouncedSearchInput])
   function changeGroup(v: string) { setGroup(v); resetList() }
   function toggleBundle() { setBundle((b) => !b); resetList() }
   function changeOrderBy(v: string) { setOrderBy(v); resetList() }
@@ -429,8 +437,15 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
           </div>
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input style={{ ...inputCss, flex: 1, minWidth: 220 }} value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && changeSearch(searchInput.trim())} placeholder={t('search')} />
+            <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted-foreground)', pointerEvents: 'none' }}>
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+              </svg>
+              <input style={{ ...inputCss, width: '100%', paddingLeft: 32 }} value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && changeSearch(searchInput.trim())} placeholder={t('search')} />
+            </div>
             <select style={{ ...inputCss, width: 'auto' }} value={orderBy} onChange={(e) => changeOrderBy(e.target.value)}>
               <option value="mp_total_downloads">{t('sort_downloads')}</option>
               <option value="mp_date_added">{t('sort_date')}</option>
