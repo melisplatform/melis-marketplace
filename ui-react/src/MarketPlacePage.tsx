@@ -28,6 +28,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     search: 'Rechercher un package…', all_groups: 'Tous les groupes',
     kpi_total: 'Packages', kpi_installed: 'Installés', kpi_need_update: 'Mises à jour',
     sort_downloads: 'Téléchargements', sort_date: 'Date d’ajout', sort_name: 'Nom',
+    reset_filters: 'Réinitialiser les filtres',
     refresh: 'Rafraîchir', back: 'retour', loading: 'Chargement…', empty: 'Aucun package trouvé',
     installed_badge: 'Installé', need_update_badge: 'Mise à jour disponible',
     end_of_list: 'Fin de la liste',
@@ -81,6 +82,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     search: 'Search a package…', all_groups: 'All groups',
     kpi_total: 'Packages', kpi_installed: 'Installed', kpi_need_update: 'Updates available',
     sort_downloads: 'Downloads', sort_date: 'Date added', sort_name: 'Name',
+    reset_filters: 'Reset filters',
     refresh: 'Refresh', back: 'back', loading: 'Loading…', empty: 'No package found',
     installed_badge: 'Installed', need_update_badge: 'Update available',
     end_of_list: 'End of list',
@@ -170,6 +172,14 @@ function stripHtml(html: string): string {
 const card: CSSProperties = { border: '1px solid var(--color-border)', background: 'var(--color-card)', borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,.04)' }
 const inputCss: CSSProperties = { height: 36, boxSizing: 'border-box', borderRadius: 8, border: '1px solid var(--color-input,var(--color-border))', background: 'var(--color-card)', color: 'var(--color-foreground)', padding: '0 12px', fontSize: 14, outline: 'none' }
 const btnGhost: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, height: 36, padding: '0 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-card)', color: 'var(--color-foreground)', fontSize: 14, cursor: 'pointer' }
+
+// Flèche circulaire anti-horaire — bouton « Réinitialiser les filtres » (même style que l'icône de recherche).
+const ResetIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M3 2v6h6" /><path d="M3 13a9 9 0 1 0 3-7.7L3 8" />
+  </svg>
+)
 
 // ── Group filter buttons (legacy colored "M" tiles: Core/Cms/Marketing/Commerce/Sites) ──
 const GROUP_COLORS: Record<string, string> = {
@@ -389,6 +399,16 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
   function toggleOrder() { setOrder((o) => (o === 'asc' ? 'desc' : 'asc')); resetList() }
   function refresh() { setTick((x) => x + 1); resetList() }
 
+  // Réinitialiser : recherche + groupe + bundle + tri par défaut (téléchargements desc),
+  // puis refetch (`tick`). `resetList()` vide la grille et repart de la page 1 — sinon les
+  // anciennes cartes restent affichées et le clic paraît sans effet.
+  function resetFilters() {
+    setSearchInput(''); setSearch(''); setGroup(''); setBundle(false)
+    setOrderBy('mp_total_downloads'); setOrder('desc')
+    resetList()
+    setTick((x) => x + 1)
+  }
+
   useEffect(() => {
     if (!sentinelRef.current || !hasMore) return
     const obs = new IntersectionObserver(
@@ -452,6 +472,7 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
               <option value="mp_title">{t('sort_name')}</option>
             </select>
             <button style={btnGhost} onClick={toggleOrder}>{order === 'asc' ? '↑' : '↓'}</button>
+            <button style={btnGhost} onClick={resetFilters}><ResetIcon />{t('reset_filters')}</button>
           </div>
 
           <GroupButtons groups={groups} value={group} onChange={changeGroup} bundle={bundle} onToggleBundle={toggleBundle} t={t} />
