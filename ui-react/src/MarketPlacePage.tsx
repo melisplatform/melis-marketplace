@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   fetchPackages, fetchPackageGroups, fetchMarketPlaceStats, fetchPackageById,
   type PackageItem, type PackageDetail as PackageDetailData,type PackageGroup, type MarketPlaceStats,
@@ -21,7 +21,19 @@ const MELIS_KEY = 'melis_market_place_tool_display'
 
 // ── i18n minimal ──
 type Lang = 'fr' | 'en'
-function currentLang(): Lang { return (document.documentElement.lang || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en' }
+// Source autoritaire = la locale persistée par l'hôte (melis-core I18nProvider) dans le
+// localStorage, fiable dès le boot. Le `<html lang>` du shell est figé à "fr" dans index.html
+// et n'est corrigé par l'hôte qu'APRÈS son fetch /langs → lire uniquement `<html lang>` donne
+// un flash FR même en session EN. On retombe sur `<html lang>` en dernier recours.
+function currentLang(): Lang {
+  try {
+    const l = localStorage.getItem('melis-ui-lang')
+    if (l) return l.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+    const loc = localStorage.getItem('melis-ui-locale')
+    if (loc) return loc.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+  } catch { /* localStorage indisponible */ }
+  return (document.documentElement.lang || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en'
+}
 const DICT: Record<Lang, Record<string, string>> = {
   fr: {
     title: 'Market Place', subtitle: 'Parcourir et installer des modules Melis Platform',
@@ -133,7 +145,18 @@ const DICT: Record<Lang, Record<string, string>> = {
   },
 }
 function useT() {
-  const lang = currentLang()
+  // Réactif : l'hôte corrige `<html lang>` après son fetch /langs (et sur changement de langue,
+  // via un reload). On resynchronise sur la mutation de l'attribut `lang` + les events storage,
+  // pour repeindre dans la bonne langue sans rester bloqué sur la valeur du 1er rendu.
+  const [lang, setLang] = useState<Lang>(currentLang)
+  useEffect(() => {
+    const sync = () => setLang(currentLang())
+    sync()
+    const obs = new MutationObserver(sync)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
+    window.addEventListener('storage', sync)
+    return () => { obs.disconnect(); window.removeEventListener('storage', sync) }
+  }, [])
   return (key: string, vars?: Record<string, string | number>) => {
     let s = DICT[lang][key] ?? key
     if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v))
@@ -200,6 +223,59 @@ function GroupLogo({ color, size = 16, mark = false, glyph = '#fff' }: { color: 
     </svg>
   )
 }
+// Petits icônes inline (les briques n'importent pas lucide — React est externalisé côté hôte).
+function Ic({ children, size = 16 }: { children: ReactNode; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>{children}</svg>
+  )
+}
+const ICON_BOX = (<><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></>)
+const ICON_CHECK = (<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" /></>)
+const ICON_UP = (<><circle cx="12" cy="12" r="10" /><path d="m16 12-4-4-4 4" /><path d="M12 16V8" /></>)
+const ICON_TAG = (<><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" /><circle cx="7.5" cy="7.5" r="1.5" /></>)
+const ICON_GITHUB = (<><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" /></>)
+const ICON_LINK = (<><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></>)
+const ICON_DOWNLOAD = (<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></>)
+
+// Teinte de groupe translucide — fonds/accents dérivés de la couleur du groupe.
+function groupTint(name: string, pct: number): string {
+  return `color-mix(in srgb, ${groupColor(name)} ${pct}%, transparent)`
+}
+
+// Carte fantôme (skeleton) pendant le chargement initial / un changement de filtre.
+function SkeletonCard() {
+  return (
+    <div style={{ ...card, overflow: 'hidden' }}>
+      <div style={{ height: 3, background: 'var(--color-border)' }} />
+      <div className="melis-mp-sk" style={{ height: 160 }} />
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="melis-mp-sk" style={{ height: 14, width: '65%', borderRadius: 4 }} />
+        <div className="melis-mp-sk" style={{ height: 12, width: '100%', borderRadius: 4 }} />
+        <div className="melis-mp-sk" style={{ height: 12, width: '85%', borderRadius: 4 }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+          <div className="melis-mp-sk" style={{ height: 18, width: 60, borderRadius: 5 }} />
+          <div className="melis-mp-sk" style={{ height: 18, width: 72, borderRadius: 6 }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Puce de filtre actif (retirable d'un clic).
+function FilterChip({ children, onRemove }: { children: ReactNode; onRemove: () => void }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 5px 3px 10px', borderRadius: 999,
+      fontSize: 12, fontWeight: 500, background: 'var(--color-muted,rgba(0,0,0,.05))', border: '1px solid var(--color-border)',
+    }}>
+      {children}
+      <button onClick={onRemove} aria-label="remove"
+        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'color-mix(in srgb, var(--color-foreground) 12%, transparent)', color: 'var(--color-foreground)', fontSize: 10, lineHeight: 1, padding: 0 }}>✕</button>
+    </span>
+  )
+}
+
 /** Small spinner — self-contained (injects its own @keyframes; bricks can't rely on host CSS). */
 function Spinner({ size = 28 }: { size?: number }) {
   return (
@@ -263,20 +339,37 @@ function GroupButtons({ groups, value, onChange, bundle, onToggleBundle, t }: {
   )
 }
 
-function Kpi({ label, value }: { label: string; value: number | null }) {
+function Kpi({ label, value, icon, accent }: { label: string; value: number | null; icon?: ReactNode; accent?: string }) {
   return (
-    <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 2, padding: 16, flex: 1, minWidth: 130 }}>
-      <span style={{ fontSize: 12, color: 'var(--color-muted-foreground)' }}>{label}</span>
-      <span style={{ fontSize: 22, fontWeight: 700 }}>{value == null ? '…' : value}</span>
+    <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 12, padding: 16, flex: 1, minWidth: 150 }}>
+      {icon && (
+        <div style={{
+          width: 40, height: 40, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          background: accent ? `color-mix(in srgb, ${accent} 15%, transparent)` : 'var(--color-muted,rgba(0,0,0,.06))',
+          color: accent ?? 'var(--color-foreground)',
+        }}>{icon}</div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+        <span style={{ fontSize: 12, color: 'var(--color-muted-foreground)' }}>{label}</span>
+        <span style={{ fontSize: 22, fontWeight: 700, lineHeight: 1 }}>{value == null ? '…' : value}</span>
+      </div>
     </div>
   )
 }
 
+// Badge — teinte + bordure de même hue (la bordure assure la lisibilité en thème sombre,
+// où un simple fond translucide se fondrait dans le canvas).
 function Badge({ kind, children }: { kind: 'installed' | 'update'; children: string }) {
-  const style: CSSProperties = kind === 'installed'
-    ? { background: 'color-mix(in srgb, #22c55e 15%, transparent)', color: '#16a34a' }
-    : { background: 'color-mix(in srgb, #f59e0b 15%, transparent)', color: '#b45309' }
-  return <span style={{ ...style, display: 'inline-block', padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600 }}>{children}</span>
+  const hue = kind === 'installed' ? '#22c55e' : '#f59e0b'
+  const fg = kind === 'installed' ? '#16a34a' : '#b45309'
+  return (
+    <span style={{
+      display: 'inline-block', padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+      background: `color-mix(in srgb, ${hue} 18%, transparent)`,
+      border: `1px solid color-mix(in srgb, ${hue} 40%, transparent)`,
+      color: fg,
+    }}>{children}</span>
+  )
 }
 
 /** Package card — lifts + shadows on hover as a clickable affordance (opens the detail view). */
@@ -299,11 +392,19 @@ function PackageCard({ pkg, t, onClick }: { pkg: PackageItem; t: (key: string, v
       onMouseLeave={() => setHover(false)}
       onClick={onClick}
     >
+      {/* Liseré haut coloré par groupe — rappelle l'identité du groupe sans surcharger. */}
+      <div style={{ height: 3, background: pkg.groupName ? groupColor(pkg.groupName) : 'var(--color-primary)' }} />
       <div style={{ position: 'relative', overflow: 'hidden' }}>
-        {pkg.image ? (
+        {pkg.image ? (<>
           <img src={pkg.image} alt="" style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block', transition: 'transform 200ms ease', transform: hover ? 'scale(1.05)' : 'scale(1)' }} />
-        ) : (
-          <div style={{ width: '100%', height: 160, background: 'var(--color-muted,rgba(0,0,0,.06))' }} />
+          {/* Léger dégradé en pied d'image → uniformise des visuels très hétérogènes. */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 62%, rgba(0,0,0,.12))', pointerEvents: 'none' }} />
+        </>) : (
+          /* Pas de visuel → filigrane du logo de groupe sur fond teinté (plus de rectangle gris mort). */
+          <div style={{ width: '100%', height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: pkg.groupName ? `linear-gradient(135deg, ${groupTint(pkg.groupName, 16)}, var(--color-muted,rgba(0,0,0,.05)))` : 'var(--color-muted,rgba(0,0,0,.06))' }}>
+            {pkg.groupName && <div style={{ opacity: 0.2 }}><GroupLogo color={groupColor(pkg.groupName)} size={64} /></div>}
+          </div>
         )}
         {/* Logo de groupe — identique au back-office legacy (.melis-svg) : carré « M »
             coloré par groupe, 30×30, coin haut-droit. Léger drop-shadow (le legacy est
@@ -321,15 +422,18 @@ function PackageCard({ pkg, t, onClick }: { pkg: PackageItem; t: (key: string, v
         <p style={{ fontSize: 13, color: 'var(--color-muted-foreground)', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {stripHtml(pkg.subtitle || pkg.description)}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-          <span style={{ fontSize: 12, color: 'var(--color-muted-foreground)' }}>{fmtVersion(pkg.version)} · {t('downloads', { n: pkg.totalDownloads })}</span>
-          <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace', padding: '2px 6px', borderRadius: 5, whiteSpace: 'nowrap', background: 'var(--color-muted,rgba(0,0,0,.06))', color: 'var(--color-muted-foreground)' }}>{fmtVersion(pkg.version)}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-muted-foreground)', whiteSpace: 'nowrap' }}><Ic size={13}>{ICON_DOWNLOAD}</Ic>{pkg.totalDownloads.toLocaleString()}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             {pkg.installed && <Badge kind="installed">{t('installed_badge')}</Badge>}
             {pkg.versionStatus === 'need_update' && <Badge kind="update">{t('need_update_badge')}</Badge>}
             {!pkg.installed && (pkg.isPrivate ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: 'var(--color-muted,rgba(0,0,0,.06))', color: 'var(--color-muted-foreground)' }}>🔒 {t('btn_private')}</span>
             ) : (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)' }}>↓ {t('btn_download')}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)', boxShadow: hover ? '0 3px 10px color-mix(in srgb, var(--color-primary) 45%, transparent)' : 'none', transition: 'box-shadow 150ms ease' }}>↓ {t('btn_download')}</span>
             ))}
           </div>
         </div>
@@ -417,9 +521,13 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
   }, [debouncedSearchInput])
   function changeGroup(v: string) { setGroup(v); resetList() }
   function toggleBundle() { setBundle((b) => !b); resetList() }
-  function changeOrderBy(v: string) { setOrderBy(v); resetList() }
-  function toggleOrder() { setOrder((o) => (o === 'asc' ? 'desc' : 'asc')); resetList() }
+  // Tri = champ + direction en un seul contrôle (valeur « champ:dir ») — plus clair que
+  // le select + bouton ↑/↓ séparés.
+  function changeSort(field: string, dir: 'asc' | 'desc') { setOrderBy(field); setOrder(dir); resetList() }
   function refresh() { setTick((x) => x + 1); resetList() }
+
+  const hasActiveFilters = Boolean(search || group || bundle)
+  const activeGroupName = groups.find((g) => String(g.id ?? '') === group)?.name ?? ''
 
   // Réinitialiser : recherche + groupe + bundle + tri par défaut (téléchargements desc),
   // puis refetch (`tick`). `resetList()` vide la grille et repart de la page 1 — sinon les
@@ -442,8 +550,8 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
   }, [hasMore, loading])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: 24, height: '100%', boxSizing: 'border-box', overflow: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '0 24px 24px', height: '100%', boxSizing: 'border-box', overflow: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingTop: 24 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{t('title')}</h1>
           <p style={{ fontSize: 14, color: 'var(--color-muted-foreground)', margin: '2px 0 0' }}>{t('subtitle')}</p>
@@ -473,46 +581,71 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <Kpi label={t('kpi_total')} value={stats?.total ?? null} />
-            <Kpi label={t('kpi_installed')} value={stats?.installed ?? null} />
-            <Kpi label={t('kpi_need_update')} value={stats?.needUpdate ?? null} />
+            <Kpi label={t('kpi_total')} value={stats?.total ?? null} icon={<Ic>{ICON_BOX}</Ic>} accent="#6366f1" />
+            <Kpi label={t('kpi_installed')} value={stats?.installed ?? null} icon={<Ic>{ICON_CHECK}</Ic>} accent="#22c55e" />
+            <Kpi label={t('kpi_need_update')} value={stats?.needUpdate ?? null} icon={<Ic>{ICON_UP}</Ic>} accent="#f59e0b" />
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round"
-                style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted-foreground)', pointerEvents: 'none' }}>
-                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-              </svg>
-              <input style={{ ...inputCss, width: '100%', paddingLeft: 32 }} value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && changeSearch(searchInput.trim())} placeholder={t('search')} />
-            </div>
-            <select style={{ ...inputCss, width: 'auto' }} value={orderBy} onChange={(e) => changeOrderBy(e.target.value)}>
-              <option value="mp_total_downloads">{t('sort_downloads')}</option>
-              <option value="mp_date_added">{t('sort_date')}</option>
-              <option value="mp_title">{t('sort_name')}</option>
-            </select>
-            <button style={btnGhost} onClick={toggleOrder}>{order === 'asc' ? '↑' : '↓'}</button>
-            <button style={btnGhost} onClick={resetFilters}><ResetIcon />{t('reset_filters')}</button>
-          </div>
-
-          <GroupButtons groups={groups} value={group} onChange={changeGroup} bundle={bundle} onToggleBundle={toggleBundle} t={t} />
-
-          <div style={{ position: 'relative', minHeight: loading && page === 1 ? 160 : undefined }}>
-            {loading && page === 1 && (
-              <div style={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: 'color-mix(in srgb, var(--color-background,#fff) 70%, transparent)', backdropFilter: 'blur(1px)' }}>
-                <Spinner />
+          {/* Barre d'outils + filtres — collante en haut pendant le scroll de la grille
+              (défilement infini) : on affine sans remonter. Fond = fond de page pour masquer
+              les cartes qui défilent dessous. */}
+          <div style={{ position: 'sticky', top: 0, zIndex: 5, background: 'var(--color-background,#fff)', paddingTop: 10, paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 12, borderBottom: '1px solid var(--color-border)', boxShadow: '0 -20px 0 0 var(--color-background,#fff)' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted-foreground)', pointerEvents: 'none' }}>
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                </svg>
+                <input style={{ ...inputCss, width: '100%', paddingLeft: 32 }} value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && changeSearch(searchInput.trim())} placeholder={t('search')} />
               </div>
-            )}
+              {/* Tri champ+direction en un seul select (valeur « champ:dir »). */}
+              <select style={{ ...inputCss, width: 'auto' }} value={`${orderBy}:${order}`}
+                onChange={(e) => { const [f, d] = e.target.value.split(':'); changeSort(f, d as 'asc' | 'desc') }}>
+                <option value="mp_total_downloads:desc">{t('sort_downloads')}</option>
+                <option value="mp_date_added:desc">{t('sort_date')}</option>
+                <option value="mp_title:asc">{t('sort_name')}</option>
+              </select>
+              <button style={btnGhost} onClick={resetFilters}><ResetIcon />{t('reset_filters')}</button>
+            </div>
+
+            <GroupButtons groups={groups} value={group} onChange={changeGroup} bundle={bundle} onToggleBundle={toggleBundle} t={t} />
+
+            {/* Compteur (chargés, « + » s'il reste des pages) + puces de filtres actifs. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minHeight: 24 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'var(--color-muted-foreground)' }}>
+                <Ic size={13}>{ICON_BOX}</Ic>{items.length}{hasMore ? '+' : ''}
+              </span>
+              {hasActiveFilters && <span style={{ width: 1, height: 14, background: 'var(--color-border)' }} />}
+              {search && <FilterChip onRemove={() => { setSearchInput(''); changeSearch('') }}>“{search}”</FilterChip>}
+              {group && activeGroupName && (
+                <FilterChip onRemove={() => changeGroup('')}>
+                  <GroupLogo color={groupColor(activeGroupName)} size={14} />{activeGroupName}
+                </FilterChip>
+              )}
+              {bundle && <FilterChip onRemove={toggleBundle}>{t('bundles')}</FilterChip>}
+            </div>
+          </div>
+
+          <div>
             <style>{`
               .melis-mp-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
               @media (max-width: 1180px) { .melis-mp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
               @media (max-width: 760px) { .melis-mp-grid { grid-template-columns: minmax(0, 1fr); } }
+              .melis-mp-sk { position: relative; overflow: hidden; background: var(--color-muted, rgba(0,0,0,.06)); }
+              .melis-mp-sk::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent); animation: melis-mp-sweep 1.4s infinite; }
+              @keyframes melis-mp-sweep { 100% { transform: translateX(100%); } }
             `}</style>
-            <div className="melis-mp-grid" style={{ opacity: loading && page === 1 ? 0.5 : 1, transition: 'opacity 150ms ease' }}>
-              {items.length === 0 && !loading ? (
-                <div style={{ ...card, gridColumn: '1 / -1', padding: '40px 16px', textAlign: 'center', fontSize: 14, color: 'var(--color-muted-foreground)' }}>{t('empty')}</div>
+            <div className="melis-mp-grid">
+              {loading && page === 1 ? (
+                Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={`sk${i}`} />)
+              ) : items.length === 0 ? (
+                <div style={{ ...card, gridColumn: '1 / -1', padding: '48px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                  <span style={{ color: 'var(--color-muted-foreground)', opacity: 0.5 }}><Ic size={40}>{ICON_BOX}</Ic></span>
+                  <div style={{ fontSize: 14, color: 'var(--color-muted-foreground)' }}>{t('empty')}</div>
+                  {hasActiveFilters && <button style={btnGhost} onClick={resetFilters}><ResetIcon />{t('reset_filters')}</button>}
+                </div>
               ) : items.map((pkg) => (
                 <PackageCard key={pkg.id} pkg={pkg} t={t} onClick={() => onOpen(pkg.id)} />
               ))}
@@ -546,7 +679,7 @@ function Sidebar({ t, onOpen }: { t: (key: string, vars?: Record<string, string 
   }, [])
 
   return (
-    <aside style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <aside style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 16, alignSelf: 'flex-start' }}>
       <div style={{ ...card, padding: 20 }}>
         <h5 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 10px' }}>{t('listed_title')}</h5>
         <p style={{ fontSize: 13, color: 'var(--color-muted-foreground)', margin: '0 0 8px' }}>{t('listed_body')}</p>
@@ -953,7 +1086,22 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
           <button style={{ ...btnGhost, height: 32, padding: '0 10px', marginBottom: 12 }} onClick={onBack}>← {t('back')}</button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          {/* Bandeau héro : fond dégradé teinté par groupe + filigrane du logo → allure « page produit ». */}
+          <div style={{
+            position: 'relative', overflow: 'hidden', borderRadius: 12, padding: 20,
+            border: '1px solid var(--color-border)',
+            background: pkg.groupName
+              ? `linear-gradient(135deg, ${groupTint(pkg.groupName, 16)} 0%, var(--color-card) 62%)`
+              : 'var(--color-card)',
+          }}>
+            {pkg.groupName && (
+              <div style={{ position: 'absolute', top: -24, right: -12, opacity: 0.1, pointerEvents: 'none' }}>
+                <GroupLogo color={groupColor(pkg.groupName)} size={150} />
+              </div>
+            )}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {pkg.groupName && <GroupLogo color={groupColor(pkg.groupName)} size={26} />}
             <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{pkg.title || pkg.moduleName}</h1>
             {pkg.installed && <Badge kind="installed">{t('installed_badge')}</Badge>}
             {pkg.versionStatus === 'need_update' && <Badge kind="update">{t('need_update_badge')}</Badge>}
@@ -975,7 +1123,9 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
               )}
             </>)}
           </div>
-          <p style={{ fontSize: 14, color: 'var(--color-muted-foreground)', margin: '4px 0 0' }}>{stripHtml(pkg.subtitle)}</p>
+          <p style={{ fontSize: 14, color: 'var(--color-muted-foreground)', margin: '8px 0 0' }}>{stripHtml(pkg.subtitle)}</p>
+            </div>
+          </div>
         </div>
 
         <ImageGallery images={pkg.images && pkg.images.length > 0 ? pkg.images : (pkg.image ? [pkg.image] : [])} />
@@ -984,21 +1134,27 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
 
         <div style={{ ...card, padding: 20 }}>
           <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', color: 'var(--color-muted-foreground)', margin: '0 0 12px' }}>{t('additional_info')}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', rowGap: 10, fontSize: 13 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '20px 150px 1fr', rowGap: 12, columnGap: 10, alignItems: 'center', fontSize: 13 }}>
+            <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_TAG}</Ic></span>
             <span style={{ color: 'var(--color-muted-foreground)' }}>{t('latest_version')}</span><span>{fmtVersion(pkg.version)}</span>
             {pkg.installed && (<>
+              <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_CHECK}</Ic></span>
               <span style={{ color: 'var(--color-muted-foreground)' }}>{t('current_version')}</span>
               <span>{pkg.currentVersion ? fmtVersion(pkg.currentVersion) : '—'}</span>
             </>)}
             {pkg.repository && (<>
+              <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_GITHUB}</Ic></span>
               <span style={{ color: 'var(--color-muted-foreground)' }}>{t('github')}</span>
-              <a href={pkg.repository} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>{pkg.repository}</a>
+              <a href={pkg.repository} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pkg.repository}</a>
             </>)}
             {pkg.url && (<>
+              <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_LINK}</Ic></span>
               <span style={{ color: 'var(--color-muted-foreground)' }}>{t('packagist')}</span>
-              <a href={pkg.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>{pkg.url}</a>
+              <a href={pkg.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pkg.url}</a>
             </>)}
+            <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_BOX}</Ic></span>
             <span style={{ color: 'var(--color-muted-foreground)' }}>{t('package_name')}</span><span style={{ fontFamily: 'monospace' }}>{pkg.name}</span>
+            <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_DOWNLOAD}</Ic></span>
             <span style={{ color: 'var(--color-muted-foreground)' }}>{t('downloads_label')}</span>
             <span>{pkg.totalDownloads.toLocaleString()}</span>
           </div>
