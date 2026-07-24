@@ -188,13 +188,15 @@ const GROUP_COLORS: Record<string, string> = {
 function groupColor(name: string): string {
   return GROUP_COLORS[name.toLowerCase()] ?? '#c72127'
 }
-function GroupLogo({ color, size = 16 }: { color: string; size?: number }) {
+// `mark` = glyph only (no rounded square) — for use on a solid colored chip where the
+// square would blend into the background; `glyph` is then the color of the "M" strokes.
+function GroupLogo({ color, size = 16, mark = false, glyph = '#fff' }: { color: string; size?: number; mark?: boolean; glyph?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 80 80" style={{ flexShrink: 0 }}>
-      <rect fill={color} x=".07" y=".13" width="79.86" height="79.86" rx="15.36" ry="15.36" />
-      <path fill="#fff" d="M57.78,15.87c-3.47,0-6.29,2.81-6.29,6.29v35.85c0,3.47,2.81,6.29,6.29,6.29s6.29-2.81,6.29-6.29V22.16c0-3.47-2.81-6.29-6.29-6.29Z" />
-      <path fill="#fff" d="M27.79,19.16c-1.62-3.07-5.43-4.24-8.5-2.62-3.07,1.62-4.24,5.43-2.62,8.5l19.01,35.93c1.62,3.07,5.43,4.24,8.5,2.62,3.07-1.62,4.24-5.43,2.62-8.5L27.79,19.16Z" />
-      <circle fill="#fff" cx="22.36" cy="57.88" r="6.43" />
+      {!mark && <rect fill={color} x=".07" y=".13" width="79.86" height="79.86" rx="15.36" ry="15.36" />}
+      <path fill={glyph} d="M57.78,15.87c-3.47,0-6.29,2.81-6.29,6.29v35.85c0,3.47,2.81,6.29,6.29,6.29s6.29-2.81,6.29-6.29V22.16c0-3.47-2.81-6.29-6.29-6.29Z" />
+      <path fill={glyph} d="M27.79,19.16c-1.62-3.07-5.43-4.24-8.5-2.62-3.07,1.62-4.24,5.43-2.62,8.5l19.01,35.93c1.62,3.07,5.43,4.24,8.5,2.62,3.07-1.62,4.24-5.43,2.62-8.5L27.79,19.16Z" />
+      <circle fill={glyph} cx="22.36" cy="57.88" r="6.43" />
     </svg>
   )
 }
@@ -303,18 +305,12 @@ function PackageCard({ pkg, t, onClick }: { pkg: PackageItem; t: (key: string, v
         ) : (
           <div style={{ width: '100%', height: 160, background: 'var(--color-muted,rgba(0,0,0,.06))' }} />
         )}
+        {/* Logo de groupe — identique au back-office legacy (.melis-svg) : carré « M »
+            coloré par groupe, 30×30, coin haut-droit. Léger drop-shadow (le legacy est
+            posé sur le fond blanc de la fiche ; ici il est au-dessus de l'image de couverture). */}
         {pkg.groupName && (
-          <div style={{
-            position: 'absolute', top: 8, right: 8,
-            display: 'inline-flex', alignItems: 'center', gap: 5,
-            padding: '3px 9px 3px 6px', borderRadius: 999,
-            background: 'color-mix(in srgb, var(--color-card) 90%, transparent)',
-            backdropFilter: 'blur(4px)',
-            border: `1px solid ${groupColor(pkg.groupName)}`,
-            boxShadow: '0 1px 3px rgba(0,0,0,.15)',
-          }}>
-            <GroupLogo color={groupColor(pkg.groupName)} size={14} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: groupColor(pkg.groupName) }}>{pkg.groupName}</span>
+          <div style={{ position: 'absolute', top: 10, right: 10, width: 30, height: 30, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,.35))' }} title={pkg.groupName}>
+            <GroupLogo color={groupColor(pkg.groupName)} size={30} />
           </div>
         )}
       </div>
@@ -954,7 +950,7 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
   return (
     <div style={{ height: '100%', minHeight: 0, overflow: 'auto' }}>
       <div style={{ padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, minWidth: 0, maxWidth: 900, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
           <button style={{ ...btnGhost, height: 32, padding: '0 10px', marginBottom: 12 }} onClick={onBack}>← {t('back')}</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
