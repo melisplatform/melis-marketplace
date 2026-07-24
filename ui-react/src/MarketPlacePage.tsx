@@ -188,9 +188,9 @@ const GROUP_COLORS: Record<string, string> = {
 function groupColor(name: string): string {
   return GROUP_COLORS[name.toLowerCase()] ?? '#c72127'
 }
-function GroupLogo({ color }: { color: string }) {
+function GroupLogo({ color, size = 16 }: { color: string; size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 80 80" style={{ flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox="0 0 80 80" style={{ flexShrink: 0 }}>
       <rect fill={color} x=".07" y=".13" width="79.86" height="79.86" rx="15.36" ry="15.36" />
       <path fill="#fff" d="M57.78,15.87c-3.47,0-6.29,2.81-6.29,6.29v35.85c0,3.47,2.81,6.29,6.29,6.29s6.29-2.81,6.29-6.29V22.16c0-3.47-2.81-6.29-6.29-6.29Z" />
       <path fill="#fff" d="M27.79,19.16c-1.62-3.07-5.43-4.24-8.5-2.62-3.07,1.62-4.24,5.43-2.62,8.5l19.01,35.93c1.62,3.07,5.43,4.24,8.5,2.62,3.07-1.62,4.24-5.43,2.62-8.5L27.79,19.16Z" />
@@ -303,6 +303,20 @@ function PackageCard({ pkg, t, onClick }: { pkg: PackageItem; t: (key: string, v
         ) : (
           <div style={{ width: '100%', height: 160, background: 'var(--color-muted,rgba(0,0,0,.06))' }} />
         )}
+        {pkg.groupName && (
+          <div style={{
+            position: 'absolute', top: 8, right: 8,
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '3px 9px 3px 6px', borderRadius: 999,
+            background: 'color-mix(in srgb, var(--color-card) 90%, transparent)',
+            backdropFilter: 'blur(4px)',
+            border: `1px solid ${groupColor(pkg.groupName)}`,
+            boxShadow: '0 1px 3px rgba(0,0,0,.15)',
+          }}>
+            <GroupLogo color={groupColor(pkg.groupName)} size={14} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: groupColor(pkg.groupName) }}>{pkg.groupName}</span>
+          </div>
+        )}
       </div>
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         <div style={{ fontSize: 15, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: hover ? 'var(--color-primary)' : 'var(--color-foreground)' }}>
@@ -337,8 +351,20 @@ export default function MarketPlacePage() {
   // that's what caused other tabs to go blank with several Marketplace-related tabs open.
   const [openId, setOpenId] = useState<number | null>(null)
 
-  if (openId != null) return <PackageDetail id={openId} onBack={() => setOpenId(null)} onOpen={setOpenId} />
-  return <PackageList onOpen={setOpenId} />
+  // La liste reste MONTÉE (cachée) quand un détail est ouvert : revenir en arrière ne
+  // remonte donc plus PackageList → recherche / filtres / tri / scroll / pagination
+  // infinie sont préservés (sinon chaque retour rechargeait toute la liste depuis la
+  // page 1). Le détail est rendu par-dessus, keyé par id pour repartir propre d'un
+  // package à l'autre. Rafraîchir l'état « installé » après une action se fait via le
+  // bouton ↻ (les actions install/update/remove ont lieu dans l'iframe legacy du détail).
+  return (
+    <>
+      <div style={{ height: '100%', display: openId != null ? 'none' : 'block' }}>
+        <PackageList onOpen={setOpenId} />
+      </div>
+      {openId != null && <PackageDetail key={openId} id={openId} onBack={() => setOpenId(null)} onOpen={setOpenId} />}
+    </>
+  )
 }
 
 // ── Liste (native) ──────────────────────────────────────────────────────────
@@ -483,7 +509,12 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
                 <Spinner />
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, opacity: loading && page === 1 ? 0.5 : 1, transition: 'opacity 150ms ease' }}>
+            <style>{`
+              .melis-mp-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+              @media (max-width: 1180px) { .melis-mp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+              @media (max-width: 760px) { .melis-mp-grid { grid-template-columns: minmax(0, 1fr); } }
+            `}</style>
+            <div className="melis-mp-grid" style={{ opacity: loading && page === 1 ? 0.5 : 1, transition: 'opacity 150ms ease' }}>
               {items.length === 0 && !loading ? (
                 <div style={{ ...card, gridColumn: '1 / -1', padding: '40px 16px', textAlign: 'center', fontSize: 14, color: 'var(--color-muted-foreground)' }}>{t('empty')}</div>
               ) : items.map((pkg) => (
