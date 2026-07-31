@@ -6,6 +6,7 @@ import {
 import { ViewToggle, type ViewMode } from './ViewToggle'
 import { useCaps } from './shared/useCaps'
 import { useDebounce } from './shared/useDebounce'
+import { useIsNarrow } from './shared/useIsNarrow'
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Brique « Market Place » (MelisMarketPlace). La LISTE (parcours du catalogue de
@@ -195,6 +196,8 @@ function stripHtml(html: string): string {
 const card: CSSProperties = { border: '1px solid var(--color-border)', background: 'var(--color-card)', borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,.04)' }
 const inputCss: CSSProperties = { height: 36, boxSizing: 'border-box', borderRadius: 8, border: '1px solid var(--color-input,var(--color-border))', background: 'var(--color-card)', color: 'var(--color-foreground)', padding: '0 12px', fontSize: 14, outline: 'none' }
 const btnGhost: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, height: 36, padding: '0 12px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-card)', color: 'var(--color-foreground)', fontSize: 14, cursor: 'pointer' }
+// Bouton d'action du détail sur viewport étroit : sa propre ligne, pleine largeur, centré.
+const actionBtnNarrow: CSSProperties = { flex: '1 1 100%', justifyContent: 'center' }
 
 // Flèche circulaire anti-horaire — bouton « Réinitialiser les filtres » (même style que l'icône de recherche).
 const ResetIcon = () => (
@@ -290,7 +293,7 @@ function Spinner({ size = 28 }: { size?: number }) {
     </>
   )
 }
-function GroupButton({ label, color, active, onClick }: { label: string; color: string; active: boolean; onClick: () => void }) {
+function GroupButton({ label, color, active, onClick, fullWidth = false }: { label: string; color: string; active: boolean; onClick: () => void; fullWidth?: boolean }) {
   const [hover, setHover] = useState(false)
   const [pressed, setPressed] = useState(false)
   return (
@@ -301,7 +304,8 @@ function GroupButton({ label, color, active, onClick }: { label: string; color: 
       onMouseDown={() => setPressed(true)}
       onMouseUp={() => setPressed(false)}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 14px', borderRadius: 8,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 36, padding: '0 14px', borderRadius: 8,
+        ...(fullWidth ? { width: '100%' } : null),
         border: `1.5px solid ${active ? color : 'var(--color-border)'}`,
         cursor: 'pointer', fontSize: 13, fontWeight: 500,
         background: active ? `color-mix(in srgb, ${color} 14%, transparent)` : 'var(--color-card)',
@@ -320,10 +324,11 @@ function GroupButton({ label, color, active, onClick }: { label: string; color: 
     </button>
   )
 }
-function GroupButtons({ groups, value, onChange, bundle, onToggleBundle, t }: {
+function GroupButtons({ groups, value, onChange, bundle, onToggleBundle, t, narrow }: {
   groups: PackageGroup[]; value: string; onChange: (v: string) => void
   bundle: boolean; onToggleBundle: () => void
   t: (key: string) => string
+  narrow: boolean
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
@@ -334,7 +339,11 @@ function GroupButtons({ groups, value, onChange, bundle, onToggleBundle, t }: {
             active={value === String(g.id ?? '')} onClick={() => onChange(String(g.id ?? ''))} />
         ))}
       </div>
-      <GroupButton label={t('bundles')} color="#c72127" active={bundle} onClick={onToggleBundle} />
+      {/* Narrow : « Bundles » prend sa propre ligne pleine largeur (le pousser sur la même ligne
+          que les groupes le coince à quelques pixels du bord). */}
+      <div style={narrow ? { flex: '1 1 100%', display: 'flex' } : undefined}>
+        <GroupButton label={t('bundles')} color="#c72127" active={bundle} onClick={onToggleBundle} fullWidth={narrow} />
+      </div>
     </div>
   )
 }
@@ -470,6 +479,7 @@ export default function MarketPlacePage() {
 // ── Liste (native) ──────────────────────────────────────────────────────────
 function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
   const t = useT()
+  const narrow = useIsNarrow()
   // Capacité `list` (droit avancé, cf. config/react.capabilities.php) : parcourir le catalogue.
   // Default-allow (admin / cap non déclarée → permis). Refusée → on masque la vue React native.
   const { can } = useCaps(MELIS_KEY)
@@ -550,15 +560,20 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
   }, [hasMore, loading])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '0 24px 24px', height: '100%', boxSizing: 'border-box', overflow: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingTop: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{t('title')}</h1>
-          <p style={{ fontSize: 14, color: 'var(--color-muted-foreground)', margin: '2px 0 0' }}>{t('subtitle')}</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: narrow ? '0 12px 16px' : '0 24px 24px', height: '100%', boxSizing: 'border-box', overflow: 'auto' }}>
+      {/* Titre à gauche / contrôles à droite — TOUJOURS sur une seule ligne (empiler donnerait
+          deux barres pleine largeur, moins lisible) : le bloc titre rétrécit (minWidth 0 +
+          ellipsis) et le toggle passe en mode compact (icônes seules). */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: narrow ? 8 : 16, paddingTop: narrow ? 16 : 24 }}>
+        <div style={narrow ? { minWidth: 0 } : undefined}>
+          <h1 style={{ fontSize: narrow ? 17 : 20, fontWeight: 700, margin: 0 }}>{t('title')}</h1>
+          <p style={narrow
+            ? { fontSize: 12, color: 'var(--color-muted-foreground)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+            : { fontSize: 14, color: 'var(--color-muted-foreground)', margin: '2px 0 0' }}>{t('subtitle')}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ViewToggle mode={mode} onChange={(m) => { setMode(m); if (m === 'iframe') setFrameLoaded(true) }} />
-          <button style={btnGhost} onClick={refresh} title={t('refresh')}>↻</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <ViewToggle mode={mode} compact={narrow} onChange={(m) => { setMode(m); if (m === 'iframe') setFrameLoaded(true) }} />
+          <button style={narrow ? { ...btnGhost, padding: '0 10px' } : btnGhost} onClick={refresh} title={t('refresh')}>↻</button>
         </div>
       </div>
 
@@ -578,8 +593,8 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
         ) : !marketAccessible ? (
           <div style={{ ...card, padding: '40px 16px', textAlign: 'center', fontSize: 14, color: 'var(--color-muted-foreground)' }}>{t('not_accessible')}</div>
         ) : (
-          <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', flexDirection: narrow ? 'column' : 'row', gap: narrow ? 20 : 24, alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, minWidth: 0, width: narrow ? '100%' : undefined, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <Kpi label={t('kpi_total')} value={stats?.total ?? null} icon={<Ic>{ICON_BOX}</Ic>} accent="#6366f1" />
             <Kpi label={t('kpi_installed')} value={stats?.installed ?? null} icon={<Ic>{ICON_CHECK}</Ic>} accent="#22c55e" />
@@ -591,7 +606,7 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
               les cartes qui défilent dessous. */}
           <div style={{ position: 'sticky', top: 0, zIndex: 5, background: 'var(--color-background,#fff)', paddingTop: 10, paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 12, borderBottom: '1px solid var(--color-border)', boxShadow: '0 -20px 0 0 var(--color-background,#fff)' }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+              <div style={narrow ? { position: 'relative', flex: '1 1 100%' } : { position: 'relative', flex: 1, minWidth: 220 }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                   strokeLinecap="round" strokeLinejoin="round"
                   style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted-foreground)', pointerEvents: 'none' }}>
@@ -601,16 +616,18 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
                   onKeyDown={(e) => e.key === 'Enter' && changeSearch(searchInput.trim())} placeholder={t('search')} />
               </div>
               {/* Tri champ+direction en un seul select (valeur « champ:dir »). */}
-              <select style={{ ...inputCss, width: 'auto' }} value={`${orderBy}:${order}`}
+              <select style={narrow ? { ...inputCss, flex: '1 1 100%', width: '100%' } : { ...inputCss, width: 'auto' }} value={`${orderBy}:${order}`}
                 onChange={(e) => { const [f, d] = e.target.value.split(':'); changeSort(f, d as 'asc' | 'desc') }}>
                 <option value="mp_total_downloads:desc">{t('sort_downloads')}</option>
                 <option value="mp_date_added:desc">{t('sort_date')}</option>
                 <option value="mp_title:asc">{t('sort_name')}</option>
               </select>
-              <button style={btnGhost} onClick={resetFilters}><ResetIcon />{t('reset_filters')}</button>
+              {/* « Réinitialiser les filtres » : ligne pleine largeur sur mobile — le libellé FR
+                  (~25 car.) passerait sur 2 lignes dans un demi-slot. */}
+              <button style={narrow ? { ...btnGhost, flex: '1 1 100%', justifyContent: 'center' } : btnGhost} onClick={resetFilters}><ResetIcon />{t('reset_filters')}</button>
             </div>
 
-            <GroupButtons groups={groups} value={group} onChange={changeGroup} bundle={bundle} onToggleBundle={toggleBundle} t={t} />
+            <GroupButtons groups={groups} value={group} onChange={changeGroup} bundle={bundle} onToggleBundle={toggleBundle} t={t} narrow={narrow} />
 
             {/* Compteur (chargés, « + » s'il reste des pages) + puces de filtres actifs. */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minHeight: 24 }}>
@@ -672,14 +689,19 @@ function PackageList({ onOpen }: { onOpen: (id: number) => void }) {
 
 // ── Sidebar : info « module listing » + packages les plus téléchargés ──────
 function Sidebar({ t, onOpen }: { t: (key: string, vars?: Record<string, string | number>) => string; onOpen: (id: number) => void }) {
+  const narrow = useIsNarrow()
   const [top, setTop] = useState<PackageItem[]>([])
 
   useEffect(() => {
     fetchPackages({ limit: 5, orderBy: 'mp_total_downloads', order: 'desc' }).then((r) => setTop(r.items)).catch(() => null)
   }, [])
 
+  // Narrow : la colonne latérale passe sous le contenu, pleine largeur et non collante
+  // (sticky sur une colonne empilée figerait un bloc au milieu du scroll).
   return (
-    <aside style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 16, alignSelf: 'flex-start' }}>
+    <aside style={narrow
+      ? { width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }
+      : { width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 16, alignSelf: 'flex-start' }}>
       <div style={{ ...card, padding: 20 }}>
         <h5 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 10px' }}>{t('listed_title')}</h5>
         <p style={{ fontSize: 13, color: 'var(--color-muted-foreground)', margin: '0 0 8px' }}>{t('listed_body')}</p>
@@ -747,6 +769,7 @@ async function mpGetText(action: string): Promise<string> {
 
 function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action: ManageAction; onClose: () => void }) {
   const t = useT()
+  const narrow = useIsNarrow()
   const [phase, setPhase] = useState<'checking' | 'confirm' | 'blocked' | 'running' | 'done'>(action === 'remove' ? 'checking' : 'confirm')
   const [html, setHtml] = useState('')
   const [blocked, setBlocked] = useState<string[]>([])
@@ -893,11 +916,13 @@ function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action:
       <div style={{ ...card, width: '92vw', maxWidth: 780, maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{t('manage_title')} — {title}</h3>
+          <h3 style={narrow
+            ? { fontSize: 13, fontWeight: 700, margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
+            : { fontSize: 14, fontWeight: 700, margin: 0 }}>{t('manage_title')} — {title}</h3>
           {!busy && <button style={{ ...btnGhost, height: 30, width: 30, padding: 0, justifyContent: 'center' }} onClick={onClose}>✕</button>}
         </div>
 
-        <div style={{ padding: 20, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: narrow ? 14 : 20, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {phase === 'checking' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--color-muted-foreground)' }}>
               <Spinner size={20} /> {t('mng_checking')}
@@ -1059,6 +1084,7 @@ function lightboxArrow(side: 'left' | 'right'): CSSProperties {
 // ── Détail d'un package (natif) + gestion native (install/update/remove) ──────
 function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void; onOpen: (id: number) => void }) {
   const t = useT()
+  const narrow = useIsNarrow()
   // Droits « capacités » (onglet Rights du formulaire Utilisateur, cf. config/react.capabilities.php) :
   //   download → Télécharger (installer) ET Mettre à jour (même geste composer) · remove → Supprimer.
   // Default-allow (admin ou cap non déclarée → permis). Masquage UI seulement — actions legacy.
@@ -1082,13 +1108,13 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
 
   return (
     <div style={{ height: '100%', minHeight: 0, overflow: 'auto' }}>
-      <div style={{ padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ padding: narrow ? 12 : 24, display: 'flex', flexDirection: narrow ? 'column' : 'row', gap: narrow ? 20 : 24, alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0, width: narrow ? '100%' : undefined, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
           <button style={{ ...btnGhost, height: 32, padding: '0 10px', marginBottom: 12 }} onClick={onBack}>← {t('back')}</button>
           {/* Bandeau héro : fond dégradé teinté par groupe + filigrane du logo → allure « page produit ». */}
           <div style={{
-            position: 'relative', overflow: 'hidden', borderRadius: 12, padding: 20,
+            position: 'relative', overflow: 'hidden', borderRadius: 12, padding: narrow ? 14 : 20,
             border: '1px solid var(--color-border)',
             background: pkg.groupName
               ? `linear-gradient(135deg, ${groupTint(pkg.groupName, 16)} 0%, var(--color-card) 62%)`
@@ -1101,29 +1127,31 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
             )}
             <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {pkg.groupName && <GroupLogo color={groupColor(pkg.groupName)} size={26} />}
-            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{pkg.title || pkg.moduleName}</h1>
+            {pkg.groupName && <GroupLogo color={groupColor(pkg.groupName)} size={narrow ? 22 : 26} />}
+            <h1 style={{ fontSize: narrow ? 18 : 22, fontWeight: 700, margin: 0, minWidth: 0 }}>{pkg.title || pkg.moduleName}</h1>
             {pkg.installed && <Badge kind="installed">{t('installed_badge')}</Badge>}
             {pkg.versionStatus === 'need_update' && <Badge kind="update">{t('need_update_badge')}</Badge>}
-            <div style={{ flex: 1 }} />
+            {/* Narrow : pas d'espaceur (il pousserait les boutons hors ligne) — chaque bouton
+                d'action prend sa propre ligne pleine largeur, cible tactile confortable. */}
+            {!narrow && <div style={{ flex: 1 }} />}
             {pkg.isPrivate ? (
-              <button style={{ ...btnGhost, cursor: 'not-allowed', opacity: 0.75 }} disabled>🔒 {t('btn_private')}</button>
+              <button style={{ ...btnGhost, ...(narrow ? actionBtnNarrow : null), cursor: 'not-allowed', opacity: 0.75 }} disabled>🔒 {t('btn_private')}</button>
             ) : (<>
               {!pkg.installed && can('download') && (
-                <button style={{ ...btnGhost, background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)', borderColor: 'transparent' }}
+                <button style={{ ...btnGhost, ...(narrow ? actionBtnNarrow : null), background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)', borderColor: 'transparent' }}
                   onClick={() => setManage('require')}>↓ {t('btn_download')}</button>
               )}
               {pkg.installed && pkg.versionStatus === 'need_update' && can('download') && (
-                <button style={{ ...btnGhost, background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)', borderColor: 'transparent' }}
+                <button style={{ ...btnGhost, ...(narrow ? actionBtnNarrow : null), background: 'var(--color-primary)', color: 'var(--color-primary-foreground,#fff)', borderColor: 'transparent' }}
                   onClick={() => setManage('update')}>↑ {t('btn_update')}</button>
               )}
               {pkg.installed && !pkg.isExempted && can('remove') && (
-                <button style={{ ...btnGhost, color: 'var(--color-destructive,#ef4444)', borderColor: 'var(--color-destructive,#ef4444)' }}
+                <button style={{ ...btnGhost, ...(narrow ? actionBtnNarrow : null), color: 'var(--color-destructive,#ef4444)', borderColor: 'var(--color-destructive,#ef4444)' }}
                   onClick={() => setManage('remove')}>✕ {t('btn_remove')}</button>
               )}
             </>)}
           </div>
-          <p style={{ fontSize: 14, color: 'var(--color-muted-foreground)', margin: '8px 0 0' }}>{stripHtml(pkg.subtitle)}</p>
+          <p style={{ fontSize: narrow ? 13 : 14, color: 'var(--color-muted-foreground)', margin: '8px 0 0' }}>{stripHtml(pkg.subtitle)}</p>
             </div>
           </div>
         </div>
@@ -1132,9 +1160,11 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
 
         <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-foreground)', margin: 0, whiteSpace: 'pre-line' }}>{stripHtml(pkg.description)}</p>
 
-        <div style={{ ...card, padding: 20 }}>
+        <div style={{ ...card, padding: narrow ? 14 : 20 }}>
           <h3 style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', color: 'var(--color-muted-foreground)', margin: '0 0 12px' }}>{t('additional_info')}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '20px 150px 1fr', rowGap: 12, columnGap: 10, alignItems: 'center', fontSize: 13 }}>
+          {/* Narrow : colonne « libellé » élastique et plus étroite — la colonne fixe de 150px
+              ne laissait plus assez de place à la valeur (URLs, nom de package). */}
+          <div style={{ display: 'grid', gridTemplateColumns: narrow ? '18px minmax(0,90px) minmax(0,1fr)' : '20px 150px 1fr', rowGap: 12, columnGap: narrow ? 8 : 10, alignItems: 'center', fontSize: narrow ? 12.5 : 13 }}>
             <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_TAG}</Ic></span>
             <span style={{ color: 'var(--color-muted-foreground)' }}>{t('latest_version')}</span><span>{fmtVersion(pkg.version)}</span>
             {pkg.installed && (<>
@@ -1153,7 +1183,7 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
               <a href={pkg.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pkg.url}</a>
             </>)}
             <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_BOX}</Ic></span>
-            <span style={{ color: 'var(--color-muted-foreground)' }}>{t('package_name')}</span><span style={{ fontFamily: 'monospace' }}>{pkg.name}</span>
+            <span style={{ color: 'var(--color-muted-foreground)' }}>{t('package_name')}</span><span style={{ fontFamily: 'monospace', overflowWrap: 'anywhere' }}>{pkg.name}</span>
             <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_DOWNLOAD}</Ic></span>
             <span style={{ color: 'var(--color-muted-foreground)' }}>{t('downloads_label')}</span>
             <span>{pkg.totalDownloads.toLocaleString()}</span>
@@ -1161,7 +1191,7 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
         </div>
 
         {pkg.isPrivate && (
-          <div style={{ ...card, padding: 20 }}>
+          <div style={{ ...card, padding: narrow ? 14 : 20 }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 8px' }}>🔒 {t('private_title')}</h3>
             <p style={{ fontSize: 13, color: 'var(--color-muted-foreground)', margin: '0 0 8px', lineHeight: 1.6 }}>{t('private_body')}</p>
             <p style={{ fontSize: 13, margin: 0, lineHeight: 1.8 }}>
