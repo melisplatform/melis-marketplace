@@ -26,6 +26,24 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     const ACTION_DOWNLOAD = 'download';
 
     /**
+     * Returns true if the currently authenticated back-office user is a
+     * platform super-administrator (usr_admin = 1).
+     *
+     * The marketplace mutating actions (install/update/remove modules, run
+     * composer, drop tables, chmod 0777, activate/deactivate modules, exec
+     * db-deploy, etc.) are extremely powerful and must never be reachable by a
+     * regular authenticated BO user.
+     *
+     * @return bool
+     */
+    private function isPlatformAdmin()
+    {
+        $identity = $this->getServiceManager()->get('MelisCoreAuth')->getIdentity();
+
+        return !empty($identity) && !empty($identity->usr_admin);
+    }
+
+    /**
      * Handles the display of the tool
      *
      * @return \Laminas\View\Model\ViewModel
@@ -581,6 +599,13 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function melisMarketPlaceProductDoAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $view = new ViewModel();
+            $view->setTerminal(true);
+            $this->getResponse()->setStatusCode(403);
+            return $view;
+        }
+
         set_time_limit(0);
         ini_set('memory_limit', '-1');
 
@@ -798,6 +823,14 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function changePackageDirectoryPermissionAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel([
+                'success' => 0,
+                'message' => 'Forbidden',
+            ]);
+        }
+
         $success = 0;
         $message = 'tr_melis_marketplace_package_directory_change_permission_ko';
         /**@var HttpRequest $request*/
@@ -833,7 +866,17 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function activateModuleAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel([
+                'success' => 0,
+                'modules' => [],
+                'message' => 'Forbidden',
+            ]);
+        }
+
         $success = 0;
+        $arrayDependency = [];
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
 
@@ -1042,6 +1085,14 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function exportTablesAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel([
+                'success' => 0,
+                'message' => 'Forbidden',
+            ]);
+        }
+
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $module = $this->getTool()->sanitize($request->getPost('module'));
@@ -1082,6 +1133,13 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
                     $dropQueryTable = "";
                     foreach ($tables as $table) {
+                        // Whitelist the table name: it is concatenated into raw
+                        // SQL below (SELECT / DROP TABLE) so anything that is not a
+                        // plain identifier is a SQL injection vector.
+                        if (!is_string($table) || !preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
+                            $message .= ' ' . PHP_EOL . 'Invalid table name: ' . (is_string($table) ? $table : gettype($table)) . PHP_EOL;
+                            continue;
+                        }
                         try {
                             $resultSet = $adapter->query("SELECT * FROM `$table`", DbAdapter::QUERY_MODE_EXECUTE)->toArray();
                             if ($resultSet) {
@@ -1129,17 +1187,24 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
                     // delete the dbdeploy file in the changelog table
                     if ($files) {
-                        $dbDeployQuery = "";
                         foreach ($files as $file) {
-                            $dbDeployQuery .= "DELETE FROM `changelog` where `description` = '" . $file . "';";
-                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/' . $file;
-                            if (file_exists($dbDeployFileCache)) {
+                            if (!is_string($file)) {
+                                continue;
+                            }
+                            // Parameterize the delete: $file comes from POST and
+                            // was previously concatenated straight into the query.
+                            $adapter->query(
+                                "DELETE FROM `changelog` WHERE `description` = ?",
+                                [$file]
+                            );
+
+                            // Only allow deleting a cache file by its basename to
+                            // avoid path traversal via the "file" POST value.
+                            $safeFile = basename($file);
+                            $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/' . $safeFile;
+                            if ($safeFile !== '' && file_exists($dbDeployFileCache)) {
                                 unlink($dbDeployFileCache);
                             }
-                        }
-
-                        if ($dbDeployQuery) {
-                            $adapter->query($dbDeployQuery, DbAdapter::QUERY_MODE_EXECUTE);
                         }
                     }
 
@@ -1289,6 +1354,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function execDbDeployAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => false, 'message' => 'Forbidden']);
+        }
+
         $success = false;
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
@@ -1443,6 +1513,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
     public function reDumpAutoloadAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => false, 'message' => 'Forbidden']);
+        }
+
         $composerSvc = $this->getServiceManager()->get('MelisComposerService');
         $composerSvc->dumpAutoload();
         exit;
@@ -1450,6 +1525,13 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
     public function executeComposerScriptsAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $view = new ViewModel();
+            $view->setTerminal(true);
+            $this->getResponse()->setStatusCode(403);
+            return $view;
+        }
+
         \MelisCore\ModuleComposerScript::setServiceManager($this->getServiceManager());
         \MelisCore\ModuleComposerScript::executeScripts();
 
@@ -1582,6 +1664,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function plugModuleAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => false, 'message' => 'Forbidden']);
+        }
+
         $success = false;
         $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
         /**@var HttpRequest $request*/
@@ -1654,6 +1741,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function unplugModuleAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => false, 'message' => 'Forbidden']);
+        }
+
         $success = false;
         $message = $this->getTool()->getTranslation('tr_melis_market_place_plug_module_ko', ['']);
         /**@var HttpRequest $request*/
@@ -1783,6 +1875,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
     public function siteInstallAction()
     {
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => false, 'message' => 'Forbidden']);
+        }
+
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $module = $request->getPost('module', 'MelisDemoCms');
@@ -1791,17 +1888,15 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $start = microtime(true);
         /** @var \MelisMarketPlace\Service\MelisMarketPlaceSiteService $service */
         $service = $this->getServiceManager()->get('MelisMarketPlaceSiteService');
-        $test = $service->installSite($this->getRequest())->invokeSetup();
+        $service->installSite($this->getRequest())->invokeSetup();
         $timeElapsed = microtime(true) - $start;
-        $test = $service->installSite($this->getRequest())->invokeSetup();
 
-        /** @var \MelisCore\Service\MelisCoreMelisAssetManagerModulesService $moduleService */
-        //        $moduleService = $this->getServiceManager()->get('MelisAssetManagerModulesService');
-        //
-        //        $data = $moduleService->isSiteModule($module);
-        //        dd($data);
-
-        dd("$timeElapsed sec");
+        return new JsonModel([
+            'success' => true,
+            'module'  => $module,
+            'action'  => $action,
+            'elapsed' => $timeElapsed . ' sec',
+        ]);
     }
 
     public function isMarketplaceAccessibleAction()
