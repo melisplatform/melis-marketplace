@@ -251,16 +251,33 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
     {
         foreach ($images as $img) {
             if (is_array($img) && (string) ($img['imageIsMain'] ?? '') === '1') {
-                return $img['imageFile'] ?? null;
+                return $this->reactImageUrl($img['imageFile'] ?? null);
             }
         }
-        return $images[0]['imageFile'] ?? null;
+        return $this->reactImageUrl($images[0]['imageFile'] ?? null);
     }
 
     /** @param array<mixed> $images @return string[] */
     private function allImages(array $images): array
     {
-        return array_values(array_filter(array_map(fn ($img) => is_array($img) ? ($img['imageFile'] ?? null) : null, $images)));
+        return array_values(array_filter(array_map(fn ($img) => is_array($img) ? $this->reactImageUrl($img['imageFile'] ?? null) : null, $images)));
+    }
+
+    /**
+     * Version React de la marketplace : on affiche les NOUVELLES captures d'écran, rangées dans le
+     * sous-dossier « react/ » du dossier images de chaque module (etc/MarketPlace/images/react/…),
+     * tandis que la version legacy continue d'utiliser l'URL d'origine. On insère donc « react/ »
+     * juste avant le nom de fichier de l'URL du catalogue (ex. GitHub raw
+     * …/etc/MarketPlace/images/melis-slider_1.JPG → …/etc/MarketPlace/images/react/melis-slider_1.JPG).
+     * NB : ces nouvelles images n'existent que sur les versions des modules pas encore publiées ;
+     * l'URL pointera au bon endroit dès leur publication. On ne touche que le suffixe du lien.
+     */
+    private function reactImageUrl(?string $url): ?string
+    {
+        if (empty($url)) {
+            return $url;
+        }
+        return preg_replace('#(/etc/MarketPlace/images)/(?=[^/]+$)#', '$1/react/', $url) ?? $url;
     }
 
     /** Modules that cannot be removed/updated via the marketplace (config: …/datas/exceptions). */

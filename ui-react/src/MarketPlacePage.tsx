@@ -405,7 +405,7 @@ function PackageCard({ pkg, t, onClick }: { pkg: PackageItem; t: (key: string, v
       <div style={{ height: 3, background: pkg.groupName ? groupColor(pkg.groupName) : 'var(--color-primary)' }} />
       <div style={{ position: 'relative', overflow: 'hidden' }}>
         {pkg.image ? (<>
-          <img src={pkg.image} alt="" style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block', transition: 'transform 200ms ease', transform: hover ? 'scale(1.05)' : 'scale(1)' }} />
+          <img src={pkg.image} alt="" onError={mpImgFallback} style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block', transition: 'transform 200ms ease', transform: hover ? 'scale(1.05)' : 'scale(1)' }} />
           {/* Léger dégradé en pied d'image → uniformise des visuels très hétérogènes. */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 62%, rgba(0,0,0,.12))', pointerEvents: 'none' }} />
         </>) : (
@@ -724,7 +724,7 @@ function Sidebar({ t, onOpen }: { t: (key: string, vars?: Record<string, string 
             <div key={pkg.id} onClick={() => onOpen(pkg.id)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
               {pkg.image ? (
-                <img src={pkg.image} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                <img src={pkg.image} alt="" onError={mpImgFallback} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
               ) : (
                 <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-muted,rgba(0,0,0,.06))', flexShrink: 0 }} />
               )}
@@ -971,6 +971,20 @@ function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action:
   )
 }
 
+/**
+ * Repli d'image marketplace : l'API React sert les NOUVELLES captures rangées dans
+ * .../etc/MarketPlace/images/react/… ; tant qu'un module n'est pas republié avec ces images,
+ * l'URL React renvoie 404 → on bascule automatiquement sur l'image legacy (.../images/…).
+ * Le flag data-fallback évite toute boucle si la legacy manque aussi.
+ */
+function mpImgFallback(e: { currentTarget: HTMLImageElement }): void {
+  const img = e.currentTarget
+  if (img.dataset.fallback === 'done') return
+  img.dataset.fallback = 'done'
+  const legacy = img.src.replace('/etc/MarketPlace/images/react/', '/etc/MarketPlace/images/')
+  if (legacy !== img.src) img.src = legacy
+}
+
 // ── Galerie d'images (slider + lightbox) pour le détail d'un package ──────────
 function ImageGallery({ images }: { images: string[] }) {
   const [active, setActive] = useState(0)
@@ -1004,6 +1018,7 @@ function ImageGallery({ images }: { images: string[] }) {
         <img
           src={images[active]}
           alt=""
+          onError={mpImgFallback}
           onClick={() => setZoom(true)}
           style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border)', cursor: 'zoom-in', display: 'block' }}
         />
@@ -1024,6 +1039,7 @@ function ImageGallery({ images }: { images: string[] }) {
               key={i}
               src={img}
               alt=""
+              onError={mpImgFallback}
               onClick={() => setActive(i)}
               style={{
                 width: 72, height: 48, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', flexShrink: 0,
@@ -1050,6 +1066,7 @@ function ImageGallery({ images }: { images: string[] }) {
           <img
             src={images[active]}
             alt=""
+            onError={mpImgFallback}
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: '90vw', maxHeight: '86vh', objectFit: 'contain', borderRadius: 8, boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }}
           />
