@@ -60,6 +60,15 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             $this->primeLatestVersions(array_map(static fn ($x) => (string) ($x['packageName'] ?? ''), $rawItems));
             $items = array_map([$this, 'formatPackage'], $rawItems);
 
+            // Liste DYNAMIQUE : le catalogue Melis peut encore lister des modules PUBLICS retirés de
+            // packagist.org (ex. melis-platform-framework-*). Ils ne sont plus installables → on les
+            // masque (404 packagist.org confirmé). Les privés (jamais publiés publiquement) restent
+            // affichés en teaser verrouillé, comme le legacy.
+            $items = array_values(array_filter(
+                $items,
+                fn ($it) => !empty($it['isPrivate']) || !$this->isAbsentFromPackagist((string) $it['name'])
+            ));
+
             // Melis Packagist paginates by page/pageCount (no absolute item total is returned).
             return $this->jsonResponse([
                 'success' => true,
@@ -129,6 +138,12 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             // ce que la liste a déjà mis en cache (fetch=false), repli packageVersion pour le reste.
             $this->primeLatestVersions(array_map(static fn ($x) => (string) ($x['packageName'] ?? ''), $rawItems), false);
             $items = array_map([$this, 'formatPackage'], $rawItems);
+            // Cohérent avec la liste : on ne compte pas les modules publics retirés de packagist.org
+            // (best-effort : cache-seul ici, donc au moins ceux déjà connus via la liste).
+            $items = array_values(array_filter(
+                $items,
+                fn ($it) => !empty($it['isPrivate']) || !$this->isAbsentFromPackagist((string) $it['name'])
+            ));
 
             $installed  = 0;
             $needUpdate = 0;
@@ -376,6 +391,9 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
     /** @var array<string,?string> Cache par requête : nom de package → dernière version stable (packagist.org). */
     private array $latestVersionCache = [];
 
+    /** @var array<string,bool> Cache par requête : nom de package → true si CONFIRMÉ absent (404) de packagist.org. */
+    private array $absentCache = [];
+
     /** Durée de validité du cache disque des dernières versions (packagist.org). */
     private const LATEST_VERSIONS_TTL = 3600;
 
@@ -408,6 +426,7 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             if (array_key_exists($n, $this->latestVersionCache)) { continue; }
             if (isset($disk[$n]) && is_array($disk[$n]) && ($now - (int) ($disk[$n]['t'] ?? 0)) < self::LATEST_VERSIONS_TTL) {
                 $this->latestVersionCache[$n] = $disk[$n]['v'] ?? null; // cache disque frais
+                $this->absentCache[$n]        = (bool) ($disk[$n]['absent'] ?? false);
             } else {
                 $todo[] = $n;
             }
@@ -438,11 +457,18 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         foreach ($handles as $n => $ch) {
             $body = (string) curl_multi_getcontent($ch);
             $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $absent = false;
             if ($code === 200 && $body !== '') {
                 $this->latestVersionCache[$n] = $this->pickLatestStable($n, $body);
+            } elseif ($code === 404) {
+                // Réponse DÉFINITIVE de packagist.org : le package n'y existe pas / plus (retiré).
+                // On ne s'appuie QUE sur un vrai 404 (pas un timeout/erreur réseau) pour ne jamais
+                // masquer à tort un package quand packagist.org est momentanément indisponible.
+                $absent = true;
             }
+            $this->absentCache[$n] = $absent;
             // On mémorise MÊME les échecs (valeur null) pour ne pas retenter à chaque requête pendant le TTL.
-            $disk[$n] = ['v' => $this->latestVersionCache[$n], 't' => $now];
+            $disk[$n] = ['v' => $this->latestVersionCache[$n], 'absent' => $absent, 't' => $now];
             curl_multi_remove_handle($mh, $ch);
             curl_close($ch);
         }
@@ -491,6 +517,16 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             return $ver;                                    // 1re version stable rencontrée
         }
         return $fallback;
+    }
+
+    /**
+     * true si le package est CONFIRMÉ absent de packagist.org (404) — donc retiré/indisponible.
+     * Un simple échec réseau (timeout, packagist.org down) ne remonte PAS true : on ne masque que
+     * sur une réponse 404 définitive. Requiert que primeLatestVersions ait été appelé avec fetch=true.
+     */
+    private function isAbsentFromPackagist(string $name): bool
+    {
+        return $this->absentCache[$name] ?? false;
     }
 
     /**

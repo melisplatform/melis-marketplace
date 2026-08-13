@@ -1023,7 +1023,10 @@ function ImageGallery({ images, legacy = [] }: { images: string[]; legacy?: stri
           alt=""
           onError={mpImgFallback}
           onClick={() => setZoom(true)}
-          style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border)', cursor: 'zoom-in', display: 'block' }}
+          // `contain` (et non `cover`) : on montre la capture ENTIÈRE à son format d'origine, sans la
+          // rogner en 16:9 (on perdait beaucoup de l'écran du module). Fond neutre pour d'éventuelles
+          // bandes de letterbox quand le ratio de l'image diffère du conteneur.
+          style={{ width: '100%', maxHeight: 460, objectFit: 'contain', background: 'var(--color-muted,rgba(0,0,0,.04))', borderRadius: 12, border: '1px solid var(--color-border)', cursor: 'zoom-in', display: 'block' }}
         />
         {/* Indice « agrandir » en haut à droite */}
         <div style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 8, background: 'rgba(0,0,0,0.5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, pointerEvents: 'none' }}>⤢</div>
