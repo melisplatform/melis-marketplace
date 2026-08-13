@@ -213,6 +213,13 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
 
         $rawGroupName = (string) ($p['packageGroupName'] ?? '');
 
+        // On expose l'URL React (branche melis-react + react/) ET l'URL legacy d'origine : le front
+        // tente la React puis retombe (onError) sur la legacy via data-legacy — le repli exact décrit
+        // côté produit (« si les images react ne s'affichent pas, on affiche les anciennes »).
+        $rawImages   = $p['packageImages'] ?? [];
+        $mainRaw     = $this->mainImageRaw($rawImages);
+        $allRaw      = $this->allImagesRaw($rawImages);
+
         return [
             'id'             => (int) ($p['packageId'] ?? 0),
             'title'          => (string) ($p['packageTitle'] ?? ''),
@@ -220,8 +227,10 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             'subtitle'       => (string) ($p['packageSubtitle'] ?? ''),
             'moduleName'     => $moduleName,
             'description'    => (string) ($p['packageDescription'] ?? ''),
-            'image'          => $this->mainImage($p['packageImages'] ?? []),
-            'images'         => $this->allImages($p['packageImages'] ?? []),
+            'image'          => $this->reactImageUrl($mainRaw),
+            'imageLegacy'    => $mainRaw,
+            'images'         => array_map(fn ($u) => $this->reactImageUrl($u), $allRaw),
+            'imagesLegacy'   => $allRaw,
             'url'            => $p['packageUrl'] ?? null,
             'repository'     => $p['packageRepository'] ?? null,
             'totalDownloads' => (int) ($p['packageTotalDownloads'] ?? 0),
@@ -246,38 +255,52 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         return (bool) $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulePath($module);
     }
 
-    /** @param array<mixed> $images */
-    private function mainImage(array $images): ?string
+    /** L'URL d'origine (legacy) de l'image principale, telle que fournie par le catalogue. */
+    private function mainImageRaw(array $images): ?string
     {
         foreach ($images as $img) {
             if (is_array($img) && (string) ($img['imageIsMain'] ?? '') === '1') {
-                return $this->reactImageUrl($img['imageFile'] ?? null);
+                return $img['imageFile'] ?? null;
             }
         }
-        return $this->reactImageUrl($images[0]['imageFile'] ?? null);
+        return $images[0]['imageFile'] ?? null;
     }
 
-    /** @param array<mixed> $images @return string[] */
-    private function allImages(array $images): array
+    /** Toutes les URLs d'origine (legacy). @param array<mixed> $images @return string[] */
+    private function allImagesRaw(array $images): array
     {
-        return array_values(array_filter(array_map(fn ($img) => is_array($img) ? $this->reactImageUrl($img['imageFile'] ?? null) : null, $images)));
+        return array_values(array_filter(array_map(fn ($img) => is_array($img) ? ($img['imageFile'] ?? null) : null, $images)));
     }
 
     /**
      * Version React de la marketplace : on affiche les NOUVELLES captures d'écran, rangées dans le
      * sous-dossier « react/ » du dossier images de chaque module (etc/MarketPlace/images/react/…),
-     * tandis que la version legacy continue d'utiliser l'URL d'origine. On insère donc « react/ »
-     * juste avant le nom de fichier de l'URL du catalogue (ex. GitHub raw
-     * …/etc/MarketPlace/images/melis-slider_1.JPG → …/etc/MarketPlace/images/react/melis-slider_1.JPG).
-     * NB : ces nouvelles images n'existent que sur les versions des modules pas encore publiées ;
-     * l'URL pointera au bon endroit dès leur publication. On ne touche que le suffixe du lien.
+     * tandis que la version legacy continue d'utiliser l'URL d'origine.
+     *
+     * Deux transformations sur l'URL GitHub raw du catalogue :
+     *  1) insérer « react/ » juste avant le nom de fichier
+     *     (…/etc/MarketPlace/images/melis-slider_1.JPG → …/etc/MarketPlace/images/react/melis-slider_1.JPG) ;
+     *  2) réécrire le segment de VERSION vers la branche « melis-react ».
+     *
+     * (2) est indispensable : le serveur packagist Melis référence les images sur d'ANCIENS tags
+     * (ex. v3.1.x) qui ne contiennent pas le dossier react/ → l'URL react y renverrait 404 en
+     * permanence (donc toujours le repli legacy). Les images react vivent sur la branche `melis-react`
+     * (et sur les tags récents), donc on pointe la ref sur cette branche — indépendamment du tag
+     * (potentiellement périmé) renvoyé par le catalogue. Le front garde l'URL legacy D'ORIGINE
+     * (imageLegacy) pour le repli onError, donc un module sans images react (ou sans branche
+     * melis-react) retombe proprement sur l'ancienne image. On ne touche pas aux URLs non-GitHub
+     * (ex. médias hébergés par le serveur marketplace) : elles restent identiques.
      */
     private function reactImageUrl(?string $url): ?string
     {
         if (empty($url)) {
             return $url;
         }
-        return preg_replace('#(/etc/MarketPlace/images)/(?=[^/]+$)#', '$1/react/', $url) ?? $url;
+        // (1) …/images/<fichier> → …/images/react/<fichier>
+        $out = preg_replace('#(/etc/MarketPlace/images)/(?=[^/]+$)#', '$1/react/', $url) ?? $url;
+        // (2) raw.githubusercontent.com/melisplatform/<repo>/<ref>/… → …/<repo>/melis-react/…
+        $out = preg_replace('#(raw\.githubusercontent\.com/melisplatform/[^/]+)/[^/]+/#', '$1/melis-react/', $out) ?? $out;
+        return $out;
     }
 
     /** Modules that cannot be removed/updated via the marketplace (config: …/datas/exceptions). */
