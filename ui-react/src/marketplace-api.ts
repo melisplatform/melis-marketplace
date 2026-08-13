@@ -15,7 +15,10 @@ export interface PackageItem {
   subtitle: string
   moduleName: string
   description: string
+  /** URL de l'image React (branche melis-react + sous-dossier react/). */
   image: string | null
+  /** URL de l'image d'ORIGINE (legacy) — repli onError si l'image React ne charge pas. */
+  imageLegacy: string | null
   url: string | null
   repository: string | null
   totalDownloads: number
@@ -36,6 +39,8 @@ export interface PackageItem {
 
 export interface PackageDetail extends PackageItem {
   images: string[]
+  /** URLs d'ORIGINE (legacy) alignées index par index avec `images` — repli onError. */
+  imagesLegacy: string[]
   currentVersion: string | null
   /** true when the module is protected (never removable/updatable via the marketplace). */
   isExempted: boolean

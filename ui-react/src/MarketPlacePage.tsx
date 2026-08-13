@@ -405,7 +405,7 @@ function PackageCard({ pkg, t, onClick }: { pkg: PackageItem; t: (key: string, v
       <div style={{ height: 3, background: pkg.groupName ? groupColor(pkg.groupName) : 'var(--color-primary)' }} />
       <div style={{ position: 'relative', overflow: 'hidden' }}>
         {pkg.image ? (<>
-          <img src={pkg.image} alt="" onError={mpImgFallback} style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block', transition: 'transform 200ms ease', transform: hover ? 'scale(1.05)' : 'scale(1)' }} />
+          <img src={pkg.image} data-legacy={pkg.imageLegacy ?? ''} alt="" onError={mpImgFallback} style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block', transition: 'transform 200ms ease', transform: hover ? 'scale(1.05)' : 'scale(1)' }} />
           {/* Léger dégradé en pied d'image → uniformise des visuels très hétérogènes. */}
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 62%, rgba(0,0,0,.12))', pointerEvents: 'none' }} />
         </>) : (
@@ -724,7 +724,7 @@ function Sidebar({ t, onOpen }: { t: (key: string, vars?: Record<string, string 
             <div key={pkg.id} onClick={() => onOpen(pkg.id)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
               {pkg.image ? (
-                <img src={pkg.image} alt="" onError={mpImgFallback} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                <img src={pkg.image} data-legacy={pkg.imageLegacy ?? ''} alt="" onError={mpImgFallback} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
               ) : (
                 <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-muted,rgba(0,0,0,.06))', flexShrink: 0 }} />
               )}
@@ -972,21 +972,23 @@ function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action:
 }
 
 /**
- * Repli d'image marketplace : l'API React sert les NOUVELLES captures rangées dans
- * .../etc/MarketPlace/images/react/… ; tant qu'un module n'est pas republié avec ces images,
- * l'URL React renvoie 404 → on bascule automatiquement sur l'image legacy (.../images/…).
- * Le flag data-fallback évite toute boucle si la legacy manque aussi.
+ * Repli d'image marketplace : l'API React sert les NOUVELLES captures (branche melis-react,
+ * sous-dossier react/) dans `src`, et l'URL d'ORIGINE (legacy) dans `data-legacy`. Si l'image
+ * React ne charge pas (module sans images react, ou sans branche melis-react), on bascule sur la
+ * legacy fournie. Le flag data-fallback évite toute boucle si la legacy manque aussi.
  */
 function mpImgFallback(e: { currentTarget: HTMLImageElement }): void {
   const img = e.currentTarget
   if (img.dataset.fallback === 'done') return
   img.dataset.fallback = 'done'
-  const legacy = img.src.replace('/etc/MarketPlace/images/react/', '/etc/MarketPlace/images/')
-  if (legacy !== img.src) img.src = legacy
+  // L'URL d'origine (legacy) est fournie explicitement par l'API via data-legacy : la React pointe
+  // sur la branche melis-react, on ne peut donc plus la dériver par simple remplacement de chemin.
+  const legacy = img.dataset.legacy
+  if (legacy && legacy !== img.src) img.src = legacy
 }
 
 // ── Galerie d'images (slider + lightbox) pour le détail d'un package ──────────
-function ImageGallery({ images }: { images: string[] }) {
+function ImageGallery({ images, legacy = [] }: { images: string[]; legacy?: string[] }) {
   const [active, setActive] = useState(0)
   const [zoom, setZoom] = useState(false)   // lightbox plein écran ouvert ?
 
@@ -1017,10 +1019,14 @@ function ImageGallery({ images }: { images: string[] }) {
       <div style={{ position: 'relative' }}>
         <img
           src={images[active]}
+          data-legacy={legacy[active] ?? ''}
           alt=""
           onError={mpImgFallback}
           onClick={() => setZoom(true)}
-          style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--color-border)', cursor: 'zoom-in', display: 'block' }}
+          // `contain` (et non `cover`) : on montre la capture ENTIÈRE à son format d'origine, sans la
+          // rogner en 16:9 (on perdait beaucoup de l'écran du module). Fond neutre pour d'éventuelles
+          // bandes de letterbox quand le ratio de l'image diffère du conteneur.
+          style={{ width: '100%', maxHeight: 460, objectFit: 'contain', background: 'var(--color-muted,rgba(0,0,0,.04))', borderRadius: 12, border: '1px solid var(--color-border)', cursor: 'zoom-in', display: 'block' }}
         />
         {/* Indice « agrandir » en haut à droite */}
         <div style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 8, background: 'rgba(0,0,0,0.5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, pointerEvents: 'none' }}>⤢</div>
@@ -1038,6 +1044,7 @@ function ImageGallery({ images }: { images: string[] }) {
             <img
               key={i}
               src={img}
+              data-legacy={legacy[i] ?? ''}
               alt=""
               onError={mpImgFallback}
               onClick={() => setActive(i)}
@@ -1173,7 +1180,9 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
           </div>
         </div>
 
-        <ImageGallery images={pkg.images && pkg.images.length > 0 ? pkg.images : (pkg.image ? [pkg.image] : [])} />
+        <ImageGallery
+          images={pkg.images && pkg.images.length > 0 ? pkg.images : (pkg.image ? [pkg.image] : [])}
+          legacy={pkg.images && pkg.images.length > 0 ? (pkg.imagesLegacy ?? []) : (pkg.imageLegacy ? [pkg.imageLegacy] : [])} />
 
         <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-foreground)', margin: 0, whiteSpace: 'pre-line' }}>{stripHtml(pkg.description)}</p>
 
