@@ -220,14 +220,24 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
     {
         $moduleName = (string) ($p['packageModuleName'] ?? '');
         $installed  = $moduleName !== '' ? $this->isModuleInstalled($moduleName) : false;
+        $isPrivate  = (bool) ($p['packageIsPrivate'] ?? false);
 
         // Vraie dernière version publiée (packagist.org) — le packageVersion du catalogue Melis peut
         // être périmé. Repli sur packageVersion si packagist.org est injoignable / package absent.
         $packageName = (string) ($p['packageName'] ?? '');
         $latest      = (string) ($this->latestVersion($packageName, (string) ($p['packageVersion'] ?? '')) ?? '');
 
+        // Package PRIVÉ : jamais publié sur packagist.org (404) et son `packageVersion` du catalogue
+        // Melis n'est plus rafraîchi depuis des années (tous figés en v3.1.x / 2019) → la version
+        // affichée serait FAUSSE, et le badge « mise à jour disponible » calculé dessus aussi. On
+        // n'expose donc AUCUNE version pour ces packages, comme le legacy qui la masque
+        // (`opacity-zero` en liste, bloc versions conditionné à `packageIsPrivate == 0` en détail).
+        if ($isPrivate) {
+            $latest = '';
+        }
+
         $versionStatus = null;
-        if ($moduleName !== '') {
+        if ($moduleName !== '' && $latest !== '') {
             // Le statut (à jour / à mettre à jour) se compare à la VRAIE dernière version.
             $status = $this->getMarketPlaceService()->compareLocalVersionFromRepo($moduleName, $latest);
             $versionStatus = match ($status) {
@@ -261,7 +271,7 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             'url'            => $p['packageUrl'] ?? null,
             'repository'     => $p['packageRepository'] ?? null,
             'totalDownloads' => (int) ($p['packageTotalDownloads'] ?? 0),
-            'version'        => $latest !== '' ? $latest : (string) ($p['packageVersion'] ?? ''),
+            'version'        => $isPrivate ? '' : ($latest !== '' ? $latest : (string) ($p['packageVersion'] ?? '')),
             'releaseDate'    => $p['packageTimeOfRelease'] ?? null,
             'maintainers'    => $p['packageMaintainers'] ?? null,
             'type'           => $p['packageType'] ?? null,
