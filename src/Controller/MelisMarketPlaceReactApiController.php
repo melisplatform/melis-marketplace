@@ -192,7 +192,9 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
 
             $currentVersion = null;
             if ($item['moduleName'] !== '' && $item['installed']) {
-                $info = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulesAndVersions($item['moduleName']);
+                // Casse réelle du dossier (le catalogue peut se tromper : MelisMarketplace/MelisMarketPlace).
+                $realName = $this->resolveModuleName($item['moduleName']) ?? $item['moduleName'];
+                $info = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulesAndVersions($realName);
                 $currentVersion = $info['version'] ?? null;
             }
             $item['currentVersion'] = $currentVersion;
@@ -238,8 +240,9 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
 
         $versionStatus = null;
         if ($moduleName !== '' && $latest !== '') {
-            // Le statut (à jour / à mettre à jour) se compare à la VRAIE dernière version.
-            $status = $this->getMarketPlaceService()->compareLocalVersionFromRepo($moduleName, $latest);
+            // Le statut (à jour / à mettre à jour) se compare à la VRAIE dernière version, sur le nom
+            // de module à la casse RÉELLE (sinon la version locale n'est pas trouvée — cf. isModuleInstalled).
+            $status = $this->getMarketPlaceService()->compareLocalVersionFromRepo($this->resolveModuleName($moduleName) ?? $moduleName, $latest);
             $versionStatus = match ($status) {
                 \MelisMarketPlace\Service\MelisMarketPlaceService::NEED_UPDATE => 'need_update',
                 \MelisMarketPlace\Service\MelisMarketPlaceService::UP_TO_DATE => 'up_to_date',
@@ -287,9 +290,33 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         ];
     }
 
+    /** @var array<string,string>|null Modules présents : nom en minuscules → nom réel (casse du dossier). */
+    private ?array $installedModulesLower = null;
+
+    /**
+     * Le `packageModuleName` du catalogue ne respecte PAS toujours la casse du dossier réel
+     * (ex. « MelisMarketplace » côté catalogue vs « MelisMarketPlace » sur disque) : un
+     * getModulePath() sensible à la casse déclarait alors le module NON installé (tuile « Download »
+     * sur un module pourtant livré en standard). Le legacy compare la liste des modules en
+     * minuscules (MelisMarketPlaceController::fetchPackages) — on fait pareil.
+     */
     private function isModuleInstalled(string $module): bool
     {
-        return (bool) $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulePath($module);
+        return $this->resolveModuleName($module) !== null;
+    }
+
+    /** Nom RÉEL (casse du dossier) d'un module présent, ou null s'il n'est pas installé. */
+    private function resolveModuleName(string $module): ?string
+    {
+        if ($this->installedModulesLower === null) {
+            $all = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getAllModules();
+            $this->installedModulesLower = [];
+            foreach ((array) $all as $m) {
+                $name = trim((string) $m);
+                if ($name !== '') { $this->installedModulesLower[strtolower($name)] = $name; }
+            }
+        }
+        return $this->installedModulesLower[strtolower(trim($module))] ?? null;
     }
 
     /** L'URL d'origine (legacy) de l'image principale, telle que fournie par le catalogue. */
