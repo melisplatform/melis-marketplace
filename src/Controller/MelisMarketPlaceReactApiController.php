@@ -192,7 +192,9 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
 
             $currentVersion = null;
             if ($item['moduleName'] !== '' && $item['installed']) {
-                $info = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulesAndVersions($item['moduleName']);
+                // Casse réelle du dossier (le catalogue peut se tromper : MelisMarketplace/MelisMarketPlace).
+                $realName = $this->resolveModuleName($item['moduleName']) ?? $item['moduleName'];
+                $info = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulesAndVersions($realName);
                 $currentVersion = $info['version'] ?? null;
             }
             $item['currentVersion'] = $currentVersion;
@@ -220,16 +222,27 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
     {
         $moduleName = (string) ($p['packageModuleName'] ?? '');
         $installed  = $moduleName !== '' ? $this->isModuleInstalled($moduleName) : false;
+        $isPrivate  = (bool) ($p['packageIsPrivate'] ?? false);
 
         // Vraie dernière version publiée (packagist.org) — le packageVersion du catalogue Melis peut
         // être périmé. Repli sur packageVersion si packagist.org est injoignable / package absent.
         $packageName = (string) ($p['packageName'] ?? '');
         $latest      = (string) ($this->latestVersion($packageName, (string) ($p['packageVersion'] ?? '')) ?? '');
 
+        // Package PRIVÉ : jamais publié sur packagist.org (404) et son `packageVersion` du catalogue
+        // Melis n'est plus rafraîchi depuis des années (tous figés en v3.1.x / 2019) → la version
+        // affichée serait FAUSSE, et le badge « mise à jour disponible » calculé dessus aussi. On
+        // n'expose donc AUCUNE version pour ces packages, comme le legacy qui la masque
+        // (`opacity-zero` en liste, bloc versions conditionné à `packageIsPrivate == 0` en détail).
+        if ($isPrivate) {
+            $latest = '';
+        }
+
         $versionStatus = null;
-        if ($moduleName !== '') {
-            // Le statut (à jour / à mettre à jour) se compare à la VRAIE dernière version.
-            $status = $this->getMarketPlaceService()->compareLocalVersionFromRepo($moduleName, $latest);
+        if ($moduleName !== '' && $latest !== '') {
+            // Le statut (à jour / à mettre à jour) se compare à la VRAIE dernière version, sur le nom
+            // de module à la casse RÉELLE (sinon la version locale n'est pas trouvée — cf. isModuleInstalled).
+            $status = $this->getMarketPlaceService()->compareLocalVersionFromRepo($this->resolveModuleName($moduleName) ?? $moduleName, $latest);
             $versionStatus = match ($status) {
                 \MelisMarketPlace\Service\MelisMarketPlaceService::NEED_UPDATE => 'need_update',
                 \MelisMarketPlace\Service\MelisMarketPlaceService::UP_TO_DATE => 'up_to_date',
@@ -261,7 +274,7 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             'url'            => $p['packageUrl'] ?? null,
             'repository'     => $p['packageRepository'] ?? null,
             'totalDownloads' => (int) ($p['packageTotalDownloads'] ?? 0),
-            'version'        => $latest !== '' ? $latest : (string) ($p['packageVersion'] ?? ''),
+            'version'        => $isPrivate ? '' : ($latest !== '' ? $latest : (string) ($p['packageVersion'] ?? '')),
             'releaseDate'    => $p['packageTimeOfRelease'] ?? null,
             'maintainers'    => $p['packageMaintainers'] ?? null,
             'type'           => $p['packageType'] ?? null,
@@ -277,9 +290,33 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         ];
     }
 
+    /** @var array<string,string>|null Modules présents : nom en minuscules → nom réel (casse du dossier). */
+    private ?array $installedModulesLower = null;
+
+    /**
+     * Le `packageModuleName` du catalogue ne respecte PAS toujours la casse du dossier réel
+     * (ex. « MelisMarketplace » côté catalogue vs « MelisMarketPlace » sur disque) : un
+     * getModulePath() sensible à la casse déclarait alors le module NON installé (tuile « Download »
+     * sur un module pourtant livré en standard). Le legacy compare la liste des modules en
+     * minuscules (MelisMarketPlaceController::fetchPackages) — on fait pareil.
+     */
     private function isModuleInstalled(string $module): bool
     {
-        return (bool) $this->getServiceManager()->get('MelisAssetManagerModulesService')->getModulePath($module);
+        return $this->resolveModuleName($module) !== null;
+    }
+
+    /** Nom RÉEL (casse du dossier) d'un module présent, ou null s'il n'est pas installé. */
+    private function resolveModuleName(string $module): ?string
+    {
+        if ($this->installedModulesLower === null) {
+            $all = $this->getServiceManager()->get('MelisAssetManagerModulesService')->getAllModules();
+            $this->installedModulesLower = [];
+            foreach ((array) $all as $m) {
+                $name = trim((string) $m);
+                if ($name !== '') { $this->installedModulesLower[strtolower($name)] = $name; }
+            }
+        }
+        return $this->installedModulesLower[strtolower(trim($module))] ?? null;
     }
 
     /** L'URL d'origine (legacy) de l'image principale, telle que fournie par le catalogue. */
@@ -388,157 +425,23 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         return is_array($decoded) ? $decoded : [];
     }
 
-    /** @var array<string,?string> Cache par requête : nom de package → dernière version stable (packagist.org). */
-    private array $latestVersionCache = [];
+    // Dernière version publiée (packagist.org) : logique PARTAGÉE avec l'outil legacy —
+    // MelisMarketPlaceService::primeLatestVersions/latestVersion/isAbsentFromPackagist (mêmes
+    // requêtes, même cache disque), pour que les deux interfaces affichent la MÊME version.
 
-    /** @var array<string,bool> Cache par requête : nom de package → true si CONFIRMÉ absent (404) de packagist.org. */
-    private array $absentCache = [];
-
-    /** Durée de validité du cache disque des dernières versions (packagist.org). */
-    private const LATEST_VERSIONS_TTL = 3600;
-
-    /**
-     * Pré-charge la dernière version publiée pour une liste de packages, avec un cache DISQUE (TTL)
-     * et une salve réseau PARALLÈLE (curl_multi) pour les entrées froides.
-     *
-     * Le catalogue Melis (marketplace.melisplatform.com) expose un `packageVersion` qui peut être
-     * PÉRIMÉ : le module a `packageIsAutoUpdate=1` mais l'auto-update côté serveur ne suit pas les
-     * nouvelles releases (ex. il renvoyait v5.3.17 alors que la dernière publiée est v6.0.x). On lit
-     * donc la source de vérité publique (packagist.org) pour afficher la VRAIE dernière version, qui
-     * se met à jour d'elle-même à chaque release. Sans cache, ~24 requêtes par page rendaient la liste
-     * lente (8-12 s) ; le cache disque (TTL 1 h) rend les chargements suivants instantanés et « auto
-     * met à jour » les versions dans l'heure d'une release. Tout échec (module absent de packagist.org,
-     * réseau) laisse la valeur à null → l'appelant retombe sur `packageVersion`.
-     *
-     * @param string[] $names
-     * @param bool $fetch false → n'utilise QUE le cache (disque), aucune requête réseau (pour les KPI :
-     *                    on ne déclenche pas ~43 appels juste pour un compteur ; la liste, elle, fetch).
-     */
     private function primeLatestVersions(array $names, bool $fetch = true): void
     {
-        $wanted = array_values(array_unique(array_filter($names)));
-        if (!$wanted) { return; }
-
-        $disk = $this->readVersionCacheFile();
-        $now  = time();
-        $todo = [];
-        foreach ($wanted as $n) {
-            if (array_key_exists($n, $this->latestVersionCache)) { continue; }
-            if (isset($disk[$n]) && is_array($disk[$n]) && ($now - (int) ($disk[$n]['t'] ?? 0)) < self::LATEST_VERSIONS_TTL) {
-                $this->latestVersionCache[$n] = $disk[$n]['v'] ?? null; // cache disque frais
-                $this->absentCache[$n]        = (bool) ($disk[$n]['absent'] ?? false);
-            } else {
-                $todo[] = $n;
-            }
-        }
-        if (!$todo || !$fetch) { return; }
-
-        $mh = curl_multi_init();
-        $handles = [];
-        foreach ($todo as $n) {
-            $this->latestVersionCache[$n] = null; // défaut = repli sur packageVersion
-            $ch = curl_init('https://repo.packagist.org/p2/' . $n . '.json');
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 5,
-                CURLOPT_CONNECTTIMEOUT => 3,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_ENCODING       => '',  // accepte gzip → réponse ~6× plus petite
-                CURLOPT_USERAGENT      => 'MelisMarketPlace',
-            ]);
-            curl_multi_add_handle($mh, $ch);
-            $handles[$n] = $ch;
-        }
-        do {
-            $status = curl_multi_exec($mh, $running);
-            if ($running) { curl_multi_select($mh, 1.0); }
-        } while ($running && $status === CURLM_OK);
-
-        foreach ($handles as $n => $ch) {
-            $body = (string) curl_multi_getcontent($ch);
-            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $absent = false;
-            if ($code === 200 && $body !== '') {
-                $this->latestVersionCache[$n] = $this->pickLatestStable($n, $body);
-            } elseif ($code === 404) {
-                // Réponse DÉFINITIVE de packagist.org : le package n'y existe pas / plus (retiré).
-                // On ne s'appuie QUE sur un vrai 404 (pas un timeout/erreur réseau) pour ne jamais
-                // masquer à tort un package quand packagist.org est momentanément indisponible.
-                $absent = true;
-            }
-            $this->absentCache[$n] = $absent;
-            // On mémorise MÊME les échecs (valeur null) pour ne pas retenter à chaque requête pendant le TTL.
-            $disk[$n] = ['v' => $this->latestVersionCache[$n], 'absent' => $absent, 't' => $now];
-            curl_multi_remove_handle($mh, $ch);
-            curl_close($ch);
-        }
-        curl_multi_close($mh);
-        $this->writeVersionCacheFile($disk);
+        $this->getMarketPlaceService()->primeLatestVersions($names, $fetch);
     }
 
-    private function versionCacheFilePath(): string
-    {
-        return sys_get_temp_dir() . '/melis-marketplace-latest-versions.json';
-    }
-
-    /** @return array<string,array{v:?string,t:int}> */
-    private function readVersionCacheFile(): array
-    {
-        $f = $this->versionCacheFilePath();
-        if (!is_readable($f)) { return []; }
-        $data = json_decode((string) @file_get_contents($f), true);
-        return is_array($data) ? $data : [];
-    }
-
-    /** @param array<string,mixed> $data */
-    private function writeVersionCacheFile(array $data): void
-    {
-        // Re-lire et fusionner avant d'écrire : la liste (page courante) et les stats (tous les
-        // packages) tournent en requêtes CONCURRENTES ; sans fusion, la dernière écriture écraserait
-        // les entrées de l'autre et le cache ne se réchaufferait jamais complètement.
-        $merged = array_merge($this->readVersionCacheFile(), $data);
-        @file_put_contents($this->versionCacheFilePath(), json_encode($merged), LOCK_EX);
-    }
-
-    /** Plus récente version STABLE d'une réponse packagist.org p2 (versions listées du + récent au + ancien). */
-    private function pickLatestStable(string $name, string $json): ?string
-    {
-        $data     = json_decode($json, true);
-        $versions = $data['packages'][$name] ?? null;
-        if (!is_array($versions)) { return null; }
-        $fallback = null;
-        foreach ($versions as $v) {
-            $ver = (string) ($v['version'] ?? '');
-            if ($ver === '') { continue; }
-            if ($fallback === null) { $fallback = $ver; }   // 1re entrée = la plus récente (pré-releases incluses)
-            $low = strtolower($ver);
-            if (str_starts_with($low, 'dev-') || str_contains($low, '-dev')) { continue; }
-            if (preg_match('/(alpha|beta|rc)/i', $ver)) { continue; }
-            return $ver;                                    // 1re version stable rencontrée
-        }
-        return $fallback;
-    }
-
-    /**
-     * true si le package est CONFIRMÉ absent de packagist.org (404) — donc retiré/indisponible.
-     * Un simple échec réseau (timeout, packagist.org down) ne remonte PAS true : on ne masque que
-     * sur une réponse 404 définitive. Requiert que primeLatestVersions ait été appelé avec fetch=true.
-     */
-    private function isAbsentFromPackagist(string $name): bool
-    {
-        return $this->absentCache[$name] ?? false;
-    }
-
-    /**
-     * Dernière version d'un package, LUE dans le cache de requête (rempli par primeLatestVersions),
-     * avec repli sur $fallback (packageVersion). Ne déclenche AUCUNE requête réseau ici : c'est
-     * l'appelant (liste/détail) qui décide de fetcher via primeLatestVersions, pour maîtriser la
-     * latence (une salve parallèle par page, pas un appel synchrone caché par package).
-     */
     private function latestVersion(string $name, ?string $fallback): ?string
     {
-        if ($name === '') { return $fallback; }
-        return $this->latestVersionCache[$name] ?? $fallback;
+        return $this->getMarketPlaceService()->latestVersion($name, $fallback);
+    }
+
+    private function isAbsentFromPackagist(string $name): bool
+    {
+        return $this->getMarketPlaceService()->isAbsentFromPackagist($name);
     }
 
     private function isMarketplaceAccessible(): bool

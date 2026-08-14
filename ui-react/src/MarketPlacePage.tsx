@@ -433,8 +433,16 @@ function PackageCard({ pkg, t, onClick }: { pkg: PackageItem; t: (key: string, v
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace', padding: '2px 6px', borderRadius: 5, whiteSpace: 'nowrap', background: 'var(--color-muted,rgba(0,0,0,.06))', color: 'var(--color-muted-foreground)' }}>{fmtVersion(pkg.version)}</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-muted-foreground)', whiteSpace: 'nowrap' }}><Ic size={13}>{ICON_DOWNLOAD}</Ic>{pkg.totalDownloads.toLocaleString()}</span>
+            {/* Version vide = non fiable (package privé : jamais publié sur packagist.org, version du
+                catalogue Melis figée depuis 2019) → on n'affiche rien, comme le legacy. */}
+            {pkg.version !== '' && (
+              <span style={{ fontSize: 11, fontWeight: 600, fontFamily: 'monospace', padding: '2px 6px', borderRadius: 5, whiteSpace: 'nowrap', background: 'var(--color-muted,rgba(0,0,0,.06))', color: 'var(--color-muted-foreground)' }}>{fmtVersion(pkg.version)}</span>
+            )}
+            {/* Idem version : le compteur de téléchargements d'un package privé n'a pas de sens
+                (jamais distribué publiquement — le catalogue renvoie 0) → on ne l'affiche pas. */}
+            {!pkg.isPrivate && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-muted-foreground)', whiteSpace: 'nowrap' }}><Ic size={13}>{ICON_DOWNLOAD}</Ic>{pkg.totalDownloads.toLocaleString()}</span>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             {pkg.installed && <Badge kind="installed">{t('installed_badge')}</Badge>}
@@ -1191,8 +1199,11 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
           {/* Narrow : colonne « libellé » élastique et plus étroite — la colonne fixe de 150px
               ne laissait plus assez de place à la valeur (URLs, nom de package). */}
           <div style={{ display: 'grid', gridTemplateColumns: narrow ? '18px minmax(0,90px) minmax(0,1fr)' : '20px 150px 1fr', rowGap: 12, columnGap: narrow ? 8 : 10, alignItems: 'center', fontSize: narrow ? 12.5 : 13 }}>
-            <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_TAG}</Ic></span>
-            <span style={{ color: 'var(--color-muted-foreground)' }}>{t('latest_version')}</span><span>{fmtVersion(pkg.version)}</span>
+            {/* Idem carte : pas de « dernière version » quand elle n'est pas fiable (privé). */}
+            {pkg.version !== '' && (<>
+              <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_TAG}</Ic></span>
+              <span style={{ color: 'var(--color-muted-foreground)' }}>{t('latest_version')}</span><span>{fmtVersion(pkg.version)}</span>
+            </>)}
             {pkg.installed && (<>
               <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_CHECK}</Ic></span>
               <span style={{ color: 'var(--color-muted-foreground)' }}>{t('current_version')}</span>
@@ -1210,9 +1221,11 @@ function PackageDetail({ id, onBack, onOpen }: { id: number; onBack: () => void;
             </>)}
             <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_BOX}</Ic></span>
             <span style={{ color: 'var(--color-muted-foreground)' }}>{t('package_name')}</span><span style={{ fontFamily: 'monospace', overflowWrap: 'anywhere' }}>{pkg.name}</span>
-            <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_DOWNLOAD}</Ic></span>
-            <span style={{ color: 'var(--color-muted-foreground)' }}>{t('downloads_label')}</span>
-            <span>{pkg.totalDownloads.toLocaleString()}</span>
+            {!pkg.isPrivate && (<>
+              <span style={{ color: 'var(--color-muted-foreground)', display: 'inline-flex' }}><Ic>{ICON_DOWNLOAD}</Ic></span>
+              <span style={{ color: 'var(--color-muted-foreground)' }}>{t('downloads_label')}</span>
+              <span>{pkg.totalDownloads.toLocaleString()}</span>
+            </>)}
           </div>
         </div>
 

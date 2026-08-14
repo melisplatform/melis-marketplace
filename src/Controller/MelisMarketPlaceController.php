@@ -189,6 +189,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $marketPlaceService = $this->getServiceManager()->get('MelisMarketPlaceService');
             $moduleSvc = $this->getServiceManager()->get('MelisAssetManagerModulesService');
 
+            // Vraie dernière version publiée (packagist.org) au lieu du packageVersion périmé du
+            // catalogue — même source que la vue React.
+            $package = $marketPlaceService->applyLatestVersions([$package])[0];
+
             //compare the package local version to the repository
             if (isset($package['packageModuleName'])) {
 
@@ -480,6 +484,13 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         }
         $tmpPackages = empty($serverPackages['packages']) ?: $serverPackages['packages'];
 
+        if (isset($serverPackages['packages']) && $serverPackages['packages']) {
+            // Le `packageVersion` du catalogue Melis est périmé pour beaucoup de modules (auto-update
+            // serveur qui ne suit plus les releases) : on affiche la VRAIE dernière version publiée,
+            // exactement comme la vue React (même service, même cache).
+            $serverPackages['packages'] = $this->getMarketPlaceService()->applyLatestVersions($serverPackages['packages']);
+            $tmpPackages = $serverPackages['packages'];
+        }
 
         if (isset($serverPackages['packages']) && $serverPackages['packages']) {
             // check if the module is installed
@@ -1481,6 +1492,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
 
         if (isset($packages['packages'])) {
+            // Même version affichée que la liste / la vue React (packagist.org, cache partagé).
+            $packages['packages'] = $this->getMarketPlaceService()->applyLatestVersions($packages['packages']);
             foreach ($packages['packages'] as $packagesData => $packagesValue) {
                 $data[] = [
                     'packageId' => $packagesValue['packageId'],
@@ -1581,6 +1594,9 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         //Get the all latest packages
         if (is_array($serverPackages)) {
+            // Idem liste/détail : le compteur « modules à mettre à jour » se calcule sur la vraie
+            // dernière version publiée, pas sur le packageVersion périmé du catalogue.
+            $serverPackages['packages'] = $marketplaceService->applyLatestVersions($serverPackages['packages'] ?? []);
             foreach ($serverPackages['packages'] as $packagist => $packageVal) {
                 $tmpData[] = [
                     'packageId' => $packageVal['packageId'],
