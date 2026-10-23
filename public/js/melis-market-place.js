@@ -1,3 +1,16 @@
+// SECURITY (audit MP-H4) : le flux Composer streamé cite des métadonnées DISTANTES du paquet
+// (« abandoned, use X instead », textes de suggest/erreurs) et était injecté brut dans le DOM.
+// On échappe tout, puis on ré-autorise UNIQUEMENT les spans colorés de forme FIXE émis par le
+// serveur (ComposerOutputFormatterStyle) — ce motif ne peut porter aucun handler.
+window.melisMarketplaceSanitizeChunk = function (s) {
+    s = String(s === undefined || s === null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    s = s.replace(/&lt;span style="(?:color: #[0-9a-fA-F]{3,6};)?(?:background: #[0-9a-fA-F]{3,6};)?"&gt;/g,
+        function (m) { return m.replace('&lt;', '<').replace('&gt;', '>'); });
+    s = s.replace(/&lt;\/span&gt;/g, '</span>').replace(/&lt;br\s*\/?&gt;/g, '<br/>');
+    return s;
+};
+
 window.fetchPackages = function (page, search, orderBy, order, itemPerPage, group, paginationClickOwner) {
     paginationClickOwner = (typeof paginationClickOwner == undefined) ? null : paginationClickOwner;
     //get bundle filter value
@@ -367,8 +380,9 @@ $(function () {
                                     addLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executing);
 
                                     setTimeout(function(){
-                                        $.get("/melis/MelisMarketPlace/MelisMarketPlace/executeComposerScripts").done(function(res){
-                                            updateCmdText(res);
+                                        // SECURITY (audit MP-M2) : mutation en POST (le serveur refuse le GET, 405)
+                                        $.post("/melis/MelisMarketPlace/MelisMarketPlace/executeComposerScripts").done(function(res){
+                                            updateCmdText(melisMarketplaceSanitizeChunk(res));
                                             clearLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executed);
 
                                             // check if the module has a form setup
@@ -513,7 +527,7 @@ $(function () {
                         callback();
                     }
                     else {
-                        vConsole.html(vConsoleText + '<br/><span style="color:#ff190d">' + response.message + '</span>');
+                        vConsole.html(vConsoleText + '<br/><span style="color:#ff190d">' + melisMarketplaceSanitizeChunk(response.message) + '</span>');
                         vConsole.animate({
                             scrollTop: vConsole.prop("scrollHeight")
                         }, 1115);
@@ -672,7 +686,8 @@ $(function () {
                             curResponse = response.substring(lastResponseLen);
                             lastResponseLen = response.length;
                         }
-                        vConsoleText += curResponse + "\n<br/>";
+                        // SECURITY (audit MP-H4) : chunk échappé avant insertion DOM
+                        vConsoleText += melisMarketplaceSanitizeChunk(curResponse) + "\n<br/>";
                         if (typeof vConsoleText !== "undefined") {
 
                             vConsole.html(vConsoleText);
@@ -691,8 +706,8 @@ $(function () {
             })
             .done(function (data) {
                 setTimeout(function () {
-                    // Composer re-Dumpautoload
-                    $.get("/melis/MelisMarketPlace/MelisMarketPlace/reDumpAutoload", function(){
+                    // Composer re-Dumpautoload — SECURITY (audit MP-M2) : POST (le serveur refuse le GET)
+                    $.post("/melis/MelisMarketPlace/MelisMarketPlace/reDumpAutoload", function(){
 
                         vConsoleText = "" + vConsole.html();
                         vConsole.html(vConsoleText + '<span style="color:#02de02"><i class="fa fa-info-circle"></i> ' + translations.tr_melis_market_place_exec_do_done + '<br/>');

@@ -8,22 +8,22 @@ if (!empty($this->zoneconfig['conf']['id'])) {
     $id = $this->zoneconfig['conf']['id'];
 }
 ?>
-<div class="modal-content" id="<?= $id; ?>" data-melisKey="<?= $this->melisKey; ?>" data-module="<?= $this->module ?>" data-action="<?= $this->action ?>">
+<div class="modal-content" id="<?= $this->escapeHtmlAttr($id); ?>" data-melisKey="<?= $this->escapeHtmlAttr($this->melisKey); ?>" data-module="<?= $this->escapeHtmlAttr($this->module) ?>" data-action="<?= $this->escapeHtmlAttr($this->action) ?>">
     <div class="modal-body padding-none">
         <div class="wizard">
             <div class="widget widget-tabs widget-tabs-double widget-tabs-responsive margin-none border-none">
                 <div class="widget-head">
                     <ul class="nav nav-tabs">
                         <li class="nav-item active">
-                            <a data-bs-target="#<?php echo $this->zoneconfig['conf']['id'] ?>" href="#<?php echo $this->zoneconfig['conf']['id'] ?>" class="nav-link glyphicons package" data-bs-toggle="tab" aria-expanded="true">
-                                <i></i><?= $this->title ?>
+                            <a data-bs-target="#<?php echo $this->escapeHtmlAttr($this->zoneconfig['conf']['id']) ?>" href="#<?php echo $this->escapeHtmlAttr($this->zoneconfig['conf']['id']) ?>" class="nav-link glyphicons package" data-bs-toggle="tab" aria-expanded="true">
+                                <i></i><?= $this->escapeHtml($this->title) ?>
                             </a>
                         </li>
                     </ul>
                 </div>
                 <div class="widget-body innerAll inner-2x">
                     <div class="tab-content">
-                        <div class="tab-pane active" id="<?php echo $id ?>">
+                        <div class="tab-pane active" id="<?php echo $this->escapeHtmlAttr($id) ?>">
 
                             <?= $this->form ?>
 

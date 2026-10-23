@@ -1,6 +1,8 @@
 <?php
 $bundles = $this->bundles;
 $pagination = $this->pagination;
+$safeUrl = function ($u) { $u = (string) $u; return preg_match('#^https?://#i', $u) ? $u : '#'; };
+$safeImg = function ($u) { $u = (string) $u; return preg_match('#^https?://#i', $u) ? $u : '/MelisMarketPlace/images/market-placeholder.png'; };
 ?>
 <div class="product-list-view">
     <?php if ($bundles && is_array($bundles)) {
@@ -17,7 +19,7 @@ $pagination = $this->pagination;
             ?>
                 <li class="col-sm-6 col-md-6 col-lg-4">
                     <!-- title="View Details" -->
-                    <div class="product melis-market-place-view-details <?= strtolower(trim($bundle['packageGroupName'])) ?>" data-packageid="<?= $bundle['packageId'] ?>" data-packagetitle="<?= $bundle['packageTitle']; ?>">
+                    <div class="product melis-market-place-view-details <?= $this->escapeHtmlAttr(strtolower(trim($bundle['packageGroupName']))) ?>" data-packageid="<?= (int) $bundle['packageId'] ?>" data-packagetitle="<?= $this->escapeHtmlAttr($bundle['packageTitle']); ?>">
                         <a href="#">
                             <span class="onsale hidden"></span>
                         </a>
@@ -25,7 +27,7 @@ $pagination = $this->pagination;
                             <?php
                             $bundleImage = isset($bundle['packageImages'][0]['imageFile']) ? $bundle['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                             ?>
-                            <img alt="" class="img-responsive" src="<?= $bundleImage; ?>" height="200" width="310">
+                            <img alt="" class="img-responsive" src="<?= $this->escapeHtmlAttr($safeImg($bundleImage)); ?>" height="200" width="310">
                             <div class="product-action">
                                 <a><span>
                                     <i class="icon icon-visual-eye-fill"></i></span></a>
@@ -34,17 +36,17 @@ $pagination = $this->pagination;
                         <div class="product-thumb-info">
                             <div class="product-thumb-info-content">
 
-                                <h4 class="product-name"><a href="#"><?= $bundle['packageTitle']; ?></a></h4>
+                                <h4 class="product-name"><a href="#"><?= $this->escapeHtml($bundle['packageTitle']); ?></a></h4>
                                 <span class="price hidden">
                                     <span class="amount old"></span>
                                     <span class="amount current"></span>
                                 </span>
 
-                                <a class="hidden" href="<?= $bundle['packageRepository']; ?>" class="btn btn-primary btn-stroke btn-block"
+                                <a class="hidden" href="<?= $this->escapeHtmlAttr($safeUrl($bundle['packageRepository'])); ?>" class="btn btn-primary btn-stroke btn-block"
                                 target="_blank"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_check_on_github'); ?>
                                 </a>
                                 <div class="clearfix product-mini-sub">
-                                    <span class="melis-module-version <?= $opacity ?>"> <?= $bundle['packageVersion']; ?></span>
+                                    <span class="melis-module-version <?= $opacity ?>"> <?= $this->escapeHtml($bundle['packageVersion']); ?></span>
                                     <span class="melis-module-downloads <?= $opacity ?>"><i class="fa fa-download"></i> <?= number_format($bundle['packageTotalDownloads']); ?></span>
                                 </div>
 
@@ -103,7 +105,7 @@ $pagination = $this->pagination;
                     <!-- Previous page link -->
                     <?php if ($pagination['previous']['enabled'] == 'true'): ?>
                         <li class="page-item">
-                            <a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="<?= $pagination['previous']['page']; ?>"><i class="icon icon-chevron-left"></i></a>
+                            <a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="<?= (int) $pagination['previous']['page']; ?>"><i class="icon icon-chevron-left"></i></a>
                         </li>
                     <?php else: ?>
                         <li class="disabled page-item">
@@ -116,11 +118,11 @@ $pagination = $this->pagination;
                     <?php
                     foreach ($pagination['pages'] as $page) {
                         $active = '';
-                        $link = '<a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="' . $page['page'] . '">' . $page['page'] . '</a>';
+                        $link = '<a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="' . (int) $page['page'] . '">' . (int) $page['page'] . '</a>';
 
                         if ($page['current'] == 'true' || $page['current'] == 1) {
                             $active = ' class="active page-item"';
-                            $link = '<a class="page-link">' . $page['page'] . '</a>';
+                            $link = '<a class="page-link">' . (int) $page['page'] . '</a>';
                         }
                         echo '<li' . $active . ' class="page-item">' . $link . '</li>' . PHP_EOL;
                     }
@@ -129,7 +131,7 @@ $pagination = $this->pagination;
                     <!-- Next page link -->
                     <?php if ($pagination['next']['enabled'] == 'true'): ?>
                         <li class="page-item">
-                            <a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="<?= $pagination['next']['page']; ?>"><i class="icon icon-chevron-right"></i></a>
+                            <a href="#" class="melis-market-place-pagination page-link bundle-pagination" data-goto-page="<?= (int) $pagination['next']['page']; ?>"><i class="icon icon-chevron-right"></i></a>
                         </li>
                     <?php else: ?>
                         <li class="disabled page-item">

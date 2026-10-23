@@ -3,8 +3,10 @@ $id = '';
 if (!empty($this->zoneconfig['conf']['id'])) {
     $id = $this->zoneconfig['conf']['id'];
 }
+$safeUrl = function ($u) { $u = (string) $u; return preg_match('#^https?://#i', $u) ? $u : '#'; };
+$safeImg = function ($u) { $u = (string) $u; return preg_match('#^https?://#i', $u) ? $u : '/MelisMarketPlace/images/market-placeholder.png'; };
 ?>
-<div data-melisKey="<?= $this->melisKey ?>" id="<?= $this->packageId . '_' . $id; ?>" class="tab-pane container-level-a">
+<div data-melisKey="<?= $this->escapeHtmlAttr($this->melisKey) ?>" id="<?= $this->escapeHtmlAttr($this->packageId . '_' . $id); ?>" class="tab-pane container-level-a">
     <div class="innerAll spacing-x2">
 
     <?php if(!$this->marketNotAccessible){?>
@@ -19,8 +21,8 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="store-heading">
-                                    <h2 class="module-title"><?= $this->package['packageTitle']; ?></h2>
-                                    <p><?= $this->package['packageSubtitle']; ?></p>
+                                    <h2 class="module-title"><?= $this->escapeHtml($this->package['packageTitle']); ?></h2>
+                                    <p><?= $this->escapeHtml($this->package['packageSubtitle']); ?></p>
                                     <?php if (!$this->isUpdatablePlatform): ?>
                                         <p class="text-danger">
                                             <i class="fa fa-warning"></i> <?= $this->translate('tr_market_place_not_allowed') ?>
@@ -37,20 +39,20 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                             <div class="melis-marketplace-product-buttons">
                                                 <?php if (!$this->isModuleInstalled && !$this->isExempted) {
                                                     if (!$this->isUpdatablePlatform) ?>
-                                                        <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                        <button class="btn btn-success melis-marketplace-product-action" data-action="require" data-package="<?= $this->escapeHtmlAttr($this->package['packageName']) ?>" data-module="<?= $this->escapeHtmlAttr($this->package['packageModuleName']) ?>">
                                                     <i class="fa fa-download"></i>  <?= $this->translate('tr_market_place_require') ?>
                                                     </button>
                                                 <?php } else {
                                                     if ($this->versionStatus === -1 && $this->isUpdatablePlatform) {
                                                         ?>
-                                                        <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                        <button class="btn btn-info melis-marketplace-product-action" data-action="update" data-package="<?= $this->escapeHtmlAttr($this->package['packageName']) ?>" data-module="<?= $this->escapeHtmlAttr($this->package['packageModuleName']) ?>">
                                                             <i class="fa fa-download"></i> <?= $this->translate('tr_market_place_update') ?>
                                                         </button>
                                                     <?php }
                                                     if (!$this->isExempted) {
                                                         ?>
                                                         <?php if ($this->isModuleInstalled) { ?>
-                                                            <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->package['packageName'] ?>" data-module="<?= $this->package['packageModuleName'] ?>">
+                                                            <button class="btn btn-danger melis-marketplace-product-action" data-action="remove" data-package="<?= $this->escapeHtmlAttr($this->package['packageName']) ?>" data-module="<?= $this->escapeHtmlAttr($this->package['packageModuleName']) ?>">
 
                                                                 <i class="fa fa-remove"></i> <?= $this->translate('tr_market_place_remove') ?>
 
@@ -70,25 +72,25 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                 <ul class="add-info-lists">
                                     <li>
                                         <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_lastest_version'); ?>:</span>
-                                        <span><?= $this->package['packageVersion']; ?></span>
+                                        <span><?= $this->escapeHtml($this->package['packageVersion']); ?></span>
                                     </li>
                                     <?php if ($this->isModuleInstalled): ?>
                                         <li>
                                             <span class="info-title"><i class="fa fa-archive"></i><?= $this->translate('tr_market_place_current_version'); ?>:</span>
-                                            <span><?= $this->currentVersion; ?></span>
+                                            <span><?= $this->escapeHtml($this->currentVersion); ?></span>
                                         </li>
                                     <?php endif; ?>
                                     <li>
                                         <span class="info-title"><i class="fa fa-github"></i> <?= $this->translate('tr_market_place_github'); ?>:</span>
-                                        <span><a href="<?= $this->package['packageRepository']; ?>" target="_blank"><?= $this->package['packageRepository']; ?></a></span>
+                                        <span><a href="<?= $this->escapeHtmlAttr($safeUrl($this->package['packageRepository'])); ?>" target="_blank"><?= $this->escapeHtml($this->package['packageRepository']); ?></a></span>
                                     </li>
                                     <li>
                                         <span class="info-title"><img src="/MelisMarketPlace/images/packagist-icon.png" alt="" class="src"> <?= $this->translate('tr_market_place_packagist'); ?>:</span>
-                                        <span><a href="<?= $this->package['packageUrl']; ?>" target="_blank"><?= $this->package['packageUrl']; ?></a></span>
+                                        <span><a href="<?= $this->escapeHtmlAttr($safeUrl($this->package['packageUrl'])); ?>" target="_blank"><?= $this->escapeHtml($this->package['packageUrl']); ?></a></span>
                                     </li>
                                     <li>
                                         <span class="info-title"><i class="fa fa-tag"></i><?= $this->translate('tr_market_place_package_name'); ?>:</span>
-                                        <span><?= $this->package['packageName']; ?></span>
+                                        <span><?= $this->escapeHtml($this->package['packageName']); ?></span>
                                     </li>
                                     <li>
                                         <span class="info-title"><i class="fa fa-download"></i> <?= $this->translate('tr_market_place_total_downloads'); ?>:</span>
@@ -113,8 +115,8 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                             $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                             ?>
                                             <div>
-                                                <img class="" src="<?= $image; ?>" alt="">
-                                                <span class="img-title"><?= $images['imageTitle']; ?></span>
+                                                <img class="" src="<?= $this->escapeHtmlAttr($safeImg($image)); ?>" alt="">
+                                                <span class="img-title"><?= $this->escapeHtml($images['imageTitle']); ?></span>
                                             </div>
                                             <?php
                                         }
@@ -126,7 +128,7 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                             $image = isset($images['imageFile']) ? $images['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                             ?>
                                             <div>
-                                                <img src="<?= $image; ?>" alt="">
+                                                <img src="<?= $this->escapeHtmlAttr($safeImg($image)); ?>" alt="">
                                             </div>
                                             <?php
                                         }
@@ -145,7 +147,7 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                         }
                         ?>
                         <h5 class="sm-info-title"><?= $this->translate('tr_market_place_description'); ?></h5>
-                        <p><?= $this->package['packageDescription']; ?></p>
+                        <p><?= $this->escapeHtml($this->package['packageDescription']); ?></p>
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -175,12 +177,12 @@ if (!empty($this->zoneconfig['conf']['id'])) {
                                                         <?php
                                                         $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                                         ?>
-                                                        <img alt="" width="60" height="60" src="<?= $packageImage; ?>">
+                                                        <img alt="" width="60" height="60" src="<?= $this->escapeHtmlAttr($safeImg($packageImage)); ?>">
                                                     </a>
                                                 </div>
                                             </div>
                                             <div class="post-info">
-                                                <a href="#" class="melis-market-place-view-details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><?= $package['packageTitle']; ?></a>
+                                                <a href="#" class="melis-market-place-view-details" data-packageid="<?= (int) $package['packageId'] ?>" data-packagetitle="<?= $this->escapeHtmlAttr($package['packageTitle']); ?>"><?= $this->escapeHtml($package['packageTitle']); ?></a>
                                                 <p class="melis-module-downloads">
                                                     <i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?>
                                                 </p>

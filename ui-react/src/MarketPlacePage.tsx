@@ -762,6 +762,17 @@ const XHR = { 'X-Requested-With': 'XMLHttpRequest' } as const
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
+// SECURITY (audit MP-H4) : le flux Composer cite des métadonnées DISTANTES du paquet
+// (« abandoned, use X instead », suggest, erreurs) — on échappe tout puis on ré-autorise
+// UNIQUEMENT les spans colorés de forme FIXE émis par ComposerOutputFormatterStyle
+// (aucun handler possible dans ce motif).
+function sanitizeComposerChunk(s: string): string {
+  let out = esc(String(s ?? ''))
+  out = out.replace(/&lt;span style="(?:color: #[0-9a-fA-F]{3,6};)?(?:background: #[0-9a-fA-F]{3,6};)?"&gt;/g,
+    (m) => m.replace('&lt;', '<').replace('&gt;', '>'))
+  out = out.replace(/&lt;\/span&gt;/g, '</span>').replace(/&lt;br\s*\/?&gt;/g, '<br/>')
+  return out
+}
 async function mpPost(action: string, data: Record<string, string>): Promise<any> {
   const res = await fetch(MP + action, { method: 'POST', headers: { ...XHR }, credentials: 'include', body: new URLSearchParams(data) })
   return res.json()
@@ -827,13 +838,15 @@ function ManageModal({ pkg, action, onClose }: { pkg: PackageDetailData; action:
         const { done, value } = await reader.read()
         if (done) break
         const chunk = dec.decode(value, { stream: true })
-        // The backend streams already-formatted HTML (colored <span>s) — render as-is (like the
-        // legacy console does), NOT escaped, else the raw tags show up as literal text.
-        if (chunk) push(chunk)
+        // SECURITY (audit MP-H4): the backend wraps composer output in colored <span>s, but the
+        // TEXT inside quotes remote package metadata — escape everything and re-allow only the
+        // fixed server span shape (keeps the colors, kills any injected markup).
+        if (chunk) push(sanitizeComposerChunk(chunk))
       }
     }
     // Composer re-dump autoload (comme le .done() legacy), puis on continue.
-    await fetch(MP + 'reDumpAutoload', { headers: { ...XHR }, credentials: 'include' }).catch(() => null)
+    // SECURITY (audit MP-M2) : POST — le serveur refuse désormais le GET (405).
+    await fetch(MP + 'reDumpAutoload', { method: 'POST', headers: { ...XHR }, credentials: 'include' }).catch(() => null)
     okLine(t('mng_exec_done'))
   }
 

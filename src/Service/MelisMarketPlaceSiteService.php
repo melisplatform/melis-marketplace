@@ -443,6 +443,30 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
      *
      * @return array
      */
+    /**
+     * SECURITY (audit MP-M5) : seuls les callbacks documentés de MelisMarketPlaceSiteInstall
+     * sont invocables depuis la config `download` d'un paquet — l'ancien `$this->$fn()` libre
+     * permettait d'appeler n'importe quelle méthode (même privée) du service.
+     */
+    private const ALLOWED_CONFIG_CALLBACKS = [
+        'incrementCurrentPageId',
+        'incrementCurrentTemplateId',
+        'triggerEvent',
+        'getFieldValue',
+        'getPageId',
+        'getTemplateId',
+    ];
+
+    /**
+     * SECURITY (audit MP-M5) : échappement SQL correct d'une valeur destinée à un littéral
+     * entre quotes simples — l'ancien `str_replace(["'",'"'],["\'",'\"'])` n'échappait pas
+     * le backslash (une valeur finissant par `\` neutralisait la quote fermante).
+     */
+    private function escapeSqlValue($value)
+    {
+        return addcslashes((string) $value, "\\'\"\0");
+    }
+
     protected function createInsertSql($tables, $parentTable = null)
     {
         $sql = '';
@@ -461,9 +485,9 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                         foreach ($payload as $field => $value) {
                             $recursionSql = '';
 
-                            // escape
+                            // escape — SECURITY (audit MP-M5) : backslash inclus
                             if (!is_array($value)) {
-                                $value = str_replace(["'", '"'], ["\'", '\"'], $value);
+                                $value = $this->escapeSqlValue($value);
                             }
                           
                             if (!in_array($field, [Melis::RELATION, Site::THEN, Melis::PRIMARY_KEY])) {
@@ -478,8 +502,12 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
 
                                     $fn = current(array_keys($value));
                                     $args = $value[$fn];
+                                    /** SECURITY (audit MP-M5) : callback whitelisté + résultat échappé. */
+                                    if (!in_array($fn, self::ALLOWED_CONFIG_CALLBACKS, true)) {
+                                        continue;
+                                    }
                                     $fields .= "`$field`, ";
-                                    $fieldValues .= "'" . $this->$fn($args) . "', ";
+                                    $fieldValues .= "'" . $this->escapeSqlValue($this->$fn($args)) . "', ";
                                 } else {
                                     $fields .= "`$field`, ";
                                     $fieldValues .= "'$value', ";
@@ -555,13 +583,14 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                     $this->sendEvent('melis_marketplace_site_install_inserted_id', ['table_name' => $table, 'id' => $insertedId, 'sql' => $sql]);
 
                     // Execute set callbacks in the configuration array table
+                    // SECURITY (audit MP-M5) : callbacks whitelistés (cf. ALLOWED_CONFIG_CALLBACKS)
                     if (isset($transact[Site::THEN])) {
                         foreach ($transact[Site::THEN] as $fnOrKey => $fn) {
-                            if (is_string($fn)) {
+                            if (is_string($fn) && in_array($fn, self::ALLOWED_CONFIG_CALLBACKS, true)) {
                                 $this->$fn();
                             }
 
-                            if (is_array($fn)) {
+                            if (is_array($fn) && in_array($fnOrKey, self::ALLOWED_CONFIG_CALLBACKS, true)) {
                                 $this->$fnOrKey($fn);
                             }
                         }
@@ -825,8 +854,14 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
         $returnField = $args[static::VAL_RETURN_FIELD];
 
         if ($table && $field && $value && $returnField) {
-            $sql = "SELECT $returnField FROM `$table` WHERE `$field` = '$value' LIMIT 1;";
-            $result = $this->getAdapter()->query($sql, DbAdapter::QUERY_MODE_EXECUTE)->toArray();
+            /** SECURITY (audit MP-M5) : identifiants whitelistés + valeur LIÉE (plus d'interpolation). */
+            foreach ([$table, $field, $returnField] as $identifier) {
+                if (!preg_match('/^[A-Za-z0-9_]+$/', (string) $identifier)) {
+                    return null;
+                }
+            }
+            $sql = "SELECT `$returnField` FROM `$table` WHERE `$field` = ? LIMIT 1;";
+            $result = $this->getAdapter()->query($sql, [$value])->toArray();
             $value = current($result)[$returnField] ?? null;
 
             return $value;
@@ -873,11 +908,12 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
 
         if ($siteId && $pageName && $return) {
 
+            /** SECURITY (audit MP-M5) : paramètres LIÉS (plus d'interpolation de page_name). */
             $transaction = "SELECT $return FROM `$melisCmsPageTree` " .
                 "LEFT JOIN `$melisCmsPagePublished` ON `tree_page_id` = `page_id` WHERE " .
-                "`tree_father_page_id` = $siteId AND `page_name` = '$pageName';";
+                "`tree_father_page_id` = ? AND `page_name` = ?;";
 
-            if ($result = $this->getAdapter()->query($transaction, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
+            if ($result = $this->getAdapter()->query($transaction, [(int) $siteId, $pageName])->toArray()) {
                 $pageId = current($result)[$return] ?? null;
             }
         }
@@ -903,9 +939,10 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
         $templateId = null;
 
         if ($siteId && $templateName && $return) {
-            $transaction = "SELECT $return FROM `$melisCmsTemplates` WHERE `tpl_site_id` = $siteId AND `tpl_name` = '$templateName'";
+            /** SECURITY (audit MP-M5) : paramètres LIÉS (plus d'interpolation de tpl_name). */
+            $transaction = "SELECT $return FROM `$melisCmsTemplates` WHERE `tpl_site_id` = ? AND `tpl_name` = ?";
 
-            if ($result = $this->getAdapter()->query($transaction, DbAdapter::QUERY_MODE_EXECUTE)->toArray()) {
+            if ($result = $this->getAdapter()->query($transaction, [(int) $siteId, $templateName])->toArray()) {
                 $templateId = current($result)[$return] ?? null;
             }
         }

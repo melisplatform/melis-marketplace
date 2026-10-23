@@ -106,43 +106,13 @@ return [
                 ],
             ],
             /*
-             * This route will handle the
-             * alone setup of a module
+             * SECURITY (audit MP-H1) : l'arbre de routes top-level `setup-melis-marketplace`
+             * (`/MelisMarketPlace/[:controller[/:action]]`, hérité d'un setup standalone dont le
+             * contrôleur était VIDE) exposait TOUT le module hors du préfixe `/melis` — donc hors
+             * du listener CSRF (mode enforce), hors du gate de droit (routes `melis-backoffice*`)
+             * et hors du sanitizer d'erreurs : les actions admin (composer require, DROP TABLE,
+             * dbdeploy…) devenaient CSRF-ables. Supprimé, avec le contrôleur MelisSetup et sa vue.
              */
-            'setup-melis-marketplace' => [
-                'type' => 'Literal',
-                'options' => [
-                    'route' => '/MelisMarketPlace',
-                    'defaults' => [
-                        '__NAMESPACE__' => 'MelisMarketPlace\Controller',
-                        'controller' => 'MelisSetup',
-                        'action' => 'setup-form',
-                    ],
-                ],
-                'may_terminate' => true,
-                'child_routes' => [
-                    'default' => [
-                        'type' => 'Segment',
-                        'options' => [
-                            'route' => '/[:controller[/:action]]',
-                            'constraints' => [
-                                'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                            ],
-                        ],
-                    ],
-                    'setup' => [
-                        'type' => 'Segment',
-                        'options' => [
-                            'route' => '/setup',
-                            'defaults' => [
-                                'controller' => 'MelisMarketPlace\Controller\MelisSetup',
-                                'action' => 'setup-form',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
         ],
     ],
     'service_manager' => [
@@ -158,7 +128,6 @@ return [
     'controllers' => [
         'invokables' => [
             'MelisMarketPlace\Controller\MelisMarketPlace' => \MelisMarketPlace\Controller\MelisMarketPlaceController::class,
-            'MelisMarketPlace\Controller\MelisSetup' => \MelisMarketPlace\Controller\MelisSetupController::class,
             'MelisMarketPlace\Controller\MelisMarketPlaceReactApi' => \MelisMarketPlace\Controller\MelisMarketPlaceReactApiController::class,
         ],
     ],
