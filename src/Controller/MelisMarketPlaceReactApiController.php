@@ -47,8 +47,17 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             $order    = trim((string) ($this->params()->fromQuery('order', 'desc') ?? ''));
             $bundle   = (int) (bool) $this->params()->fromQuery('bundle', 0);
 
+            /**
+             * SECURITY (audit MP-M6) : chaque segment injecté dans l'URL serveur→serveur est
+             * borné/encodé — order/orderBy/group étaient concaténés BRUTS (traversée de
+             * chemin / injection de query sur l'hôte catalogue).
+             */
+            $order   = strtolower($order) === 'asc' ? 'asc' : 'desc';
+            $orderBy = preg_replace('/[^A-Za-z0-9_]/', '', $orderBy) ?: 'mp_total_downloads';
+            $group   = preg_replace('/[^A-Za-z0-9_-]/', '', $group);
+
             $serverPackages = $this->fetchFromPackagist('/get-packages/page/' . $page
-                . '/search/' . urlencode($search)
+                . '/search/' . rawurlencode($search)
                 . '/item_per_page/' . $limit
                 . '/order/' . $order
                 . '/order_by/' . $orderBy
@@ -413,10 +422,15 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         $url = $this->getMelisPackagistServer();
         if (!$url) { return []; }
 
-        set_time_limit(0);
-        ini_set('memory_limit', '-1');
-
-        $response = @file_get_contents($url . $path);
+        /**
+         * SECURITY (audit MP-M6) : lecture distante BORNÉE — timeout court, pas de suivi de
+         * redirection (transport en clair : un 302 MITM = SSRF), taille plafonnée. Les anciens
+         * `set_time_limit(0)` + `memory_limit -1` laissaient un serveur lent retenir les workers.
+         */
+        $context = stream_context_create([
+            'http' => ['timeout' => 5, 'follow_location' => 0],
+        ]);
+        $response = @file_get_contents($url . $path, false, $context, 0, 4194304);
         try {
             $decoded = \Laminas\Json\Json::decode($response, \Laminas\Json\Json::TYPE_ARRAY);
         } catch (\Throwable) {

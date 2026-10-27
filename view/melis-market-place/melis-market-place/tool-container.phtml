@@ -7,8 +7,9 @@ if (!empty($this->zoneconfig['conf']['id'])) {
 
 $form = $this->searchForm;
 $packageGroupData = $this->packageGroupData;
+$safeImg = function ($u) { $u = (string) $u; return preg_match('#^https?://#i', $u) ? $u : '/MelisMarketPlace/images/market-placeholder.png'; };
 ?>
-<div data-melisKey="<?= $this->melisKey ?>" id="<?= $id; ?>" class="tab-pane container-level-a" data-melispackagistserver="<?= $this->melisPackagistServer; ?>">
+<div data-melisKey="<?= $this->escapeHtmlAttr($this->melisKey) ?>" id="<?= $this->escapeHtmlAttr($id); ?>" class="tab-pane container-level-a" data-melispackagistserver="<?= $this->escapeHtmlAttr($this->melisPackagistServer); ?>">
     <div class="innerAll spacing-x2">
         <div class="melis-store">
             <div class="row">
@@ -63,9 +64,9 @@ $packageGroupData = $this->packageGroupData;
                                                 if (isset($packageGroupData)) {
                                                     foreach ($packageGroupData as $groupData => $groupValue) {
                                                         $typeName = substr($groupValue['mp_group_name'], 5); ?>
-                                                            <button class='btn btn-primary <?= strtolower($typeName) ?>' data-groupname="<?= $groupValue['mp_group_name'] ?>" value='<?= $groupValue['mp_group_id'] ?>'>
+                                                            <button class='btn btn-primary <?= $this->escapeHtmlAttr(strtolower($typeName)) ?>' data-groupname="<?= $this->escapeHtmlAttr($groupValue['mp_group_name']) ?>" value='<?= (int) $groupValue['mp_group_id'] ?>'>
                                                                 <div class="melis-svg">
-                                                                    <svg id="Layer_<?= $groupValue['mp_group_id'] ?>" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+                                                                    <svg id="Layer_<?= (int) $groupValue['mp_group_id'] ?>" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
                                                                         <rect class="bg-color" fill="#ff0000" x=".07" y=".13" width="79.86" height="79.86" rx="15.36" ry="15.36"/>
                                                                         <g>
                                                                             <path class="light-color" fill="#FFFFFF" d="M57.78,15.87c-3.47,0-6.29,2.81-6.29,6.29v35.85c0,3.47,2.81,6.29,6.29,6.29s6.29-2.81,6.29-6.29V22.16c0-3.47-2.81-6.29-6.29-6.29Z"/>
@@ -74,7 +75,7 @@ $packageGroupData = $this->packageGroupData;
                                                                         </g>
                                                                     </svg>
                                                                 </div>
-                                                                <?= $typeName ?>
+                                                                <?= $this->escapeHtml($typeName) ?>
                                                             </button>
                                                     <?php } ?>
                                                 <?php } ?>
@@ -143,12 +144,12 @@ $packageGroupData = $this->packageGroupData;
                                                         <?php
                                                         $packageImage = isset($package['packageImages'][0]['imageFile']) ? $package['packageImages'][0]['imageFile'] : '/MelisMarketPlace/images/market-placeholder.png';
                                                         ?>
-                                                        <img alt="" width="60" height="60" src="<?= $packageImage; ?>">
+                                                        <img alt="" width="60" height="60" src="<?= $this->escapeHtmlAttr($safeImg($packageImage)); ?>">
                                                     </a>
                                                 </div>
                                             </div>
                                             <div class="post-info">
-                                                <a href="#" class="melis-market-place-view-details" data-packageid="<?= $package['packageId'] ?>" data-packagetitle="<?= $package['packageTitle']; ?>"><?= $package['packageTitle']; ?></a>
+                                                <a href="#" class="melis-market-place-view-details" data-packageid="<?= (int) $package['packageId'] ?>" data-packagetitle="<?= $this->escapeHtmlAttr($package['packageTitle']); ?>"><?= $this->escapeHtml($package['packageTitle']); ?></a>
                                                 <p class="melis-module-downloads">
                                                     <i class="fa fa-download"></i> <?= number_format($package['packageTotalDownloads']); ?>
                                                 </p>

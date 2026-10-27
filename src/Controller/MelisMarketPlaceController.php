@@ -19,6 +19,16 @@ use Laminas\Db\Sql\Ddl;
  */
 class MelisMarketPlaceController extends MelisAbstractActionController
 {
+    /**
+     * Outil auquel ce contrôleur appartient (audit DEKRA 7.0).
+     *
+     * Lu par MelisCoreAuthorizationListener : le garde-fou global résout la route jusqu'à
+     * cette classe et vérifie `canAccess()` sur cette clé AVANT le dispatch. Sans elle, le
+     * contrôleur restait joignable par tout compte connecté (route seulement authentifiée).
+     * Clé accordable par l'arbre des droits — Market Place.
+     */
+    const MELIS_KEY = 'melis_market_place_tool_display';
+
     /** @var  \Laminas\Db\Adapter\Adapter $adapter */
     protected $adapter;
 
@@ -44,6 +54,44 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     }
 
     /**
+     * SECURITY (audit MP-M1 / MP-B4) : le gate central d'autorisation est en mode `report`
+     * par défaut — le droit d'outil Marketplace doit donc être vérifié ICI, côté serveur,
+     * sur les actions de données/sondes (fail-closed si le service de droits jette).
+     */
+    private function hasToolAccess()
+    {
+        try {
+            return (bool) $this->getServiceManager()->get('MelisCoreRights')->canAccess(self::MELIS_KEY);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * SECURITY (audit MP-M6) : lecture HTTP du catalogue distant BORNÉE — timeout court,
+     * AUCUN suivi de redirection (le transport est en clair : un 302 MITM vers un service
+     * interne serait un SSRF), taille de réponse plafonnée. Remplace les
+     * `set_time_limit(0)` + `memory_limit -1` + `file_get_contents` nus.
+     */
+    private function remoteGet($url, $maxBytes = 4194304)
+    {
+        $context = stream_context_create([
+            'http' => ['timeout' => 5, 'follow_location' => 0],
+        ]);
+        $data = @file_get_contents($url, false, $context, 0, $maxBytes);
+        return $data === false ? null : $data;
+    }
+
+    /**
+     * SECURITY (audit MP-H2) : un nom de module Melis est purement alphanumérique — jamais
+     * de backslash (préfixe de namespace du dispatch de setup) ni de séparateur de chemin.
+     */
+    private function sanitizeModuleName($module)
+    {
+        return preg_replace('/[^A-Za-z0-9]/', '', (string) $module);
+    }
+
+    /**
      * Handles the display of the tool
      *
      * @return \Laminas\View\Model\ViewModel
@@ -55,6 +103,16 @@ class MelisMarketPlaceController extends MelisAbstractActionController
 
         $view = new ViewModel();
         $view->melisKey = $melisKey;
+
+        /** SECURITY (audit MP-M1) : droit d'outil exigé côté serveur. */
+        if (!$this->hasToolAccess()) {
+            $view->marketNotAccessible = true;
+            $view->searchForm = null;
+            $view->packageGroupData = null;
+            $view->isUpdatablePlatform = false;
+            return $view;
+        }
+
         $view->isUpdatablePlatform = $this->allowUpdate();
 
         if (!$this->isMarketplaceAccessible()) {
@@ -66,7 +124,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $config = $this->getServiceManager()->get('MelisConfig');
         $searchForm = $config->getItem('melismarketplace_toolstree_section/forms/melis_market_place_search');
 
-        $packageGroupData = @file_get_contents($url . '/get-package-group', true);
+        $packageGroupData = $this->remoteGet($url . '/get-package-group');
 
         try {
             $packageGroupData = Json::decode($packageGroupData, Json::TYPE_ARRAY);
@@ -79,10 +137,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $factory->setFormElementManager($formElements);
         $searchForm = $factory->createForm($searchForm);
 
-        set_time_limit(0);
-        ini_set('memory_limit', '-1');
-
-        $response = @file_get_contents($url . '/get-most-downloaded-packages');
+        $response = $this->remoteGet($url . '/get-most-downloaded-packages');
         try {
             $packages = Json::decode($response, Json::TYPE_ARRAY);
         } catch (\Exception $e) {
@@ -124,7 +179,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     {
         $melisKey = $this->params()->fromRoute('melisKey', $this->params()->fromQuery('melisKey'), null);
 
-        return $melisKey;
+        /** SECURITY (audit MP-H5) : réfléchi dans plusieurs vues — forme bornée, jamais de HTML. */
+        return preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $melisKey);
     }
 
     /**
@@ -158,6 +214,15 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $melisKey = $this->getMelisKey();
         $packageId = (int) $this->params()->fromQuery('packageId', null);
 
+        /** SECURITY (audit MP-M1) : droit d'outil exigé côté serveur. */
+        if (!$this->hasToolAccess()) {
+            $view = new ViewModel();
+            $view->melisKey = $melisKey;
+            $view->packageId = $packageId;
+            $view->marketNotAccessible = false;
+            return $view;
+        }
+
         if (!$this->isMarketplaceAccessible()) {
             $view = new ViewModel();
             $view->melisKey = $melisKey;
@@ -168,11 +233,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $view->marketNotAccessible = false;
             return $view;
         }
-        set_time_limit(0);
-        ini_set('memory_limit', '-1');
-
         $marketPlaceStatus = $this->checkStatusMarketPlace();
-        $response = @file_get_contents($url . '/get-package/' . $packageId);
+        $response = $this->remoteGet($url . '/get-package/' . $packageId);
         try {
             $package = Json::decode($response, Json::TYPE_ARRAY);
         } catch (\Exception $e) {
@@ -211,14 +273,14 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             }
         }
 
-        $response = @file_get_contents($url . '/get-most-downloaded-packages');
+        $response = $this->remoteGet($url . '/get-most-downloaded-packages');
         try {
             $packages = Json::decode($response, Json::TYPE_ARRAY);
         } catch (\Exception $e) {
             $packages = null;
         }
 
-        $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName']);
+        $isModuleInstalled = (bool) $this->isModuleInstalled($package['packageModuleName'] ?? '');
 
         if ($isModuleInstalled) {
             $currentVersion = $moduleSvc->getModulesAndVersions($module)['version'];
@@ -344,6 +406,15 @@ class MelisMarketPlaceController extends MelisAbstractActionController
     public function moduleListAction()
     {
         $view = new ViewModel();
+
+        /** SECURITY (audit MP-M1) : droit d'outil exigé côté serveur. */
+        if (!$this->hasToolAccess()) {
+            $view->setTerminal(true);
+            $view->marketNotAccessible = true;
+            $view->isUpdatablePlatform = false;
+            return $view;
+        }
+
         $view->isUpdatablePlatform = $this->allowUpdate();
 
         if (!$this->isMarketplaceAccessible()) {
@@ -415,6 +486,20 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
 
+        /** SECURITY (audit MP-M1) : droit d'outil exigé côté serveur. */
+        if (!$this->hasToolAccess()) {
+            $view = new ViewModel();
+            $view->setTerminal(true);
+            $view->bundles = [];
+            $view->isBundleOnly = false;
+            $view->itemCountPerPage = 0;
+            $view->pageCount = 0;
+            $view->currentPageNumber = 1;
+            $view->pagination = null;
+            $view->isUpdatablePlatform = false;
+            return $view;
+        }
+
         if ($request->isPost()) {
             $post = $this->getTool()->sanitizeRecursive($request->getPost(), [], true);
 
@@ -467,16 +552,22 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $group = isset($request->getQuery()['group']) ? (string) $request->getQuery()['group'] : null;
         $bundle = isset($post['bundle']) ? $post['bundle'] : null;
 
+        /**
+         * SECURITY (audit MP-M6) : chaque segment injecté dans l'URL serveur→serveur est
+         * borné/encodé — l'ancien code concaténait order/orderBy/group/bundle BRUTS
+         * (traversée de chemin / injection de query sur l'hôte catalogue).
+         */
+        $search = rawurlencode((string) $search);
+        $order = strtolower((string) $order) === 'asc' ? 'asc' : 'desc';
+        $orderBy = preg_replace('/[^A-Za-z0-9_]/', '', (string) $orderBy) ?: 'mp_total_downloads';
+        $group = preg_replace('/[^A-Za-z0-9_-]/', '', (string) $group);
+        $bundle = preg_replace('/[^0-9]/', '', (string) $bundle);
 
-        set_time_limit(0);
-        ini_set('memory_limit', '-1');
-
-        $search = urlencode($search);
         $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/' . $page . '/search/' . $search
             . '/item_per_page/' . $itemPerPage . '/order/' . $order . '/order_by/' . $orderBy . '/status/1' . '/group/' . $group
             . '/bundle/' . $bundle;
 
-        $serverPackages = @file_get_contents($requestJsonUrl);
+        $serverPackages = $this->remoteGet($requestJsonUrl);
         try {
             $serverPackages = Json::decode($serverPackages, Json::TYPE_ARRAY);
         } catch (\Exception $e) {
@@ -782,7 +873,8 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             foreach ($objects as $object) {
                 if ($object != "." && $object != "..") {
                     if (!is_writable($dirPath . "/" . $object)) {
-                        chmod($dirPath . "/" . $object, 0777);
+                        /** SECURITY (audit MP-M4) : jamais 0777 (world-writable sur du code). */
+                        chmod($dirPath . "/" . $object, 0755);
                     }
                     if (filetype($dirPath . "/" . $object) == "dir") {
                         $this->deleteDir($dirPath . "/" . $object);
@@ -801,6 +893,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function isPackageDirectoryRemovableAction()
     {
+        /** SECURITY (audit MP-B4/M1) : sonde FS — droit d'outil exigé. */
+        if (!$this->hasToolAccess()) {
+            return new JsonModel(['success' => 0, 'title' => '', 'message' => 'Forbidden']);
+        }
         $success = 0;
         $message = 'tr_melis_marketplace_package_directory_removable_ko';
         /**@var HttpRequest $request*/
@@ -855,7 +951,11 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $module = isset($post['module']) ? $post['module'] : '';
             $modulePath = $moduleSvc->getModulePath($module);
 
-            chmod($modulePath, 0777);
+            /**
+             * SECURITY (audit MP-M4) : 0755, jamais 0777 — un dossier de code PHP autoloadé à
+             * chaque requête en world-writable est une escalade locale vers RCE.
+             */
+            chmod($modulePath, 0755);
 
             if ($this->hasDirRights($modulePath)) {
                 $success = 1;
@@ -945,6 +1045,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function isModuleExistsAction()
     {
+        /** SECURITY (audit MP-B4/M1) : sonde d'inventaire — droit d'outil exigé. */
+        if (!$this->hasToolAccess()) {
+            return new JsonModel(['module' => '', 'isExist' => 0]);
+        }
         $isExist = 0;
         $module = '';
         /**@var HttpRequest $request*/
@@ -1036,6 +1140,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function getModuleTablesAction()
     {
+        /** SECURITY (audit MP-B4/M1) : liste tables + fichiers dbdeploy — droit d'outil exigé. */
+        if (!$this->hasToolAccess()) {
+            return new JsonModel(['tables' => [], 'files' => []]);
+        }
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
         $module = $this->getTool()->sanitize($request->getPost('module'));
@@ -1476,14 +1584,16 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $view->modules = serialize($moduleList);
         $view->downloadedPackages = $data;
 
+        /** SECURITY (audit MP-M1) : droit d'outil exigé côté serveur. */
+        if (!$this->hasToolAccess()) {
+            return $view;
+        }
+
         if (!$this->isMarketplaceAccessible()) {
             return $view;
         }
 
-        set_time_limit(0);
-        ini_set('memory_limit', '-1');
-
-        $downloadedmodulesData = @file_get_contents($url);
+        $downloadedmodulesData = $this->remoteGet($url);
         try {
             $packages = json_decode($downloadedmodulesData, true);
         } catch (\Exception $e) {
@@ -1531,6 +1641,12 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             return new JsonModel(['success' => false, 'message' => 'Forbidden']);
         }
 
+        /** SECURITY (audit MP-M2) : mutation → POST uniquement (le CSRF exempte les verbes sûrs). */
+        if (!$this->getRequest()->isPost()) {
+            $this->getResponse()->setStatusCode(405);
+            return new JsonModel(['success' => false, 'message' => 'POST required']);
+        }
+
         $composerSvc = $this->getServiceManager()->get('MelisComposerService');
         $composerSvc->dumpAutoload();
         exit;
@@ -1542,6 +1658,14 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             $view = new ViewModel();
             $view->setTerminal(true);
             $this->getResponse()->setStatusCode(403);
+            return $view;
+        }
+
+        /** SECURITY (audit MP-M2) : mutation → POST uniquement (le CSRF exempte les verbes sûrs). */
+        if (!$this->getRequest()->isPost()) {
+            $view = new ViewModel();
+            $view->setTerminal(true);
+            $this->getResponse()->setStatusCode(405);
             return $view;
         }
 
@@ -1585,7 +1709,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
             'MelisFront',
         ];
 
-        $serverPackages = @file_get_contents($requestJsonUrl);
+        $serverPackages = $this->remoteGet($requestJsonUrl);
         try {
             $serverPackages = json_decode($serverPackages, true);
         } catch (\Exception $e) {
@@ -1737,6 +1861,10 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function isModuleActiveAction()
     {
+        /** SECURITY (audit MP-B4/M1) : sonde d'inventaire — droit d'outil exigé. */
+        if (!$this->hasToolAccess()) {
+            return new JsonModel(['active' => false]);
+        }
         $active = false;
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
@@ -1801,9 +1929,18 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function getSetupModuleFormAction()
     {
+        /**
+         * SECURITY (audit MP-H2) : étape du flux d'installation — même privilège que
+         * siteInstall/productDo. Sans cette garde, tout compte BO chargeait (et ACTIVAIT via
+         * loadModule) le setup d'un module arbitraire. + validation stricte du nom de module.
+         */
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => 0, 'message' => 'Forbidden']);
+        }
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
-        $module = $request->getPost('module', $this->params()->fromRoute('module'));
+        $module = $this->sanitizeModuleName($request->getPost('module', $this->params()->fromRoute('module')));
         $action = $request->getPost('action', $this->params()->fromRoute('module', static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
@@ -1823,9 +1960,14 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function validateSetupFormAction()
     {
+        /** SECURITY (audit MP-H2) : cf. getSetupModuleFormAction. */
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => 0, 'message' => 'Forbidden']);
+        }
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
-        $module = $request->getPost('module', $this->params()->fromRoute('module'));
+        $module = $this->sanitizeModuleName($request->getPost('module', $this->params()->fromRoute('module')));
         $action = $request->getPost('action', $this->params()->fromRoute('module', static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
@@ -1852,9 +1994,18 @@ class MelisMarketPlaceController extends MelisAbstractActionController
      */
     public function submitSetupFormAction()
     {
+        /**
+         * SECURITY (audit MP-H2) : sans cette garde, tout compte BO créait un site complet
+         * (domaine arbitraire) et dispatchait le contrôleur de setup de n'importe quel module —
+         * `siteInstallAction`, qui fait la même chose, était déjà gardée admin (asymétrie).
+         */
+        if (!$this->isPlatformAdmin()) {
+            $this->getResponse()->setStatusCode(403);
+            return new JsonModel(['success' => 0, 'message' => 'Forbidden']);
+        }
         /**@var HttpRequest $request*/
         $request = $this->getRequest();
-        $module = $request->getPost('module', $this->params()->fromRoute('module'));
+        $module = $this->sanitizeModuleName($request->getPost('module', $this->params()->fromRoute('module')));
         $action = $request->getPost('action', $this->params()->fromRoute('module', static::ACTION_DOWNLOAD)) === self::ACTION_REQUIRE
             ? self::ACTION_DOWNLOAD : self::ACTION_DOWNLOAD;
 
