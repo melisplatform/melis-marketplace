@@ -1,7 +1,6 @@
-// SECURITY (audit MP-H4) : le flux Composer streamé cite des métadonnées DISTANTES du paquet
-// (« abandoned, use X instead », textes de suggest/erreurs) et était injecté brut dans le DOM.
-// On échappe tout, puis on ré-autorise UNIQUEMENT les spans colorés de forme FIXE émis par le
-// serveur (ComposerOutputFormatterStyle) — ce motif ne peut porter aucun handler.
+// Le flux Composer streamé cite des métadonnées distantes du paquet : on échappe tout, puis on
+// ré-autorise uniquement les spans colorés de forme fixe émis par le serveur
+// (ComposerOutputFormatterStyle).
 window.melisMarketplaceSanitizeChunk = function (s) {
     s = String(s === undefined || s === null ? '' : s)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -380,7 +379,7 @@ $(function () {
                                     addLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executing);
 
                                     setTimeout(function(){
-                                        // SECURITY (audit MP-M2) : mutation en POST (le serveur refuse le GET, 405)
+                                        // Mutation en POST (le serveur refuse le GET, 405)
                                         $.post("/melis/MelisMarketPlace/MelisMarketPlace/executeComposerScripts").done(function(res){
                                             updateCmdText(melisMarketplaceSanitizeChunk(res));
                                             clearLazyCmdText('span_c_scripts_setup', translations.tr_melis_core_composer_scrpts_executed);
@@ -686,7 +685,7 @@ $(function () {
                             curResponse = response.substring(lastResponseLen);
                             lastResponseLen = response.length;
                         }
-                        // SECURITY (audit MP-H4) : chunk échappé avant insertion DOM
+                        // Chunk échappé avant insertion DOM
                         vConsoleText += melisMarketplaceSanitizeChunk(curResponse) + "\n<br/>";
                         if (typeof vConsoleText !== "undefined") {
 
@@ -706,7 +705,7 @@ $(function () {
             })
             .done(function (data) {
                 setTimeout(function () {
-                    // Composer re-Dumpautoload — SECURITY (audit MP-M2) : POST (le serveur refuse le GET)
+                    // Composer re-Dumpautoload — POST (le serveur refuse le GET)
                     $.post("/melis/MelisMarketPlace/MelisMarketPlace/reDumpAutoload", function(){
 
                         vConsoleText = "" + vConsole.html();

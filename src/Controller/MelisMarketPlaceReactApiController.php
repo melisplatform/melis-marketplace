@@ -48,9 +48,7 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             $bundle   = (int) (bool) $this->params()->fromQuery('bundle', 0);
 
             /**
-             * SECURITY (audit MP-M6) : chaque segment injecté dans l'URL serveur→serveur est
-             * borné/encodé — order/orderBy/group étaient concaténés BRUTS (traversée de
-             * chemin / injection de query sur l'hôte catalogue).
+             * Chaque segment placé dans l'URL serveur→serveur est borné/encodé.
              */
             $order   = strtolower($order) === 'asc' ? 'asc' : 'desc';
             $orderBy = preg_replace('/[^A-Za-z0-9_]/', '', $orderBy) ?: 'mp_total_downloads';
@@ -423,9 +421,7 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
         if (!$url) { return []; }
 
         /**
-         * SECURITY (audit MP-M6) : lecture distante BORNÉE — timeout court, pas de suivi de
-         * redirection (transport en clair : un 302 MITM = SSRF), taille plafonnée. Les anciens
-         * `set_time_limit(0)` + `memory_limit -1` laissaient un serveur lent retenir les workers.
+         * Lecture distante bornée : timeout court, pas de suivi de redirection, taille plafonnée.
          */
         $context = stream_context_create([
             'http' => ['timeout' => 5, 'follow_location' => 0],

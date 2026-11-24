@@ -105,14 +105,6 @@ return [
                     ],
                 ],
             ],
-            /*
-             * SECURITY (audit MP-H1) : l'arbre de routes top-level `setup-melis-marketplace`
-             * (`/MelisMarketPlace/[:controller[/:action]]`, hérité d'un setup standalone dont le
-             * contrôleur était VIDE) exposait TOUT le module hors du préfixe `/melis` — donc hors
-             * du listener CSRF (mode enforce), hors du gate de droit (routes `melis-backoffice*`)
-             * et hors du sanitizer d'erreurs : les actions admin (composer require, DROP TABLE,
-             * dbdeploy…) devenaient CSRF-ables. Supprimé, avec le contrôleur MelisSetup et sa vue.
-             */
         ],
     ],
     'service_manager' => [

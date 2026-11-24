@@ -444,9 +444,8 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
      * @return array
      */
     /**
-     * SECURITY (audit MP-M5) : seuls les callbacks documentés de MelisMarketPlaceSiteInstall
-     * sont invocables depuis la config `download` d'un paquet — l'ancien `$this->$fn()` libre
-     * permettait d'appeler n'importe quelle méthode (même privée) du service.
+     * Seuls les callbacks documentés de MelisMarketPlaceSiteInstall sont invocables depuis
+     * la config `download` d'un paquet.
      */
     private const ALLOWED_CONFIG_CALLBACKS = [
         'incrementCurrentPageId',
@@ -458,9 +457,8 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
     ];
 
     /**
-     * SECURITY (audit MP-M5) : échappement SQL correct d'une valeur destinée à un littéral
-     * entre quotes simples — l'ancien `str_replace(["'",'"'],["\'",'\"'])` n'échappait pas
-     * le backslash (une valeur finissant par `\` neutralisait la quote fermante).
+     * Échappement SQL d'une valeur destinée à un littéral entre quotes simples
+     * (backslash inclus).
      */
     private function escapeSqlValue($value)
     {
@@ -485,7 +483,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                         foreach ($payload as $field => $value) {
                             $recursionSql = '';
 
-                            // escape — SECURITY (audit MP-M5) : backslash inclus
+                            // escape — backslash inclus
                             if (!is_array($value)) {
                                 $value = $this->escapeSqlValue($value);
                             }
@@ -502,7 +500,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
 
                                     $fn = current(array_keys($value));
                                     $args = $value[$fn];
-                                    /** SECURITY (audit MP-M5) : callback whitelisté + résultat échappé. */
+                                    /** Callback whitelisté + résultat échappé. */
                                     if (!in_array($fn, self::ALLOWED_CONFIG_CALLBACKS, true)) {
                                         continue;
                                     }
@@ -583,7 +581,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
                     $this->sendEvent('melis_marketplace_site_install_inserted_id', ['table_name' => $table, 'id' => $insertedId, 'sql' => $sql]);
 
                     // Execute set callbacks in the configuration array table
-                    // SECURITY (audit MP-M5) : callbacks whitelistés (cf. ALLOWED_CONFIG_CALLBACKS)
+                    // Callbacks whitelistés (cf. ALLOWED_CONFIG_CALLBACKS)
                     if (isset($transact[Site::THEN])) {
                         foreach ($transact[Site::THEN] as $fnOrKey => $fn) {
                             if (is_string($fn) && in_array($fn, self::ALLOWED_CONFIG_CALLBACKS, true)) {
@@ -854,7 +852,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
         $returnField = $args[static::VAL_RETURN_FIELD];
 
         if ($table && $field && $value && $returnField) {
-            /** SECURITY (audit MP-M5) : identifiants whitelistés + valeur LIÉE (plus d'interpolation). */
+            /** Identifiants whitelistés + valeur liée. */
             foreach ([$table, $field, $returnField] as $identifier) {
                 if (!preg_match('/^[A-Za-z0-9_]+$/', (string) $identifier)) {
                     return null;
@@ -908,7 +906,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
 
         if ($siteId && $pageName && $return) {
 
-            /** SECURITY (audit MP-M5) : paramètres LIÉS (plus d'interpolation de page_name). */
+            /** Paramètres liés. */
             $transaction = "SELECT $return FROM `$melisCmsPageTree` " .
                 "LEFT JOIN `$melisCmsPagePublished` ON `tree_page_id` = `page_id` WHERE " .
                 "`tree_father_page_id` = ? AND `page_name` = ?;";
@@ -939,7 +937,7 @@ class MelisMarketPlaceSiteService extends MelisGeneralService
         $templateId = null;
 
         if ($siteId && $templateName && $return) {
-            /** SECURITY (audit MP-M5) : paramètres LIÉS (plus d'interpolation de tpl_name). */
+            /** Paramètres liés. */
             $transaction = "SELECT $return FROM `$melisCmsTemplates` WHERE `tpl_site_id` = ? AND `tpl_name` = ?";
 
             if ($result = $this->getAdapter()->query($transaction, [(int) $siteId, $templateName])->toArray()) {
