@@ -20,11 +20,10 @@ use Laminas\Db\Sql\Ddl;
 class MelisMarketPlaceController extends MelisAbstractActionController
 {
     /**
-     * Outil auquel ce contrôleur appartient (audit DEKRA 7.0).
+     * Outil auquel ce contrôleur appartient.
      *
      * Lu par MelisCoreAuthorizationListener : le garde-fou global résout la route jusqu'à
-     * cette classe et vérifie `canAccess()` sur cette clé AVANT le dispatch. Sans elle, le
-     * contrôleur restait joignable par tout compte connecté (route seulement authentifiée).
+     * cette classe et vérifie `canAccess()` sur cette clé AVANT le dispatch.
      * Clé accordable par l'arbre des droits — Market Place.
      */
     const MELIS_KEY = 'melis_market_place_tool_display';
@@ -1317,8 +1316,7 @@ class MelisMarketPlaceController extends MelisAbstractActionController
                                 [$file]
                             );
 
-                            // Only allow deleting a cache file by its basename to
-                            // avoid path traversal via the "file" POST value.
+                            // Only allow deleting a cache file by its basename.
                             $safeFile = basename($file);
                             $dbDeployFileCache = $_SERVER['DOCUMENT_ROOT'] . '/../dbdeploy/data/' . $safeFile;
                             if ($safeFile !== '' && file_exists($dbDeployFileCache)) {
