@@ -560,7 +560,9 @@ class MelisMarketPlaceController extends MelisAbstractActionController
         $search = rawurlencode((string) $search);
         $order = strtolower((string) $order) === 'asc' ? 'asc' : 'desc';
         $orderBy = preg_replace('/[^A-Za-z0-9_]/', '', (string) $orderBy) ?: 'mp_total_downloads';
-        $group = preg_replace('/[^A-Za-z0-9_-]/', '', (string) $group);
+        // Commas kept: the legacy list sends several groups ("1,2,3,4,5" on first display). Stripping
+        // them gave group "12345" → no package ("Aucun paquet trouvé", Mantis #0011627).
+        $group = preg_replace('/[^A-Za-z0-9_,-]/', '', (string) $group);
         $bundle = preg_replace('/[^0-9]/', '', (string) $bundle);
 
         $requestJsonUrl = $this->getMelisPackagistServer() . '/get-packages/page/' . $page . '/search/' . $search
