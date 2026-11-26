@@ -95,7 +95,9 @@ function changePackageHeaderTitle()
     //get the active buttons Id
     for (var ctr = 0; ctr < groupId.length; ctr++) {
         modulesName += (ctr == 0) ? "" : ", ";
-        modulesName += $(groupId[ctr]).attr("data-groupname");
+        // Group names are "MelisCore", "MelisCms"...: shown without the "Melis" prefix, like the
+        // filter buttons (tool-container.phtml, substr(name, 5)) — the heading read "Modules MelisCore" (#0011627)
+        modulesName += String($(groupId[ctr]).attr("data-groupname") || "").replace(/^Melis/, "");
     }
 
     headerBundleTitle.text("Bundles "+modulesName);

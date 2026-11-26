@@ -27,6 +27,39 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
 
     // ─── GET /packages ──────────────────────────────────────────────────────────
 
+    /** Sortable columns of the package list (orderBy value → catalogue field). */
+    private const PACKAGE_SORTS = [
+        'mp_total_downloads' => 'packageTotalDownloads',
+        'mp_date_added'      => 'packageDateAdded',
+        'mp_title'           => 'packageTitle',
+    ];
+
+    /**
+     * Sorts raw catalogue packages by a whitelisted column; ties broken by title then id so the
+     * order (and therefore the paging) is stable.
+     */
+    private function sortPackages(array $packages, string $orderBy, string $order): array
+    {
+        $field = self::PACKAGE_SORTS[$orderBy];
+        $dir   = $order === 'asc' ? 1 : -1;
+        usort($packages, static function (array $a, array $b) use ($field, $dir): int {
+            $va = $a[$field] ?? null;
+            $vb = $b[$field] ?? null;
+            if ($field === 'packageTotalDownloads') {
+                $c = (int) $va <=> (int) $vb;
+            } elseif ($field === 'packageDateAdded') {
+                $c = (int) strtotime((string) $va) <=> (int) strtotime((string) $vb);
+            } else {
+                // plain case-insensitive order (strnatcasecmp ignores spaces: "Frameworks" < "Framework Silex")
+                $c = strcasecmp((string) $va, (string) $vb);
+            }
+            if ($c !== 0) { return $c * $dir; }
+            return strcasecmp((string) ($a['packageTitle'] ?? ''), (string) ($b['packageTitle'] ?? ''))
+                ?: ((int) ($a['packageId'] ?? 0) <=> (int) ($b['packageId'] ?? 0));
+        });
+        return $packages;
+    }
+
     public function packagesAction(): HttpResponse
     {
         if ($deny = $this->denyUnlessAccess()) { return $deny; }
@@ -40,7 +73,9 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
             }
 
             $page     = max(1, (int) $this->params()->fromQuery('page', 1));
-            $limit    = min(200, max(1, (int) $this->params()->fromQuery('limit', 24)));
+            // limit ≤ 0 / missing → default page size (it gave 1 item per page, Mantis #0011626)
+            $limitRaw = (int) $this->params()->fromQuery('limit', 24);
+            $limit    = $limitRaw >= 1 ? min(200, $limitRaw) : 24;
             $search   = trim((string) ($this->params()->fromQuery('search', '') ?? ''));
             $group    = trim((string) ($this->params()->fromQuery('group', '') ?? ''));
             $orderBy  = trim((string) ($this->params()->fromQuery('orderBy', 'mp_total_downloads') ?? ''));
@@ -53,39 +88,57 @@ class MelisMarketPlaceReactApiController extends MelisAbstractActionController
              * chemin / injection de query sur l'hôte catalogue).
              */
             $order   = strtolower($order) === 'asc' ? 'asc' : 'desc';
-            $orderBy = preg_replace('/[^A-Za-z0-9_]/', '', $orderBy) ?: 'mp_total_downloads';
             $group   = preg_replace('/[^A-Za-z0-9_-]/', '', $group);
+            // Sort columns whitelisted; an unknown column falls back to the default sort
+            // (the catalogue answered 500 → empty list, Mantis #0011626).
+            if (!isset(self::PACKAGE_SORTS[$orderBy])) { $orderBy = 'mp_total_downloads'; }
 
-            $serverPackages = $this->fetchFromPackagist('/get-packages/page/' . $page
-                . '/search/' . rawurlencode($search)
-                . '/item_per_page/' . $limit
-                . '/order/' . $order
-                . '/order_by/' . $orderBy
-                . '/status/1/group/' . $group
-                . '/bundle/' . $bundle);
+            /**
+             * Sorting and paging are done HERE, on the whole (filtered) catalogue (Mantis #0011626):
+             * the Melis catalogue ignores the direction (`order/asc` and `order/desc` give the same
+             * list, so "Nom" was Z→A), and the packages removed from packagist.org are filtered out
+             * AFTER its paging, so pages held fewer items than the limit and their size depended on
+             * the sort. The catalogue is small (≈ 40 packages): one call, item_per_page 200, with a
+             * sort it supports; following pages fetched only if it ever grows beyond that.
+             */
+            $rawItems = [];
+            for ($p = 1, $pages = 1; $p <= $pages && $p <= 10; $p++) {
+                $serverPackages = $this->fetchFromPackagist('/get-packages/page/' . $p
+                    . '/search/' . rawurlencode($search)
+                    . '/item_per_page/200'
+                    . '/order/desc'
+                    . '/order_by/mp_total_downloads'
+                    . '/status/1/group/' . $group
+                    . '/bundle/' . $bundle);
+                $rawItems = array_merge($rawItems, $serverPackages['packages'] ?? []);
+                $pages    = max(1, (int) ($serverPackages['pageCount'] ?? 1));
+            }
 
-            $rawItems = $serverPackages['packages'] ?? [];
-            // Récupère les vraies dernières versions EN PARALLÈLE (une seule salve réseau pour la page).
+            // Récupère les vraies dernières versions EN PARALLÈLE (une seule salve réseau, cache disque 1 h).
             $this->primeLatestVersions(array_map(static fn ($x) => (string) ($x['packageName'] ?? ''), $rawItems));
-            $items = array_map([$this, 'formatPackage'], $rawItems);
 
             // Liste DYNAMIQUE : le catalogue Melis peut encore lister des modules PUBLICS retirés de
             // packagist.org (ex. melis-platform-framework-*). Ils ne sont plus installables → on les
             // masque (404 packagist.org confirmé). Les privés (jamais publiés publiquement) restent
             // affichés en teaser verrouillé, comme le legacy.
-            $items = array_values(array_filter(
-                $items,
-                fn ($it) => !empty($it['isPrivate']) || !$this->isAbsentFromPackagist((string) $it['name'])
+            $rawItems = array_values(array_filter(
+                $rawItems,
+                fn ($x) => !empty($x['packageIsPrivate']) || !$this->isAbsentFromPackagist((string) ($x['packageName'] ?? ''))
             ));
 
-            // Melis Packagist paginates by page/pageCount (no absolute item total is returned).
+            $rawItems  = $this->sortPackages($rawItems, $orderBy, $order);
+            $total     = count($rawItems);
+            $pageCount = max(1, (int) ceil($total / $limit));
+            $items     = array_map([$this, 'formatPackage'], array_slice($rawItems, ($page - 1) * $limit, $limit));
+
             return $this->jsonResponse([
                 'success' => true,
                 'data' => [
                     'items'            => $items,
-                    'page'             => (int) ($serverPackages['currentPageNumber'] ?? $page),
-                    'pageCount'        => (int) ($serverPackages['pageCount'] ?? 1),
-                    'limit'            => (int) ($serverPackages['itemCountPerPage'] ?? $limit),
+                    'page'             => $page,
+                    'pageCount'        => $pageCount,
+                    'limit'            => $limit,
+                    'total'            => $total,
                     'marketAccessible' => true,
                 ],
             ]);
